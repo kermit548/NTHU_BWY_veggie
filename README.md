@@ -148,24 +148,34 @@
 
 ---
 
-# 四、**補充：CORS (跨來源資源共用) 限制**
+# 四、**補充：CORS (跨來源資源共用) 限制與解決方案**
 
-- 無論 CSV 或 HTML，Google Sheets 公開網址都沒有 CORS 標頭，前端 fetch 會被擋住。
-- 瀏覽器前端 fetch 會被擋下，尤其在私密模式下，瀏覽器對 CORS 更嚴格。
-- 一般模式有時可用，是因為瀏覽器快取或 session 差異，但這不保證穩定，也不安全。
+- 無論 CSV 或 HTML，Google Sheets 公開網址預設皆未附帶 `Access-Control-Allow-Origin` 回應標頭，瀏覽器純前端（`fetch` 或 `XMLHttpRequest`）會因同源政策而被攔截。
+- 私密瀏覽模式對跨來源請求的限制更為嚴格，容易直接引發網路錯誤。
+- 過去常見的免金鑰公開代理（如 `corsproxy.io`）已全面終止匿名 Legacy Proxy 服務（回傳 `403 keyless_legacy_url` 錯誤），其他公開 Proxy 亦常有連線超時與頻寬配額限制。
 
+### 最佳解法：Google Visualization API 原生 JSONP 模式
 
-若你要**跨域存取**，可用公開 CORS Proxy，例如  
-`https://corsproxy.io/?` 或 `https://api.allorigins.win/raw?url=`
+透過動態注入 `<script>` 標籤載入 Google Visualization API，利用 JSONP 原理天然規避瀏覽器 CORS 限制，完全不需依賴任何不可控的第三方 Proxy：
 
-````markdown
-const url = 'https://corsproxy.io/?https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}';
-// 下面程式碼同上
-````
+```javascript
+const callbackName = 'handleGoogleSheetResponse_' + Date.now();
+window[callbackName] = function (response) {
+  // 取得結構化 table 資料
+  const table = response.table;
+  // 處理統計與畫圖...
+};
 
-## 盲點提醒
+const script = document.createElement('script');
+script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${SHEET_GID}&tqx=responseHandler:${callbackName}`;
+document.body.appendChild(script);
+```
 
-- CORS proxy 有流量限制、可能不穩定，不適合正式專案。
-- 若需要「將資料安全、穩定地提供給前端」，**後端代理仍是最理想方案**。
+### 架構特性
+
+1. **零第三方相依**：直接與 Google 官方端點通訊，無中介 Proxy 斷線或改版收費風險。
+2. **純前端相容性**：無論部署於 GitHub Pages 或本地 XAMPP 環境皆可正常運作。
+3. **資料結構化**：回傳格式為標準 Table 物件，無須手動解析逗號或雙引號跳脫。
 
 ---
+
