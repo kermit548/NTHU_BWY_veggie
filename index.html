@@ -1,32 +1,199 @@
-<!doctype html>
-<html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
-  <meta charset="utf-8">
-  <title>清大福青社蔬食月｜特蔬任務</title>
-  <link rel="stylesheet" href="assets/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 蔬食月・集食行善 九宮格賓果挑戰</title>
+  <!-- 引入後端 Google Apps Script 設定檔 -->
+  <link rel="stylesheet" href="./assets/style.css">
+  <link rel="stylesheet" href="./assets/bwy2026.css">
+  <script src="./assets/GoogleAppsScript.js"></script>
 </head>
 <body>
-<!-- 在 <body> 區塊內任意位置新增這段HTML（建議放最前面） -->
-<div class="qr-fixed">
-  <div class="title">歡迎追蹤按讚！</div>
-  <div class="qr-row">
-    <div class="qr-item">
-      <a href="https://www.instagram.com/bwyouthhc.nthu/" target="_blank"><img src="img/bwy.nthu_IG.png" alt="IG QR碼"></a>
-      <div class="label">Instagram</div>
-      <div class="account"><a href="https://www.instagram.com/bwyouthhc.nthu/" target="_blank">@bwyouthhc.nthu</a></div>
+  <!-- 社群二維碼模組（獨立模組化引入，原生支援 file:// 與點擊事件，零遮擋） -->
+  <script src="./assets/qr-fixed.js"></script>
+
+  <!-- 頂部列 -->
+  <header>
+    <div class="brand">
+      <span>🌱</span>
+      <span>清大福青・蔬食月賓果挑戰</span>
     </div>
-    <div class="qr-item">
-      <a href="https://www.facebook.com/blisswisdom.nthu" target="_blank"><img src="img/bwy.nthu_FB.png" alt="FB QR碼"></a>
-      <div class="label">Facebook</div>
-      <div class="account"><a href="https://www.facebook.com/blisswisdom.nthu" target="_blank">清大福智青年社</a></div>
+    <div class="header-actions">
+      <span id="staffIndicator" class="badge-staff" style="display: none;">工作人員模式</span>
+      <button class="btn btn-outline btn-sm" onclick="toggleStaffMode()">切換為工作人員身份</button>
+      <button class="btn btn-outline btn-sm" onclick="openConfigModal()">系統設定</button>
     </div>
-  </div>
-</div>
+  </header>
 
   <div class="container">
-    <h1><font style="font-size:1.5em;text-decoration: underline">清大福青社蔬食月</font>｜特蔬任務｜<a href="tree.html" style="text-decoration: none;color:#3366FF">寫下承諾</a>｜<a href="dashboard.html" style="text-decoration: none;color:#3366FF">統計結果</a></h1>
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdUJZg86kiwQa9nPTmVcZJCrzE6fVLFL8IH7b_4ntPYAQm8Zg/viewform?embedded=true" width="800" height="2040" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
-    <p>送出後可前往 <a href="dashboard.html">統計結果</a> 查看參與情形。</p>
+    
+    <!-- 歡迎 / 未報名狀態卡片 -->
+    <div id="heroCard" class="hero-card">
+      <h1>集食行善・蔬食月挑戰賽</h1>
+      <p>連續整個月的綠色探索！點擊下方按鈕填寫報名，立即領取專屬九宮格賓果卡。參加指定講座、餐飲打卡即可完成蓋章，完成連線兌換豐富限量蔬食好禮！</p>
+      <div class="hero-buttons">
+        <button class="btn btn-primary" onclick="openRegisterModal()">立即報名領取賓果卡</button>
+        <button class="btn btn-outline" onclick="openLookupModal()">已有流水號？查詢舊卡</button>
+      </div>
+    </div>
+
+    <!-- 賓果卡畫面（已領卡後顯示） -->
+    <div id="bingoSection" class="bingo-section">
+      
+      <!-- 卡片資訊列 -->
+      <div class="card-meta-bar">
+        <div class="meta-group">
+          <span class="meta-label">專屬流水號 (Serial No)</span>
+          <span class="meta-value"><span id="metaSerial" class="serial-tag">VEG-2026-0001</span></span>
+        </div>
+        <div class="meta-group">
+          <span class="meta-label">學員姓名</span>
+          <span id="metaName" class="meta-value">王小明</span>
+        </div>
+        <div class="meta-group">
+          <span class="meta-label">目前進度</span>
+          <span class="meta-value"><span id="metaProgress">0</span> / 9 格</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="stats-pill">
+            達成連線：<span id="metaLines">0</span> 條線
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="syncCardWithCloud(currentUser.serial, false)" title="從試算表重新抓取最新蓋章狀態">
+            🔄 同步試算表
+          </button>
+        </div>
+      </div>
+
+      <!-- 九宮格 3x3 -->
+      <div class="bingo-grid" id="bingoGrid">
+        <!-- 9 個格子透過 JavaScript 動態渲染 -->
+      </div>
+
+      <!-- 獎勵兌換指南 -->
+      <div class="rules-card">
+        <h3>獎勵機制</h3>
+        <ul class="rules-list">
+          <li>
+            <span class="tier-badge">連成 2 條線</span>
+            <span>全家禮券 $50 抽十位</span>
+          </li>
+          <li>
+            <span class="tier-badge">連成 3 條線</span>
+            <span>全家禮券 $100 抽三位</span>
+          </li>
+          <li>
+            <span class="tier-badge">全滿</span>
+            <span>威秀電影票 *1 抽兩位（加碼：蹭飯團免費吃一次）</span>
+          </li>
+          <li>
+            <span class="tier-badge" style="background: #fff3e0; color: #e65100;">特別加碼</span>
+            <span>帶兩位以上的朋友來參加社課和活動可多蓋任意一格，限一次</span>
+          </li>
+        </ul>
+        <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">蓋章方式：攜帶手機至社課現場出示本卡，由工作人員以綠色通道快速蓋章，或輸入各活動官方通關密碼。</span>
+          <button class="btn btn-outline btn-sm" onclick="resetCurrentCard()">登出</button>
+        </div>
+      </div>
+
+    </div>
+
   </div>
+
+  <!-- 彈窗 1：報名表單 -->
+  <div id="registerModal" class="modal-overlay">
+    <div class="modal">
+      <h2>報名蔬食月活動</h2>
+      <p class="subtitle">填寫報名資料，系統將為您配發專屬流水號並建立賓果卡。</p>
+      <form id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="regName">姓名 *</label>
+          <input type="text" id="regName" required placeholder="例如：林書豪">
+        </div>
+        <div class="form-group">
+          <label for="regStudentId">系級 / 學號 *</label>
+          <input type="text" id="regStudentId" required placeholder="例如：動機系 112033001">
+        </div>
+        <div class="form-group">
+          <label for="regContact">聯絡手機 / Email *</label>
+          <input type="text" id="regContact" required placeholder="獲獎時通知聯絡用">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('registerModal')">取消</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitReg">完成報名並取得賓果卡</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 彈窗 2：查詢舊卡 -->
+  <div id="lookupModal" class="modal-overlay">
+    <div class="modal">
+      <h2>查詢既有賓果卡</h2>
+      <p class="subtitle">輸入您先前報名取得的專屬流水號，載入您的任務進度。</p>
+      <form onsubmit="handleLookup(event)">
+        <div class="form-group">
+          <label for="lookupSerial">專屬流水號 *</label>
+          <input type="text" id="lookupSerial" required placeholder="例如：VEG-2026-0001">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('lookupModal')">取消</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitLookup">查詢卡片</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 彈窗 3：蓋章驗證對話框 -->
+  <div id="stampModal" class="modal-overlay">
+    <div class="modal">
+      <h2 id="stampModalTitle">任務蓋章檢核</h2>
+      <p class="subtitle" id="stampModalDesc">請輸入活動現場提供之通關碼以完成蓋章。</p>
+      
+      <!-- 工作人員綠色通道 -->
+      <div id="staffQuickSection" style="display: none; background: #e8f5e9; border: 1px dashed #4caf50; padding: 14px; border-radius: 8px; margin-bottom: 14px;">
+        <div style="font-size: 0.85rem; font-weight: bold; color: #2e7d32; margin-bottom: 4px;">工作人員綠色通道</div>
+        <div style="font-size: 0.8rem; color: #37474f; margin-bottom: 10px;">已驗證工作人員身份，點擊下方按鈕即可免密碼快速寫入試算表。</div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="confirmStamp(true)">工作人員綠色通道蓋章</button>
+      </div>
+
+      <form onsubmit="handleVerifyStamp(event)">
+        <input type="hidden" id="stampGridIndex">
+        <div class="form-group">
+          <label for="verifyCode">活動通關密碼</label>
+          <input type="text" id="verifyCode" placeholder="請輸入本關通關代碼">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+            提示：向各活動關主索取通關代碼；或由現場工作人員以綠色通道快速蓋章。
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('stampModal')">返回</button>
+          <button type="submit" class="btn btn-primary">驗證並蓋章</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 彈窗 4：系統後端設定（查看與診斷） -->
+  <div id="configModal" class="modal-overlay">
+    <div class="modal">
+      <h2>後端 Google Sheets 串接設定</h2>
+      <p class="subtitle">可在此查看 Google Apps Script Web App URL，並進行即時連線診斷。</p>
+      <div class="form-group">
+        <label for="gasEndpoint">Google Apps Script Web App URL</label>
+        <input type="url" id="gasEndpoint" readonly style="background: #f1f3f4; color: #546e7a; cursor: not-allowed;">
+      </div>
+      <div id="testResultBox" style="display: none; padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 14px; word-break: break-all;"></div>
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="testConnection()">連線診斷測試</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('configModal')">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast-banner"></div>
+
 </body>
 </html>

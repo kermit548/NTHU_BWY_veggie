@@ -1,181 +1,115 @@
-# 一、初始目標
+[2025福青蔬食月開發歷程](2025.md)
 
-希望寫出一個主要使用php語言的活動網站，可以讓使用者簡單填寫系級、姓名、郵件後，發願吃素食的頻率（一週三次以上/一週一次/少吃肉），最後會以匿名點狀呈現在dashboard 
+# 2026 清大福青・蔬食月九宮格賓果挑戰系統
 
----
+國立清華大學福智青年社（NTHU BWY）2026 蔬食月「集食行善」數位化活動管理與九宮格賓果集點系統。
 
-# 二、實現過程
-
-1. **AI 第一版給出 LAMP（Apache + PHP + MySQL/MariaDB）的架構**
-
-2. **考慮資料庫架設不易，要求提供第二版將資料庫換成 Google 試算表**
-
-3. **考慮瀏覽方便性，選定發布在 Github 平台，捨棄 PHP，使用純 HTML**
+本專案將傳統紙本集點卡全面數位化，結合 Google 雲端試算表（Google Sheets）與 Google Apps Script（GAS）無伺服器架構，學員無須安裝任何 App 即可透過手機瀏覽器報名、領取專屬數位賓果卡、輸入通關碼蓋章，並享有工作人員綠色通道免密核銷、連線即時試算及防作弊安全機制。
 
 ---
 
-# 三、**完整部署步驟**
+## 一、 系統特色
 
-## 步驟 1：建立 Google Forms 作為報名表
-
-1. 登入 Google 帳號，建立 Google Forms。
-2. 設定欄位：系級、姓名、email、蔬食頻率（三選一）。
-3. 表單送出後，自動寫入 Google Sheets（表單回應）。
-4. 取得 Google Sheets 的 Spreadsheet ID（URL 中 /spreadsheets/d/xxxxxx）。
-
-## 步驟 2：公開 Google Sheets 統計資料
-
-1. 開啟 Google Sheets，點選「分享」→「任何人有連結都可以檢視」。
-2. 或者，使用 [Google Sheets API](https://developers.google.com/sheets/api/quickstart/js) 讓前端 JavaScript 能讀取資料。
-3. 記下 Spreadsheet ID。
-
-## 步驟 3：設計前端 dashboard 頁面（dashboard.html）
-
-1. 在本機建立 veggie/ 資料夾，新增 index.html、dashboard.html、style.css、dashboard.js。
-2. index.html：放 Google Forms 的嵌入碼（iframe）。
-3. dashboard.html：用 JavaScript 讀取 Google Sheets，計算三類人數，畫出點狀圖。
-
-範例：
-
-````markdown
-# index.html
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <title>特蔬任務｜報名發願</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="container">
-    <h1>特蔬任務｜報名發願</h1>
-    <iframe src="https://docs.google.com/forms/d/e/你的FormID/viewform?embedded=true" width="640" height="800" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
-    <p>送出後可前往 <a href="dashboard.html">匿名儀表板</a> 查看參與統計。</p>
-  </div>
-</body>
-</html>
-````
-
-````markdown
-# dashboard.html
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <title>特蔬任務｜匿名儀表板</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="container">
-    <h1>特蔬任務｜匿名儀表板</h1>
-    <div id="summary"></div>
-    <div class="boards">
-      <div class="board">
-        <h2>一週三次以上</h2>
-        <canvas id="canvas-three" width="360" height="300"></canvas>
-      </div>
-      <div class="board">
-        <h2>一週一次</h2>
-        <canvas id="canvas-one" width="360" height="300"></canvas>
-      </div>
-      <div class="board">
-        <h2>我願意少吃肉</h2>
-        <canvas id="canvas-less" width="360" height="300"></canvas>
-      </div>
-    </div>
-  </div>
-  <script src="dashboard.js"></script>
-</body>
-</html>
-````
-
-````markdown
-# dashboard.js
-(async function(){
-  // 以 Google Sheets 的「公開 CSV」方式取得資料
-  const SHEET_ID = '你的SpreadsheetID';
-  const SHEET_GID = '0'; // 預設第一個工作表
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-  const res = await fetch(url);
-  const csv = await res.text();
-
-  // 解析 CSV（建議用 PapaParse 或自己拆分）
-  const lines = csv.split('\n').filter(x=>x.trim());
-  const header = lines[0].split(',');
-  const pledgeIdx = header.findIndex(h => h.includes('蔬食頻率') || h.toLowerCase().includes('pledge'));
-  let counts = { three_plus: 0, one: 0, less_meat: 0 };
-  for (let i=1; i<lines.length; i++) {
-    const cols = lines[i].split(',');
-    const p = cols[pledgeIdx] || '';
-    if (p.includes('三次')) counts.three_plus++;
-    else if (p.includes('一次')) counts.one++;
-    else if (p.includes('少吃肉')) counts.less_meat++;
-  }
-  const total = counts.three_plus + counts.one + counts.less_meat;
-  document.getElementById('summary').textContent =
-    `總參與數：${total}（三次以上：${counts.three_plus}；一週一次：${counts.one}；少吃肉：${counts.less_meat}）`;
-
-  function drawDots(canvasId, count, color) {
-    const cvs = document.getElementById(canvasId);
-    const ctx = cvs.getContext('2d');
-    ctx.clearRect(0,0,cvs.width,cvs.height);
-    for (let i=0; i<count; i++) {
-      const x = Math.random() * (cvs.width - 16) + 8;
-      const y = Math.random() * (cvs.height - 16) + 8;
-      ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI*2);
-      ctx.fillStyle = color;
-      ctx.fill();
-    }
-  }
-  drawDots('canvas-three', counts.three_plus, '#A93226');
-  drawDots('canvas-one', counts.one, '#D35400');
-  drawDots('canvas-less', counts.less_meat, '#F1C40F');
-})();
-````
-
-## 步驟 4：推送到 GitHub
-
-1. 建立 repo `veggie`。
-2. 將上述所有檔案（index.html, dashboard.html, style.css, dashboard.js）push 到 repo。
-3. 進入 repo → Settings → Pages → 設定分支（如 main）和目錄（如 root 或 /veggie）。
-4. 取得網址：`https://xxxx.github.io/veggie/`
-
-## 步驟 5：測試
-
-1. 開啟 `https://xxxx.github.io/veggie/`，填寫 Google Forms。
-2. 開啟 `https://xxxx.github.io/veggie/dashboard.html`，確認 dashboard 能正確統計並顯示匿名點狀圖。
+| 功能模組 | 特色說明 |
+|---|---|
+| **專屬數位卡片** | 報名即配發 6 位專屬流水號（例如 `VEG-2026-274154`），關閉網頁後可隨時憑流水號重新載入進度 |
+| **九宮格與連線判定** | 3×3 互動式方格，自動即時演算 8 種連線組合（橫 3、直 3、斜 2），達成連線時自動觸發高亮動效與獎勵提示 |
+| **雙軌核驗蓋章** | 支援「官方通關代碼核銷」與「工作人員綠色通道免密核銷」，滿足自主打卡與現場攤位快速通關需求 |
+| **動態任務雲端同步** | 前端九宮格任務名稱、條件與通關密碼完全依據 Google 試算表即時讀取，主辦方調整試算表即全網生效 |
+| **安全防護架構** | 工作人員通行密碼改由後端驗證，公開 API 絕不外洩密碼；具備格子範圍校驗（0~8）與重複蓋章冪等防護 |
+| **自適應社群二維碼** | 桌機大螢幕自動於留白處展示常駐側欄；平板與手機螢幕自動收納為右下角 FAB 浮動按鈕與彈窗，零遮擋操作 |
 
 ---
 
-# 四、**補充：CORS (跨來源資源共用) 限制與解決方案**
+## 二、 系統架構
 
-- 無論 CSV 或 HTML，Google Sheets 公開網址預設皆未附帶 `Access-Control-Allow-Origin` 回應標頭，瀏覽器純前端（`fetch` 或 `XMLHttpRequest`）會因同源政策而被攔截。
-- 私密瀏覽模式對跨來源請求的限制更為嚴格，容易直接引發網路錯誤。
-- 過去常見的免金鑰公開代理（如 `corsproxy.io`）已全面終止匿名 Legacy Proxy 服務（回傳 `403 keyless_legacy_url` 錯誤），其他公開 Proxy 亦常有連線超時與頻寬配額限制。
-
-### 最佳解法：Google Visualization API 原生 JSONP 模式
-
-透過動態注入 `<script>` 標籤載入 Google Visualization API，利用 JSONP 原理天然規避瀏覽器 CORS 限制，完全不需依賴任何不可控的第三方 Proxy：
-
-```javascript
-const callbackName = 'handleGoogleSheetResponse_' + Date.now();
-window[callbackName] = function (response) {
-  // 取得結構化 table 資料
-  const table = response.table;
-  // 處理統計與畫圖...
-};
-
-const script = document.createElement('script');
-script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${SHEET_GID}&tqx=responseHandler:${callbackName}`;
-document.body.appendChild(script);
+```mermaid
+flowchart TD
+    A[學員 / 工作人員手機瀏覽器] -->|1. 領卡 / 查詢| B[前端靜態網頁 index.html]
+    B -->|2. GET/POST JSONP/CORS| C[Google Apps Script Web App]
+    C -->|3. 讀寫資料 / 驗證密碼| D[(Google 試算表)]
+    D -->|分頁1| D1[學員報名與賓果總表]
+    D -->|分頁2| D2[九宮格任務與通關碼設定]
+    D -->|分頁3| D3[簽到與核銷紀錄歷程]
+    B -.->|動態引入| E[assets/qr-fixed.js 社群模組]
+    B -.->|樣式管理| F[assets/bwy2026.css 主樣式表]
 ```
 
-### 架構特性
+---
 
-1. **零第三方相依**：直接與 Google 官方端點通訊，無中介 Proxy 斷線或改版收費風險。
-2. **純前端相容性**：無論部署於 GitHub Pages 或本地 XAMPP 環境皆可正常運作。
-3. **資料結構化**：回傳格式為標準 Table 物件，無須手動解析逗號或雙引號跳脫。
+## 三、 檔案目錄結構
+
+```text
+NTHU_BWY_veggie/
+├── index.html                       # 2026 蔬食月賓果挑戰主頁面
+├── qr-fixed.html                    # 社群二維碼模組獨立預覽頁
+├── 2025.html                        # 2025 歷史特蔬任務頁面
+├── tree.html                        # 寫下承諾互動頁面
+├── dashboard.html                   # 統計圖表儀表板
+├── Google_Apps_Script_設定教學.md    # 後端 Apps Script v6 程式碼與安裝手冊
+├── 2025.md                          # 2025 福青蔬食月初始開發歷程文檔
+├── README.md                        # 本專案說明文件
+├── assets/
+│   ├── GoogleAppsScript.js          # 前端核心資料邏輯與 Web App 串接設定
+│   ├── bwy2026.css                  # 賓果挑戰主要視覺與動畫樣式
+│   ├── qr-fixed.js                  # 社群二維碼自適應按鈕與彈窗獨立模組
+│   ├── dashboard.js                 # 儀表板圖表邏輯
+│   └── style.css                    # 通用排版基礎樣式
+└── img/                             # 圖檔目錄（二維碼、印章、社群標誌等）
+```
 
 ---
 
+## 四、 快速部署指南
+
+### 1. 後端設定（Google 試算表與 Apps Script）
+1. 建立一份新的 Google 試算表，命名為 `2026蔬食週_賓果資料庫`。
+2. 建立三個工作表分頁：
+   * `學員報名與賓果總表`
+   * `九宮格任務與通關碼設定`
+   * `簽到與核銷紀錄歷程`
+3. 點選試算表功能表的「擴充功能」>「Apps Script」。
+4. 將本專案中 `Google_Apps_Script_設定教學.md` 提供的最新後端程式碼完整貼入 `程式碼.gs`。
+5. 點選右上角「部署」>「新增部署作業」：
+   * 種類：**網頁應用程式（Web App）**
+   * 執行身分：**我**
+   * 誰可以存取：**所有人（任何人）**
+6. 複製取得的 Web App URL（結尾為 `/exec`）。
+
+### 2. 前端設定
+1. 開啟 `assets/GoogleAppsScript.js`，將第 3 行的常數替換為您部署的 Web App URL：
+   ```javascript
+   const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/你的部署ID/exec";
+   ```
+2. 將所有網頁檔案上傳至 GitHub Pages、XAMPP 或任何靜態網頁伺服器，即可開始使用。
+
+---
+
+## 五、 試算表分頁欄位規範
+
+### 分頁一：學員報名與賓果總表
+| 欄位 A | 欄位 B | 欄位 C | 欄位 D | 欄位 E | 欄位 F ~ N | 欄位 O | 欄位 P | 欄位 Q |
+|---|---|---|---|---|---|---|---|---|
+| 流水號 | 報名時間戳記 | 姓名 | 系級與學號 | 聯絡方式 | 格 1 ~ 9 狀態（0 或 1） | 達成連線數 | 兌獎狀態 | 最後更新時間 |
+
+### 分頁二：九宮格任務與通關碼設定
+| 欄位 A（格子編號） | 欄位 B（任務標題） | 欄位 C（任務說明） | 欄位 D（官方通關代碼） |
+|:---:|---|---|:---:|
+| 0 | 工作人員綠色通道 | 提供社團工作人員免密碼快速蓋章 | `nthu.bwy2026`（自訂密碼） |
+| 1 | 環保杯與餐具 | 使用環保杯或環保餐具購買飲料或餐點一次 | `ECO2026` |
+| 2 | 看靜態展+許願樹 | 看靜態展+許願樹（現場驗證） | `TREE2026` |
+| 3 | IG 分享靜態展 | 在 IG 限動分享靜態展並標註社團 | `IGEXPO2026` |
+| 4 | 運動會擺攤 | 參加 11/11 運動會擺攤（現場驗證） | `SPORT1111` |
+| 5 | 吃一餐蔬食餐 | 吃一餐蔬食餐（核心任務） | `VEG2026` |
+| 6 | IG 分享料理實作 | 在 IG 限動分享料理實作並標註社團 | `IGCOOK2026` |
+| 7 | 帶好友同行 | 帶一位朋友參加蔬食月活動（兩人皆可蓋） | `FRIEND2026` |
+| 8 | 料理實作 | 參加 11/18 料理實作（現場驗證） | `COOK1118` |
+| 9 | 主題社課（擇一） | 參加前行社課或總結社課（現場驗證） | `CLASS2026` |
+
+---
+
+## 六、 授權與維護
+
+* 主辦單位：國立清華大學福智青年社（NTHU Bliss & Wisdom Youth Club）
+* 專案維護：清大福青社行政與資訊團隊
+* 授權條款：MIT License
