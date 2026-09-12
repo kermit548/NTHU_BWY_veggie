@@ -431,7 +431,8 @@
       z-index: 2000;
     }
 
-    @media (max-width: 540px) {
+    /* 手機與窄螢幕響應式適配 */
+    @media (max-width: 640px) {
       .bingo-grid {
         gap: 8px;
       }
@@ -445,7 +446,12 @@
         display: none;
       }
       .stamp-mark {
-        width: 64px;
-        height: 64px;
+        width: 62px;
+        height: 62px;
+        top: 66%;
+      }
+      /* 視窗太小時自動隱藏已蓋章字樣，避免與抱抱地球印章重疊打架 */
+      .grid-cell.stamped .cell-status-hint {
+        display: none;
       }
     }
