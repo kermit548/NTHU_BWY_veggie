@@ -438,12 +438,17 @@
       }
       .grid-cell {
         padding: 10px 8px;
+        justify-content: flex-start;
       }
       .cell-title {
         font-size: 0.85rem;
+        margin-top: 4px;
       }
       .cell-desc {
         display: none;
+      }
+      .cell-status-hint {
+        margin-top: auto;
       }
       .stamp-mark {
         width: 62px;
