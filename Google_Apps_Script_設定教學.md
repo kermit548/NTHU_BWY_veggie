@@ -8,6 +8,7 @@
  * 2. 加入格子編號範圍校驗（0~8），杜絕非目標儲存格被竄改
  * 3. 加入冪等性防重複蓋章機制（避免網路延遲連點引發重複寫入）
  * 4. 支援 6 位流水號防碰撞檢查
+ * 5. 強制時間格式為台灣標準時間 GMT+8（Asia/Taipei），解決試算表預設 GMT+0 問題
  */
 
 const PREFERRED_USERS_SHEET = "學員報名與賓果總表";
@@ -176,17 +177,17 @@ function handleRegister(sheet, payload) {
       } while (existingSerials.has(serial));
     }
     
-    const now = new Date();
+    const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy/MM/dd HH:mm:ss");
     const rowData = [
       serial,
-      now,
+      nowStr, // 建立時間（強制 GMT+8 台灣時間）
       payload.name,
       payload.studentId,
       payload.contact,
       0, 0, 0, 0, 0, 0, 0, 0, 0, // 格 1~9 使用數值 0
       0,
       "未兌獎",
-      now
+      nowStr  // 最後更新時間（強制 GMT+8 台灣時間）
     ];
     
     sheet.appendRow(rowData);
@@ -258,9 +259,10 @@ function handleStamp(ss, sheet, payload) {
       });
     }
 
-    // 寫入蓋章數值 1 與最後更新時間
+    // 寫入蓋章數值 1 與最後更新時間（強制 GMT+8 台灣時間）
+    const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy/MM/dd HH:mm:ss");
     sheet.getRange(targetRow, targetCol).setValue(1);
-    sheet.getRange(targetRow, 17).setValue(new Date());
+    sheet.getRange(targetRow, 17).setValue(nowStr);
     
     SpreadsheetApp.flush();
     
@@ -271,7 +273,7 @@ function handleStamp(ss, sheet, payload) {
     const logSheet = ss.getSheetByName(LOG_SHEET_NAME);
     if (logSheet) {
       logSheet.appendRow([
-        new Date(),
+        nowStr,
         payload.serial,
         data[targetRow - 1][2],
         "第 " + (gridIndex + 1) + " 格",
