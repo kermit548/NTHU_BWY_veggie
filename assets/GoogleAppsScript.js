@@ -6,18 +6,13 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
  * 2026 蔬食月・森活賓果卡 前端核心互動邏輯與連線模組
  * ========================================================================== */
 
-// 預設備用任務清單（依據活動宣傳與集點「森活賓果卡」官方規範）
-    const DEFAULT_TASKS = [
-      { id: 1, title: "環保杯與餐具", desc: "使用環保杯或環保餐具購買飲料或餐點一次", code: "ECO2026" },
-      { id: 2, title: "看靜態展+許願樹", desc: "看靜態展+許願樹（現場驗證）", code: "TREE2026" },
-      { id: 3, title: "IG 分享靜態展", desc: "在 IG 限動分享靜態展並標註社團", code: "IGEXPO2026" },
-      { id: 4, title: "運動會擺攤", desc: "參加 11/11 運動會擺攤（現場驗證）", code: "SPORT1111" },
-      { id: 5, title: "吃一餐蔬食餐", desc: "吃一餐蔬食餐", code: "VEG2026" },
-      { id: 6, title: "IG 分享料理實作", desc: "在 IG 限動分享料理實作並標註社團", code: "IGCOOK2026" },
-      { id: 7, title: "帶好友同行", desc: "帶一位朋友參加蔬食月活動（現場驗證 兩人皆可蓋）", code: "FRIEND2026" },
-      { id: 8, title: "料理實作", desc: "參加 11/18 料理實作（現場驗證）", code: "COOK1118" },
-      { id: 9, title: "主題社課（擇一）", desc: "參加 10/14 前行社課或 11/25 總結社課（擇一）（現場驗證）", code: "CLASS2026" }
-    ];
+// 預備骨架：僅維持 9 格陣列結構防呆，任務內容 100% 由 Google 試算表動態同步
+    const DEFAULT_TASKS = Array.from({ length: 9 }, (_, i) => ({
+      id: i + 1,
+      title: "任務載入中...",
+      desc: "正在與 Google 試算表同步任務資料...",
+      code: ""
+    }));
 
     // 動態任務清單（完全依據試算表同步資料）
     function getInitialTasks() {
