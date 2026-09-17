@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 Veggie Month ・ Green Bingo Challenge</title>
+  <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
+  <link rel="stylesheet" href="./assets/style.css">
+  <link rel="stylesheet" href="./assets/bwy2026.css">
+  <script src="./assets/GoogleAppsScript_en.js"></script>
+</head>
+<body>
+  <!-- Social QR Code Module (Adaptive FAB & Modal) -->
+  <script src="./assets/qr-fixed.js"></script>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <span>🌱</span>
+      <span>NTHU BWY ・ Veggie Month Bingo</span>
+    </div>
+    <div class="header-actions">
+      <span id="staffIndicator" class="badge-staff" style="display: none;">Staff Mode</span>
+      <button class="btn btn-outline btn-sm" onclick="toggleStaffMode()">Staff Mode</button>
+      <button class="btn btn-outline btn-sm" onclick="openConfigModal()">Settings</button>
+      <div class="lang-switch-wrap" title="Language Switcher">
+        <a href="index.html" class="lang-btn">繁中</a>
+        <span class="lang-divider">|</span>
+        <span class="lang-btn active">English</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Hero / Unregistered Welcome Card -->
+    <div id="heroCard" class="hero-card">
+      <h1>Eat for Good ・ Veggie Month Challenge</h1>
+      <p>A month-long green exploration! Click below to sign up and get your exclusive 3x3 Bingo Card. Attend featured events, complete green habits, and get digital stamps to complete lines for limited eco-friendly prizes!</p>
+      <div class="hero-buttons">
+        <button class="btn btn-primary" onclick="openRegisterModal()">Sign Up & Get Bingo Card</button>
+        <button class="btn btn-outline" onclick="openLookupModal()">Already Have Serial No.? Check Card</button>
+      </div>
+    </div>
+
+    <!-- Bingo Card View (Shown after registration / lookup) -->
+    <div id="bingoSection" class="bingo-section">
+      
+      <!-- Card Meta Bar -->
+      <div class="card-meta-bar">
+        <div class="meta-group">
+          <span class="meta-label">Serial No.</span>
+          <span class="meta-value"><span id="metaSerial" class="serial-tag">VEG-2026-0001</span></span>
+        </div>
+        <div class="meta-group">
+          <span class="meta-label">Participant Name</span>
+          <span id="metaName" class="meta-value">Guest</span>
+        </div>
+        <div class="meta-group">
+          <span class="meta-label">Current Progress</span>
+          <span class="meta-value"><span id="metaProgress">0</span> / 9 Stamped</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="stats-pill">
+            Lines Completed: <span id="metaLines">0</span> Lines
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="resetCurrentCard()">Switch Card</button>
+        </div>
+      </div>
+
+      <!-- 3x3 Bingo Grid -->
+      <div id="bingoGrid" class="bingo-grid">
+        <!-- Cells dynamically rendered by JavaScript -->
+      </div>
+
+      <!-- Rewards & Line Completion Guide -->
+      <div class="rules-card">
+        <h3>🎁 Veggie Month Line Completion Rewards</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+          Any 3 adjacent squares in a row, column, or diagonal count as 1 line (up to 8 lines).
+        </p>
+        <div class="reward-tier">
+          <div class="reward-title">Complete 2 Lines</div>
+          <div class="reward-desc">Stainless Steel Cutlery Set or Thermal Insulation Bag (Eco Choice)</div>
+        </div>
+        <div class="reward-tier">
+          <div class="reward-title">Complete 3 Lines</div>
+          <div class="reward-desc">Veggie Meal Voucher / Delicious Snack Box (Yummy Choice)</div>
+        </div>
+        <div class="reward-tier">
+          <div class="reward-title">All 9 Tasks Completed (8 Lines)</div>
+          <div class="reward-desc">Limited Eco-Friendly Gift Pack + Certificate of Honor</div>
+        </div>
+        <div class="reward-tier" style="border-left-color: #f59e0b; background: #fffbeb;">
+          <div class="reward-title" style="color: #b45309;">Early Bird Bonus</div>
+          <div class="reward-desc">Complete early in the first 2 weeks to receive an extra surprise green gift!</div>
+        </div>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 14px; line-height: 1.5;">
+          * Prizes are limited and distributed on a first-come, first-served basis at the BWY service booth.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Modal 1: Register Modal -->
+  <div id="registerModal" class="modal-overlay">
+    <div class="modal">
+      <h2>Sign Up for Veggie Month Bingo</h2>
+      <p class="subtitle">Fill in your details to receive an exclusive Bingo Card serial number:</p>
+      <form id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="regName">Your Name *</label>
+          <input type="text" id="regName" required placeholder="e.g. John Doe">
+        </div>
+        <div class="form-group">
+          <label for="regStudentId">Department & Student ID *</label>
+          <input type="text" id="regStudentId" required placeholder="e.g. CS 112062100">
+        </div>
+        <div class="form-group">
+          <label for="regContact">Contact (Phone / Email / IG) *</label>
+          <input type="text" id="regContact" required placeholder="For prize notification">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('registerModal')">Cancel</button>
+          <button type="submit" id="btnSubmitReg" class="btn btn-primary">Complete & Get Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Lookup Existing Card -->
+  <div id="lookupModal" class="modal-overlay">
+    <div class="modal">
+      <h2>Look Up Existing Bingo Card</h2>
+      <p class="subtitle">Enter your exclusive serial number to restore your bingo progress:</p>
+      <form onsubmit="handleLookup(event)">
+        <div class="form-group">
+          <label for="lookupSerial">Card Serial Number (Serial No.) *</label>
+          <input type="text" id="lookupSerial" required placeholder="e.g. VEG-2026-0001" style="text-transform: uppercase;">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('lookupModal')">Cancel</button>
+          <button type="submit" id="btnSubmitLookup" class="btn btn-primary">Search Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Stamp Verification -->
+  <div id="stampModal" class="modal-overlay">
+    <div class="modal">
+      <h2 id="stampModalTitle">Task Stamp Verification</h2>
+      <p class="subtitle" id="stampModalDesc">Enter the event passcode to verify and stamp.</p>
+      
+      <!-- Staff Fast-Track Section -->
+      <div id="staffQuickSection" style="display: none; background: #e8f5e9; border: 1px dashed #4caf50; padding: 14px; border-radius: 8px; margin-bottom: 14px;">
+        <div style="font-size: 0.85rem; font-weight: bold; color: #2e7d32; margin-bottom: 4px;">Staff Fast-Track Privilege</div>
+        <div style="font-size: 0.8rem; color: #37474f; margin-bottom: 10px;">Staff authenticated. Click below to verify without passcode.</div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="confirmStamp(true)">Staff Fast-Track Stamp</button>
+      </div>
+
+      <form onsubmit="handleVerifyStamp(event)">
+        <input type="hidden" id="stampGridIndex">
+        <div class="form-group">
+          <label for="verifyCode">Official Event Passcode</label>
+          <input type="text" id="verifyCode" placeholder="Enter task passcode">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+            Tip: Obtain the passcode from event booth staff, or have staff verify via Fast-Track.
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('stampModal')">Back</button>
+          <button type="submit" class="btn btn-primary">Verify & Stamp</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: System Settings -->
+  <div id="configModal" class="modal-overlay">
+    <div class="modal">
+      <h2>Google Sheets Backend Settings</h2>
+      <p class="subtitle">Check Google Apps Script Web App URL and run connection diagnostics.</p>
+      <div class="form-group">
+        <label for="gasEndpoint">Google Apps Script Web App URL</label>
+        <input type="url" id="gasEndpoint" readonly style="background: #f1f3f4; color: #546e7a; cursor: not-allowed;">
+      </div>
+      <div id="testResultBox" style="display: none; padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 14px; word-break: break-all;"></div>
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="testConnection()">Test Connection</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('configModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-banner"></div>
+
+</body>
+</html>

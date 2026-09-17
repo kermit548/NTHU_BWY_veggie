@@ -51,7 +51,9 @@ function getTasksAndStaffCode(ss) {
         id: tasks.length + 1,
         title: String(row[1] || "").trim(),
         desc: String(row[2] || "").trim(),
-        code: String(row[3] || "").trim()
+        code: String(row[3] || "").trim(),
+        titleEn: String(row[4] || "").trim() || String(row[1] || "").trim(),
+        descEn: String(row[5] || "").trim() || String(row[2] || "").trim()
       });
     }
   }
@@ -341,18 +343,18 @@ function createJsonResponse(obj) {
 
 請將以下欄位內容複製至 Google 試算表「九宮格任務與通關碼設定」中（前端系統將會自動讀取同步）：
 
-| 格子編號 | 任務標題 | 任務說明 / 條件 | 官方通關代碼 |
-|---|---|---|---|
-| 0 | 工作人員綠色通道認證碼 | 工作人員綠色通道通行驗證 | nthu.bwy2026 |
-| 1 | 環保杯與餐具 | 使用環保杯或環保餐具購買飲料或餐點一次 | ECO2026 |
-| 2 | 看靜態展+許願樹 | 看靜態展+許願樹（現場驗證） | TREE2026 |
-| 3 | IG 分享靜態展 | 在 IG 限動分享靜態展並標註社團 | IGEXPO2026 |
-| 4 | 運動會擺攤 | 參加 11/11 運動會擺攤（現場驗證） | SPORT1111 |
-| 5 | 吃一餐蔬食餐 | 吃一餐蔬食餐 | VEG2026 |
-| 6 | IG 分享料理實作 | 在 IG 限動分享料理實作並標註社團 | IGCOOK2026 |
-| 7 | 帶好友同行 | 帶一位朋友參加蔬食月活動（現場驗證 兩人皆可蓋） | FRIEND2026 |
-| 8 | 料理實作 | 參加 11/18 料理實作（現場驗證） | COOK1118 |
-| 9 | 主題社課（擇一） | 參加 10/14 前行社課或 11/25 總結社課（擇一）（現場驗證） | CLASS2026 |
+| 格子編號 | 任務標題 | 任務說明 / 條件 | 官方通關代碼 | 英文版任務標題 (E) | 英文版任務說明 (F) |
+|---|---|---|---|---|---|
+| 0 | 工作人員綠色通道認證碼 | 工作人員綠色通道通行驗證 |  | Staff Fast-Track | Quick stamp verification for staff without passcodes |
+| 1 | 環保杯與餐具 | 使用環保杯或環保餐具購買飲料或餐點一次 | ECO01 | Eco Cup & Tableware | Use your own reusable cup or tableware when buying food/drinks once |
+| 2 | 參觀靜態展 | 參觀靜態展+寫許願樹 | TREE02 | Visit Exhibition & Wish Tree | Visit the static exhibition and write a wish card on the Wish Tree |
+| 3 | IG 分享靜態展 | 在 IG 限動分享靜態展並標註社團 | IGPO03 | Share Exhibition on IG | Share the exhibition on IG Story and tag @nthu_bwy |
+| 4 | 運動會擺攤 | 參加 11/11 運動會擺攤 | SPORT04 | Sports Day Booth | Join and participate at our Sports Day booth on 11/11 |
+| 5 | 吃一餐蔬食餐 | 吃一餐蔬食餐（核心任務） | VEG2026 | Have a Plant-Based Meal | Enjoy a delicious vegetarian/vegan meal (Core Task) |
+| 6 | IG 分享料理實作 | 在 IG 限動分享料理實作並標註社團 | REELS06 | Share Cooking on IG | Share cooking workshop photos/videos on IG Story and tag @nthu_bwy |
+| 7 | 帶好友同行 | 帶一位朋友參加蔬食月活動（兩人皆可蓋） | FRIEND07 | Bring a Friend Along | Bring a friend to join the Veggie Month activities (both get stamped) |
+| 8 | 料理實作 | 參加 11/18 料理實作 | COOK08 | Veggie Cooking Workshop | Join the hands-on vegetarian cooking workshop on 11/18 |
+| 9 | 主題社課（擇一） | 參加 10/14 前行社課或 11/25 總結社課（擇一） | CLASS09 | Featured Club Class (Choose 1) | Attend either the intro class on 10/14 or wrap-up class on 11/25 |
 
 ---
 

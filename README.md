@@ -41,7 +41,8 @@ flowchart TD
 
 ```text
 NTHU_BWY_veggie/
-├── index.html                       # 2026 蔬食月賓果挑戰主頁面
+├── index.html                       # 2026 蔬食月賓果挑戰主頁面（繁中）
+├── index_en.html                    # 2026 蔬食月賓果挑戰主頁面（英文版）
 ├── qr-fixed.html                    # 社群二維碼模組獨立預覽頁
 ├── 2025.html                        # 2025 歷史特蔬任務頁面
 ├── tree.html                        # 寫下承諾互動頁面
@@ -53,7 +54,8 @@ NTHU_BWY_veggie/
 │   └── 2026_manual.html             # 賓果卡工作人員使用須知與常見 QA 手冊
 ├── assets/
 │   ├── Google_Apps_Script_設定教學.md # 後端 Apps Script v7 程式碼與安裝手冊
-│   ├── GoogleAppsScript.js          # 前端核心資料邏輯與 Web App 串接設定
+│   ├── GoogleAppsScript.js          # 前端核心資料邏輯與 Web App 串接設定（繁中）
+│   ├── GoogleAppsScript_en.js       # 前端核心資料邏輯與 Web App 串接設定（英文）
 │   ├── bwy2026.css                  # 賓果挑戰主要視覺與動畫樣式
 │   ├── qr-fixed.js                  # 社群二維碼自適應按鈕與彈窗獨立模組
 │   ├── dashboard.js                 # 儀表板圖表邏輯

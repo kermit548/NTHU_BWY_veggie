@@ -51,6 +51,50 @@
       display: flex;
       gap: 10px;
       align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* 語系切換器 */
+    .lang-switch-wrap {
+      display: inline-flex;
+      align-items: center;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      gap: 6px;
+    }
+
+    .lang-switch-wrap a,
+    .lang-switch-wrap span.lang-btn {
+      text-decoration: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      line-height: 1.2;
+    }
+
+    .lang-switch-wrap a {
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .lang-switch-wrap a:hover {
+      color: var(--primary);
+    }
+
+    .lang-switch-wrap .active {
+      color: var(--primary);
+      font-weight: 700;
+      background: rgba(46, 125, 50, 0.08);
+    }
+
+    .lang-switch-wrap .lang-divider {
+      color: #cbd5e1;
+      font-size: 0.75rem;
+      user-select: none;
     }
 
     /* 按鈕樣式 */
