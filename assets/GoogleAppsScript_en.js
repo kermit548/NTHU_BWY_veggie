@@ -330,8 +330,7 @@ async function handleLookup(e) {
 
   submitBtn.disabled = false;
   submitBtn.innerText = "Search Card";
-  alert("Serial number not found!
-Please verify your number or contact the staff booth.");
+  alert("Serial number not found!\nPlease verify your number or contact the staff booth.");
 }
 
 function saveCurrentUserData() {
