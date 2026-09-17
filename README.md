@@ -46,10 +46,13 @@ NTHU_BWY_veggie/
 ├── 2025.html                        # 2025 歷史特蔬任務頁面
 ├── tree.html                        # 寫下承諾互動頁面
 ├── dashboard.html                   # 統計圖表儀表板
-├── Google_Apps_Script_設定教學.md    # 後端 Apps Script v6 程式碼與安裝手冊
 ├── 2025.md                          # 2025 福青蔬食月初始開發歷程文檔
 ├── README.md                        # 本專案說明文件
+├── about/
+│   ├── 2026_dev.html                # LINE 對話風格之開發秘辛完整實錄
+│   └── 2026_manual.html             # 賓果卡工作人員使用須知與常見 QA 手冊
 ├── assets/
+│   ├── Google_Apps_Script_設定教學.md # 後端 Apps Script v7 程式碼與安裝手冊
 │   ├── GoogleAppsScript.js          # 前端核心資料邏輯與 Web App 串接設定
 │   ├── bwy2026.css                  # 賓果挑戰主要視覺與動畫樣式
 │   ├── qr-fixed.js                  # 社群二維碼自適應按鈕與彈窗獨立模組
@@ -69,7 +72,7 @@ NTHU_BWY_veggie/
    * `九宮格任務與通關碼設定`
    * `簽到與核銷紀錄歷程`
 3. 點選試算表功能表的「擴充功能」>「Apps Script」。
-4. 將本專案中 `Google_Apps_Script_設定教學.md` 提供的最新後端程式碼完整貼入 `程式碼.gs`。
+4. 將本專案中 `assets/Google_Apps_Script_設定教學.md` 提供的最新後端程式碼完整貼入 `程式碼.gs`。
 5. 點選右上角「部署」>「新增部署作業」：
    * 種類：**網頁應用程式（Web App）**
    * 執行身分：**我**

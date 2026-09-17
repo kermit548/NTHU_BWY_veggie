@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 蔬食月・森活賓果卡 工作人員使用須知與常見 QA</title>
+  <link rel="icon" href="../img/抱抱地球2.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2e7d32;
+      --primary-dark: #1b5e20;
+      --primary-light: #e8f5e9;
+      --primary-accent: #4caf50;
+      --warning: #ed6c02;
+      --warning-bg: #fff4e5;
+      --danger: #d32f2f;
+      --danger-bg: #fdeded;
+      --info: #0288d1;
+      --info-bg: #e1f5fe;
+      --text-main: #1f2937;
+      --text-muted: #4b5563;
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding-bottom: 60px;
+    }
+
+    /* 頂部導航列 */
+    .top-nav {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    .nav-container {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-size: 1.1rem;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .nav-btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .nav-btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .nav-btn-outline {
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: #ffffff;
+    }
+    .nav-btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* 主頁版心 */
+    .main-wrap {
+      max-width: 1060px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* 頁首橫幅 */
+    .doc-hero {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: #ffffff;
+      padding: 36px 32px;
+      border-radius: var(--radius);
+      margin-bottom: 30px;
+      box-shadow: 0 8px 24px rgba(46, 125, 50, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .doc-hero h1 {
+      font-size: 1.85rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .doc-hero p {
+      font-size: 0.98rem;
+      color: #e8f5e9;
+      max-width: 760px;
+    }
+
+    .hero-tags {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-tag {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* 快捷目錄錨點卡片 */
+    .toc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .toc-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toc-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px 16px;
+      list-style: none;
+    }
+
+    .toc-list a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .toc-list a:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    /* 章節外框 */
+    .section-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sub-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 22px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 提示與警戒區塊 */
+    .alert-box {
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .alert-icon {
+      font-size: 1.2rem;
+      line-height: 1.3;
+      flex-shrink: 0;
+    }
+
+    .alert-warning {
+      background: var(--warning-bg);
+      border-left: 4px solid var(--warning);
+      color: #8c3b00;
+    }
+
+    .alert-info {
+      background: var(--info-bg);
+      border-left: 4px solid var(--info);
+      color: #01579b;
+    }
+
+    .alert-success {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      color: var(--primary-dark);
+    }
+
+    /* 步驟條列流程卡 */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin: 18px 0;
+    }
+
+    .step-card {
+      background: #fdfdfd;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px;
+      position: relative;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+
+    .step-card h4 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .step-card p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* 現代表格 */
+    .data-table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    table.manual-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+      background: white;
+    }
+
+    table.manual-table th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    table.manual-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #475569;
+      vertical-align: top;
+    }
+
+    table.manual-table tr:hover {
+      background: #fafafa;
+    }
+
+    .badge-role {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .badge-live {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .badge-code {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+    .badge-backend {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    /* 手風琴折疊 QA 列表 */
+    .qa-group {
+      margin: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .qa-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .qa-item:hover {
+      border-color: #cbd5e1;
+    }
+
+    .qa-question {
+      padding: 16px 20px;
+      font-weight: 700;
+      font-size: 0.98rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      user-select: none;
+    }
+
+    .qa-question .q-tag {
+      color: var(--primary);
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .qa-arrow {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      transition: transform 0.25s ease;
+    }
+
+    .qa-item.open .qa-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .qa-answer {
+      display: none;
+      padding: 16px 20px 20px;
+      border-top: 1px dashed var(--border);
+      background: #fdfdfd;
+      font-size: 0.92rem;
+      color: #374151;
+      line-height: 1.7;
+    }
+
+    .qa-item.open .qa-answer {
+      display: block;
+    }
+
+    .qa-answer strong {
+      color: #111827;
+    }
+
+    .qa-answer ul, .qa-answer ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .qa-answer li {
+      margin-bottom: 4px;
+    }
+
+    code {
+      font-family: 'Fira Code', Consolas, monospace;
+      background: #f1f5f9;
+      color: #0369a1;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88em;
+    }
+
+    /* 頁腳 */
+    footer.manual-footer {
+      text-align: center;
+      margin-top: 50px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+    }
+
+    @media print {
+      .top-nav, .nav-btn, .hero-tags {
+        display: none !important;
+      }
+      body {
+        background: white;
+        padding: 0;
+      }
+      .main-wrap {
+        margin: 0;
+        max-width: 100%;
+        padding: 0;
+      }
+      .qa-answer {
+        display: block !important;
+      }
+      .section-block, .toc-card, .doc-hero {
+        box-shadow: none;
+        border: 1px solid #ccc;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部導航列 -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <a href="../index.html" class="nav-brand">
+        <span>🌱</span>
+        <span>清大福青社・蔬食月賓果系統</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html" class="nav-btn nav-btn-outline">返回賓果主頁</a>
+        <a href="2026_dev.html" class="nav-btn nav-btn-outline">開發秘辛</a>
+        <a href="javascript:window.print()" class="nav-btn nav-btn-primary">🖨️ 列印手冊</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+    
+    <!-- 橫幅宣告 -->
+    <div class="doc-hero">
+      <h1>賓果卡工作人員使用須知與常見 QA</h1>
+      <p>本手冊專為參與「2026 清大福青蔬食月・森活賓果挑戰」現場擺攤、靜態展導覽、社課簽到與行政核銷之工作人員制定，提供完整系統操作指南、現場核實 SOP 與突發狀況應變方針。</p>
+      <div class="hero-tags">
+        <span class="hero-tag">內部文件・禁止外流</span>
+        <span class="hero-tag">版本：v7.0</span>
+        <span class="hero-tag">專案維護：清大福青社行政組</span>
+      </div>
+    </div>
+
+    <!-- 目錄索引 -->
+    <div class="toc-card">
+      <div class="toc-title">
+        <span>📌</span>
+        <span>手冊目錄導覽</span>
+      </div>
+      <ul class="toc-list">
+        <li><a href="#sec-role">一、 工作人員身分切換與系統操作</a></li>
+        <li><a href="#sec-green">二、 綠色通道是什麼？使用時機與操作步驟</a></li>
+        <li><a href="#sec-sop">三、 九宮格 9 大任務現場核實與卡控標準</a></li>
+        <li><a href="#sec-qa">四、 工作人員常見 QA 錦囊（防外流、忘記卡號等）</a></li>
+        <li><a href="#sec-sheet">五、 Google 試算表後台手動蓋章教學</a></li>
+        <li><a href="#sec-contact">六、 緊急聯絡窗口與技術支援</a></li>
+      </ul>
+    </div>
+
+    <!-- 第一章：系統操作 -->
+    <section class="section-block" id="sec-role">
+      <h2 class="section-title">一、 工作人員身分切換與系統操作</h2>
+      <p>前端賓果卡系統（<code>index.html</code>）採用了「雙身分架構」：一般學員僅能以手動輸入各關通關密碼的方式進行蓋章；而現場工作人員則具備專屬特權，可在學員手機上直接一鍵免密蓋章。</p>
+      
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h4>點擊「切換為工作人員身份」</h4>
+          <p>請開啟學員的手機畫面（或您自己的檢驗手機），點選右上角選單的【切換為工作人員身份】按鈕。</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h4>輸入工作人員認證代碼</h4>
+          <p>在跳出的對話框中輸入社團內部認證碼：<code>nthu.bwy2026</code>（由試算表「九宮格任務與通關碼設定」第 0 格動態定義）。</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h4>確認模式標籤亮起</h4>
+          <p>輸入正確後，頂部會顯示【工作人員模式】綠色徽章，代表已成功開啟專屬綠色通道。</p>
+        </div>
+      </div>
+
+      <div class="alert-box alert-warning">
+        <div class="alert-icon">⚠️</div>
+        <div>
+          <strong>操作注意：</strong>
+          為學員完成蓋章後，若該手機為學員所有，請點擊右上角【切換回一般學員身份】，避免學員自行使用工作人員身分為後續格子核銷。
+        </div>
+      </div>
+    </section>
+
+    <!-- 第二章：綠色通道 -->
+    <section class="section-block" id="sec-green">
+      <h2 class="section-title">二、 綠色通道是什麼？使用時機與操作步驟</h2>
+      
+      <div class="alert-box alert-info">
+        <div class="alert-icon">💡</div>
+        <div>
+          <strong>什麼是「綠色通道」？</strong><br>
+          「綠色通道」是為了解決活動現場<strong>排隊塞車、學員打字緩慢或忘記通關代碼</strong>而設計的高速核銷機制。工作人員切換身份後，彈窗內會出現綠色的【工作人員快速蓋章（綠色通道免密核銷）】按鈕，工作人員手指一點，系統便會向後端發送數位權限認證，瞬間完成蓋章與試算表記錄。
+        </div>
+      </div>
+
+      <h3 class="sub-title">操作步驟說明：</h3>
+      <ol style="padding-left: 20px; margin-bottom: 16px;">
+        <li>請學員於個人手機點開【森活賓果挑戰】首頁，並展示其賓果卡。</li>
+        <li>工作人員協助確認任務達成證明（例如拍照、限動、環保杯等）。</li>
+        <li>點擊學員卡片上要核銷的該任務格子（例如 #1、#5）。</li>
+        <li>彈出蓋章視窗後，點擊最上方的 <strong>【工作人員快速蓋章（綠色通道免密核銷）】</strong> 按鈕。</li>
+        <li>系統連線後端驗證，成功後畫面上會蓋上可愛的「抱抱地球」印章，連線數與進度立即同步更新。</li>
+      </ol>
+
+      <div class="alert-box alert-success">
+        <div class="alert-icon">🔒</div>
+        <div>
+          <strong>安全保證：</strong>
+          系統已採用「後端直接驗證」架構，代碼絕不洩漏在前端原始碼中；同時具備「冪等性防重複蓋章機制」，即使網路延遲連點也不會造成試算表重複寫入或死鎖。
+        </div>
+      </div>
+    </section>
+
+    <!-- 第三章：現場核實 SOP -->
+    <section class="section-block" id="sec-sop">
+      <h2 class="section-title">三、 九宮格 9 大任務現場核實與卡控標準</h2>
+      <p>為避免「通關密碼在私下群組互傳導致未到場者作弊」，請全體工作人員恪守以下原則：<br>
+      <strong>「通關密碼僅為內部輔助工具，工作人員現場確認眼見為憑才是核銷的唯一標準！」</strong></p>
+
+      <div class="data-table-wrap">
+        <table class="manual-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">格號</th>
+              <th style="width: 130px;">任務名稱</th>
+              <th>核實標準與作業 SOP</th>
+              <th style="width: 140px;">推薦蓋章方式</th>
+              <th style="width: 160px;">查核重點與防弊對策</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>#1</strong></td>
+              <td><strong>環保杯與餐具</strong></td>
+              <td>學員出示自備之環保杯、環保餐具，或當日以環保容器購買餐飲之明細/照片。</td>
+              <td><span class="badge-role badge-live">綠色通道快蓋</span></td>
+              <td>確認杯具確實為重複使用材質，非一次性紙杯或塑膠杯。</td>
+            </tr>
+            <tr>
+              <td><strong>#2</strong></td>
+              <td><strong>看靜態展+許願樹</strong></td>
+              <td>學員至靜態展現場參觀，工作人員<strong>隨機抽問看板 1 題小問題</strong>（如：吃蔬食一餐省下多少碳排放？），並確認其在許願樹掛上卡片。</td>
+              <td><span class="badge-role badge-live">關主綠色通道</span><br><span class="badge-role badge-code">或當天小代碼</span></td>
+              <td>答對看板問題或出示手寫許願卡，方可為其蓋章。</td>
+            </tr>
+            <tr>
+              <td><strong>#3</strong></td>
+              <td><strong>IG 分享靜態展</strong></td>
+              <td>學員出示本人手機 IG 限時動態畫面。</td>
+              <td><span class="badge-role badge-live">綠色通道快蓋</span></td>
+              <td>需確認發布時間在 24 小時內，且確實標註清大福青社官方帳號 <code>@nthu_bwy</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>#4</strong></td>
+              <td><strong>運動會擺攤</strong></td>
+              <td>11/11 運動會當日，親臨福青社攤位參與互動小遊戲或完成宣導。</td>
+              <td><span class="badge-role badge-live">攤位現場核銷</span></td>
+              <td>僅限 11/11 活動當天於攤位由關主親自核銷。</td>
+            </tr>
+            <tr>
+              <td><strong>#5</strong><br><small style="color:var(--primary); font-weight:bold;">★核心任務</small></td>
+              <td><strong>吃一餐蔬食餐</strong></td>
+              <td>學員出示個人用餐之蔬食餐點照片（含當日拍攝時間戳記）或蔬食餐廳消費發票/載具明細。</td>
+              <td><span class="badge-role badge-live">綠色通道快蓋</span></td>
+              <td>照片需含個人辨識元素（如學生證、手勢或自拍）避免網圖冒用；確認餐點全無葷食成分。</td>
+            </tr>
+            <tr>
+              <td><strong>#6</strong></td>
+              <td><strong>IG 分享料理實作</strong></td>
+              <td>學員出示本人手機 IG 限動，分享動手做蔬食料理照片或影片。</td>
+              <td><span class="badge-role badge-live">綠色通道快蓋</span></td>
+              <td>確認公開發布並標註 <code>@nthu_bwy</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>#7</strong></td>
+              <td><strong>帶好友同行</strong></td>
+              <td>學員攜帶至少 1 位朋友至服務台或活動攤位共同參加。</td>
+              <td><span class="badge-role badge-live">綠色通道雙人蓋</span></td>
+              <td>朋友需同時在場；工作人員可同時為兩人開啟賓果卡並蓋下第 7 格。</td>
+            </tr>
+            <tr>
+              <td><strong>#8</strong></td>
+              <td><strong>料理實作</strong></td>
+              <td>參加 11/18 蔬食料理實作課程現場。</td>
+              <td><span class="badge-role badge-backend">簽到表後台統一蓋</span><br><span class="badge-role badge-live">課後現場蓋</span></td>
+              <td>此格不公開密碼。課堂結束後由關主於現場以綠色通道蓋章，或依簽到表由行政組從試算表直接批次登記為 1。</td>
+            </tr>
+            <tr>
+              <td><strong>#9</strong></td>
+              <td><strong>主題社課（擇一）</strong></td>
+              <td>參加 10/14 前行社課或 11/25 總結社課（擇一全程參與）。</td>
+              <td><span class="badge-role badge-backend">簽到表後台統一蓋</span><br><span class="badge-role badge-live">課後現場蓋</span></td>
+              <td>實名簽到。課後工作人員核對簽到名冊，於試算表後台批次蓋章，防範缺席者抄密碼。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 第四章：常見 QA -->
+    <section class="section-block" id="sec-qa">
+      <h2 class="section-title">四、 工作人員常見 QA 錦囊</h2>
+
+      <div class="qa-group">
+        
+        <!-- Q1 -->
+        <div class="qa-item open">
+          <div class="qa-question" onclick="toggleQA(this)">
+            <span><span class="q-tag">Q1</span>通關密碼被人在 LINE 外部大群外流了怎麼辦？</span>
+            <span class="qa-arrow">▼</span>
+          </div>
+          <div class="qa-answer">
+            <p><strong>別擔心！本系統採用「動態試算表即時同步技術」，無須工程師改程式碼，3 秒即可完成全網密碼輪替：</strong></p>
+            <ol>
+              <li>值班人員請立即通報行政組或有權限的管理幹部。</li>
+              <li>打開 Google 試算表，切換到<strong>「九宮格任務與通關碼設定」</strong>工作表。</li>
+              <li>找到遭外流的格子（如第 1 格），直接在「官方通關代碼」欄位修改成新密碼（例如改為 <code>ECO2026_NEW</code> 或當日隨機碼）。</li>
+              <li>修改後<strong>前端所有學員的手機在下次點開或重新整理時，會自動同步拉取新密碼</strong>！舊外流密碼瞬間失效，作弊者輸入舊碼只會顯示「代碼錯誤」。</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="qa-item">
+          <div class="qa-question" onclick="toggleQA(this)">
+            <span><span class="q-tag">Q2</span>學員說他換了手機，或無痕模式關掉忘記卡號（流水號），進度會不見嗎？</span>
+            <span class="qa-arrow">▼</span>
+          </div>
+          <div class="qa-answer">
+            <p><strong>進度絕對不會不見！所有報名與蓋章進度都安全存在 Google 試算表雲端資料庫中。</strong></p>
+            <p><strong>救援流程：</strong></p>
+            <ol>
+              <li>請工作人員打開 Google 試算表<strong>「學員報名與賓果總表」</strong>。</li>
+              <li>按下快捷鍵 <code>Ctrl + F</code>（Mac 請按 <code>Cmd + F</code>），輸入該學員的<strong>「姓名」</strong>、<strong>「學號」</strong>或<strong>「聯絡方式」</strong>進行搜尋。</li>
+              <li>找到該列後，查看最左側 A 欄的流水號（格式為 <code>VEG-2026-XXXXXX</code>）。</li>
+              <li>請學員開啟賓果網頁，點選首頁按鈕<strong>【已有流水號？查詢舊卡】</strong>，輸入該流水號並點擊查詢。</li>
+              <li>系統會立刻將雲端的 9 格蓋章紀錄完整抓回學員手機中，完美恢復！</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="qa-item">
+          <div class="qa-question" onclick="toggleQA(this)">
+            <span><span class="q-tag">Q3</span>如何防止學員沒來上社課或沒來料理實作，私底下互相傳密碼自己偷蓋章？</span>
+            <span class="qa-arrow">▼</span>
+          </div>
+          <div class="qa-answer">
+            <p>針對第 8 格（料理實作）與第 9 格（主題社課）這類實體出席要求極高、學分權重大的任務，我們採用<strong>「無碼化 + 簽到表後台核銷」雙重保險架構</strong>：</p>
+            <ul>
+              <li><strong>試算表代碼欄留空或設為長亂碼</strong>：在試算表「九宮格任務與通關碼設定」中，將格 8 與格 9 的通關代碼設為一串複雜長密碼（不對任何人公佈）或保持不公開。如此一來，任何人即使胡亂猜測也絕對無法手動通關。</li>
+              <li><strong>簽到名冊後台對照蓋章</strong>：現場安排實名紙本或 Google 表單簽到。活動圓滿結束後，社團幹部只需依據現場簽到表，在試算表後台將出席者的對應欄位直接改為 <code>1</code>（詳見下方第五章教學）。學員的手機重新整理後就會自動亮起印章，完全免除密碼外洩的風險！</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="qa-item">
+          <div class="qa-question" onclick="toggleQA(this)">
+            <span><span class="q-tag">Q4</span>現場網路很慢，或者 Google 試算表連線偶爾跳錯誤怎麼辦？</span>
+            <span class="qa-arrow">▼</span>
+          </div>
+          <div class="qa-answer">
+            <p><strong>本系統具備離線快取（Fallback Cache）保護：</strong></p>
+            <ul>
+              <li>如果學員手機已開啟過卡片，手機瀏覽器內部（<code>localStorage</code>）會存有進度暫存。即使斷網，卡片也能正常翻閱。</li>
+              <li>若遇到 Google 伺服器臨時延遲或學員手機沒網路：
+                <ol>
+                  <li>請學員先提供學號與姓名，工作人員以紙本暫時記錄：「格號 + 學號 + 姓名」。</li>
+                  <li>待網路順暢時，再由工作人員至 Google 試算表後台手動將該格數值登記為 <code>1</code>，權益完全不受損。</li>
+                </ol>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="qa-item">
+          <div class="qa-question" onclick="toggleQA(this)">
+            <span><span class="q-tag">Q5</span>學員完成了連線，要如何兌換獎勵？</span>
+            <span class="qa-arrow">▼</span>
+          </div>
+          <div class="qa-answer">
+            <p><strong>兌獎流程與核銷登錄：</strong></p>
+            <ol>
+              <li>學員達成 2 條線、3 條線或全滿時，請其攜帶手機至福青社官方服務台。</li>
+              <li>工作人員檢查卡片下方「達成連線」數字與九宮格亮起的金色連線光暈。</li>
+              <li>依據活動獎勵規範頒發對應獎品（環保餐具、精美蔬食點心或特蔬大獎）。</li>
+              <li>兌換後，請工作人員在 Google 試算表「學員報名與賓果總表」中的<strong> P 欄「兌獎狀態」</strong>，將「未兌獎」改為「已兌換 2 線獎」或「已兌換全滿獎」，避免重複領取。</li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 第五章：試算表後台教學 -->
+    <section class="section-block" id="sec-sheet">
+      <h2 class="section-title">五、 Google 試算表後台手動蓋章教學</h2>
+      <p>社團行政幹部具備最高管理權限，可以直接在 Google 試算表資料庫中進行資料查詢、修改與補登作業。</p>
+
+      <div class="alert-box alert-info">
+        <div class="alert-icon">📊</div>
+        <div>
+          <strong>試算表欄位對照（學員報名與賓果總表）：</strong><br>
+          ・<strong>欄位 A</strong>：流水號（<code>VEG-2026-XXXXXX</code>）<br>
+          ・<strong>欄位 F ~ N</strong>：分別對應 <strong>第 1 格 至 第 9 格</strong> 的蓋章狀態（數值 <code>0</code> 為未蓋章，<code>1</code> 為已蓋章）<br>
+          ・<strong>欄位 O</strong>：達成連線條數（系統公式或程式自動計算 0 ~ 8 條線）<br>
+          ・<strong>欄位 P</strong>：兌獎狀態（未兌獎 / 已兌換）<br>
+          ・<strong>欄位 Q</strong>：最後更新時間（GMT+8 台灣時間）
+        </div>
+      </div>
+
+      <h3 class="sub-title">手動為學員補蓋章步驟：</h3>
+      <ol style="padding-left: 20px; line-height: 1.8;">
+        <li>開啟社團專屬的 Google 試算表：<code>2026蔬食週_賓果資料庫</code>。</li>
+        <li>點擊下方第一個分頁【學員報名與賓果總表】。</li>
+        <li>利用 <code>Ctrl + F</code> 搜尋學員的學號或姓名，定位至該學員的橫列（Row）。</li>
+        <li>找到要補蓋章的格子欄位（例如料理實作是第 8 格，對應 <strong>M 欄</strong>）。</li>
+        <li>直接將該儲存格的數值從 <code>0</code> 改為 <code>1</code>（或輸入大寫 <code>TRUE</code>，系統皆可向下相容）。</li>
+        <li>在 <strong>Q 欄（最後更新時間）</strong> 手動填寫當前時間或備註「工作人員手動補登」。</li>
+        <li>完成！學員在手機上重新載入網頁後，該格子便會立即顯示為已蓋章狀態。</li>
+      </ol>
+    </section>
+
+    <!-- 第六章：聯絡窗口 -->
+    <section class="section-block" id="sec-contact">
+      <h2 class="section-title">六、 緊急聯絡窗口與技術支援</h2>
+      <p>現場若遇到系統異常、試算表權限故障或特殊爭議狀況，請第一時間聯繫社團行政與資訊幹部：</p>
+      
+      <div class="data-table-wrap" style="margin-top: 14px;">
+        <table class="manual-table">
+          <thead>
+            <tr>
+              <th>職責項目</th>
+              <th>主要負責單位</th>
+              <th>現場支援處</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>活動總召 / 規則裁定</strong></td>
+              <td>清大福青社社長 / 活動總召</td>
+              <td>蔬食月服務台現場</td>
+              <td>現場活動資格判定、爭議獎勵裁決</td>
+            </tr>
+            <tr>
+              <td><strong>行政資料核對 / 密碼更替</strong></td>
+              <td>清大福青社行政組</td>
+              <td>攤位服務台 / 試算表雲端</td>
+              <td>通關碼緊急更替、名冊查驗、兌獎註記</td>
+            </tr>
+            <tr>
+              <td><strong>系統架構與後端程式</strong></td>
+              <td>資訊負責幹部</td>
+              <td>遠端技術維護</td>
+              <td>Web App 故障排查、試算表權限修復</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="manual-footer">
+      <p>國立清華大學福智青年社（NTHU BWY）版權所有 &copy; 2026</p>
+      <p>文件存放路徑：<code>about/2026_manual.html</code> ｜ 內部專用，請勿公開分享至外部學員社群</p>
+    </footer>
+
+  </main>
+
+  <script>
+    // 手風琴收合互動
+    function toggleQA(element) {
+      const parent = element.parentElement;
+      parent.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
