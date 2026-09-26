@@ -25,9 +25,34 @@
       color: #c8e6c9;
     }
     .map-wrap {
-      max-width: 900px;
+      max-width: 1050px;
       margin: 28px auto;
       padding: 0 20px;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+    /* 桌面螢幕（1200px ~ 1439px）：最大化寬度，同時避開右側 200px 固定 QR 側欄（right: 24px） */
+    @media (min-width: 1200px) and (max-width: 1439px) {
+      .map-wrap {
+        max-width: calc(100vw - 275px);
+        margin: 28px 0 28px 30px;
+        padding: 0 10px 0 0;
+      }
+    }
+    /* 超寬桌面螢幕（≥ 1440px）：加大寬度至 1100px 且置中，與右側 QR 側欄具備充裕安全間隔 */
+    @media (min-width: 1440px) {
+      .map-wrap {
+        max-width: 1100px;
+        margin: 32px auto;
+      }
+    }
+    /* 中窄螢幕與手機（< 1200px）：QR 轉為右下角 FAB 按鈕，地圖自適應延展，底部留白避開 FAB */
+    @media (max-width: 1199px) {
+      .map-wrap {
+        max-width: 100%;
+        margin: 20px auto;
+        padding: 0 16px 80px;
+      }
     }
     .map-frame-card {
       background: white;
@@ -38,7 +63,7 @@
     }
     .map-frame-card iframe {
       width: 100%;
-      height: 520px;
+      height: 560px;
       border: none;
       display: block;
     }
@@ -51,7 +76,7 @@
     }
     @media (max-width: 600px) {
       .map-frame-card iframe {
-        height: 380px;
+        height: 400px;
       }
       .map-hero {
         padding: 20px 16px 14px;
@@ -63,6 +88,9 @@
   </style>
 </head>
 <body>
+
+  <!-- 社群二維碼模組（獨立模組化引入，原生支援 file:// 與點擊事件，零遮擋） -->
+  <script src="./assets/qr-fixed.js"></script>
 
   <!-- 頂部列 -->
   <header>
@@ -83,9 +111,10 @@
       </div>
     </div>
   </header>
+
   <div class="map-hero">
     <h1>🗺️ 新竹蔬食地圖</h1>
-    <p>清大周邊與新竹市友善蔬食餐廳、素食推薦地點彙整</p>
+    <p>新竹縣市蔬食餐廳、素食推薦地點彙整</p>
   </div>
 
   <div class="map-wrap">
@@ -98,7 +127,7 @@
       ></iframe>
     </div>
     <p class="map-note">
-      地圖資料由清大福青社行政組彙整維護・若有推薦地點歡迎告知社員<br>
+      地圖資料由清大福青社行政組彙整維護・若有推薦地點歡迎私訊粉專或IG<br>
       點擊地圖標記可查看餐廳名稱與簡介
     </p>
   </div>
