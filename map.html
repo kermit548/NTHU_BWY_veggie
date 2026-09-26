@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蔬食地圖・清大福青 2026 蔬食月</title>
+  <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
+  <link rel="stylesheet" href="./assets/style.css">
+  <link rel="stylesheet" href="./assets/bwy2026.css">
+  <style>
+    .map-hero {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: white;
+      padding: 28px 32px 20px;
+      text-align: center;
+    }
+    .map-hero h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .map-hero p {
+      font-size: 0.92rem;
+      color: #c8e6c9;
+    }
+    .map-wrap {
+      max-width: 900px;
+      margin: 28px auto;
+      padding: 0 20px;
+    }
+    .map-frame-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+    }
+    .map-frame-card iframe {
+      width: 100%;
+      height: 520px;
+      border: none;
+      display: block;
+    }
+    .map-note {
+      margin-top: 16px;
+      font-size: 0.82rem;
+      color: #607d8b;
+      text-align: center;
+      line-height: 1.6;
+    }
+    @media (max-width: 600px) {
+      .map-frame-card iframe {
+        height: 380px;
+      }
+      .map-hero {
+        padding: 20px 16px 14px;
+      }
+      .map-hero h1 {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部列 -->
+  <header>
+    <div class="brand">
+      <span>🌱</span>
+      <span>清大福青・2026 蔬食月</span>
+    </div>
+    <div class="header-actions">
+      <div class="lang-switch-wrap" title="切換語言 / Language">
+        <span class="lang-btn active">繁中</span>
+        <span class="lang-divider">|</span>
+        <a href="index_en.html" class="lang-btn">English</a>
+      </div>
+    </div>
+  </header>
+  <nav class="site-nav">
+    <a href="index.html">🃏 賓果挑戰</a>
+    <a href="map.html" class="nav-active">🗺️ 蔬食地圖</a>
+    <a href="2025.html">📖 2025 回顧</a>
+  </nav>
+
+  <div class="map-hero">
+    <h1>🗺️ 新竹蔬食地圖</h1>
+    <p>清大周邊與新竹市友善蔬食餐廳、素食推薦地點彙整</p>
+  </div>
+
+  <div class="map-wrap">
+    <div class="map-frame-card">
+      <iframe
+        src="https://www.google.com/maps/d/u/1/embed?mid=1pRX1QdNBgRvGR4L5ckNvlSUIIl2OQDX0&ehbc=2E312F"
+        allowfullscreen
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
+    </div>
+    <p class="map-note">
+      地圖資料由清大福青社行政組彙整維護・若有推薦地點歡迎告知社員<br>
+      點擊地圖標記可查看餐廳名稱與簡介
+    </p>
+  </div>
+
+</body>
+</html>

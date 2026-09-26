@@ -97,6 +97,53 @@
       user-select: none;
     }
 
+
+    /* 二級導覽列 */
+    .site-nav {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .site-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s ease, border-color 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .site-nav a:hover {
+      color: var(--primary);
+      border-bottom-color: var(--primary-light);
+    }
+
+    .site-nav a.nav-active {
+      color: var(--primary-dark);
+      border-bottom-color: var(--primary);
+      font-weight: 700;
+    }
+
+    @media (max-width: 480px) {
+      .site-nav {
+        padding: 0 12px;
+        gap: 0;
+      }
+      .site-nav a {
+        padding: 10px 12px;
+        font-size: 0.82rem;
+      }
+    }
     /* 按鈕樣式 */
     .btn {
       padding: 8px 16px;
