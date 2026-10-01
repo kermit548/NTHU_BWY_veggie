@@ -128,8 +128,8 @@ function closeModal(id) {
   document.getElementById(id).style.display = "none";
 }
 
-// Toggle Staff Mode
-function toggleStaffMode() {
+// Toggle Staff Mode (Real-time server verification, instant rejection on wrong passcode)
+async function toggleStaffMode() {
   const btn = document.getElementById("btnStaffToggle");
   if (!isStaffMode) {
     const input = prompt("Please enter Staff Passcode to activate Fast-Track:");
@@ -139,6 +139,29 @@ function toggleStaffMode() {
       alert("Passcode cannot be empty!");
       return;
     }
+
+    if (btn) btn.innerText = "Verifying...";
+    showToast("Verifying staff passcode...");
+
+    if (gasApiUrl) {
+      try {
+        const checkUrl = `${gasApiUrl}?action=stamp&serial=__AUTH_CHECK__&gridIndex=0&isStaffOverride=true&staffPasscode=${encodeURIComponent(cleanInput)}&t=${Date.now()}`;
+        const resp = await fetch(checkUrl);
+        const res = await resp.json();
+        const msg = res.message || res.error || "";
+        if (msg.indexOf("工作人員認證代碼錯誤") !== -1 || msg.indexOf("Staff passcode error") !== -1) {
+          alert("【Authentication Failed】Invalid staff passcode! Access denied.");
+          if (btn) btn.innerText = "Staff Mode";
+          return;
+        }
+      } catch (err) {
+        console.warn("Staff auth check failed", err);
+        alert(`Network error during staff authentication:\n${err.message}\nPlease check your network connection.`);
+        if (btn) btn.innerText = "Staff Mode";
+        return;
+      }
+    }
+
     sessionStaffCode = cleanInput;
     isStaffMode = true;
     document.getElementById("staffIndicator").style.display = "inline-block";

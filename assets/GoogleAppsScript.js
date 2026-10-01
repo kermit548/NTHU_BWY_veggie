@@ -104,8 +104,8 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       document.getElementById(id).style.display = "none";
     }
 
-    // 切換為工作人員身份（記憶體存放通行碼，由後端蓋章時校驗）
-    function toggleStaffMode() {
+    // 切換為工作人員身份（即時線上向 Google 試算表校驗，密碼錯誤當場阻攔）
+    async function toggleStaffMode() {
       const btn = document.getElementById("btnStaffToggle");
       if (!isStaffMode) {
         const input = prompt("請輸入工作人員認證代碼以開啟綠色通道：");
@@ -115,6 +115,29 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
           alert("認證代碼不可為空！");
           return;
         }
+
+        if (btn) btn.innerText = "驗證中...";
+        showToast("正在驗證工作人員認證代碼...");
+
+        if (gasApiUrl) {
+          try {
+            const checkUrl = `${gasApiUrl}?action=stamp&serial=__AUTH_CHECK__&gridIndex=0&isStaffOverride=true&staffPasscode=${encodeURIComponent(cleanInput)}&t=${Date.now()}`;
+            const resp = await fetch(checkUrl);
+            const res = await resp.json();
+            const msg = res.message || res.error || "";
+            if (msg.indexOf("工作人員認證代碼錯誤") !== -1) {
+              alert("【認證失敗】工作人員認證代碼錯誤，無法開啟綠色通道！");
+              if (btn) btn.innerText = "切換為工作人員身份";
+              return;
+            }
+          } catch (err) {
+            console.warn("工作人員代碼連線驗證失敗", err);
+            alert(`連線 Google 試算表驗證時發生錯誤：\n${err.message}\n請檢查網路連線。`);
+            if (btn) btn.innerText = "切換為工作人員身份";
+            return;
+          }
+        }
+
         sessionStaffCode = cleanInput;
         isStaffMode = true;
         document.getElementById("staffIndicator").style.display = "inline-block";
@@ -122,7 +145,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
           btn.innerText = "切換回一般人員模式";
           btn.classList.add("btn-staff-active");
         }
-        showToast("已切換為工作人員身份（綠色通道已備妥）");
+        showToast("認證成功！已切換為工作人員身份（綠色通道已備妥）");
       } else {
         isStaffMode = false;
         sessionStaffCode = "";
