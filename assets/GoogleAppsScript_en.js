@@ -5,24 +5,37 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
  * 2026 Veggie Month ・ Green Bingo Challenge (English Interaction Module)
  * ========================================================================== */
 
-// Default Fallback Tasks (English)
+// Default Fallback Tasks (English - No Passcodes Stored in Client)
 const DEFAULT_TASKS_EN = [
-  { id: 1, title: "Eco Cup & Tableware", desc: "Use your own reusable cup or tableware when buying food/drinks once", code: "ECO01" },
-  { id: 2, title: "Visit Exhibition & Wish Tree", desc: "Visit the static exhibition and write a wish card on the Wish Tree", code: "TREE02" },
-  { id: 3, title: "Share Exhibition on IG", desc: "Share the exhibition on IG Story and tag @nthu_bwy", code: "IGPO03" },
-  { id: 4, title: "Sports Day Booth", desc: "Join and participate at our Sports Day booth on 11/11", code: "SPORT04" },
-  { id: 5, title: "Have a Plant-Based Meal", desc: "Enjoy a delicious vegetarian/vegan meal (Core Task)", code: "VEG2026" },
-  { id: 6, title: "Share Cooking on IG", desc: "Share cooking workshop photos/videos on IG Story and tag @nthu_bwy", code: "REELS06" },
-  { id: 7, title: "Bring a Friend Along", desc: "Bring a friend to join the Veggie Month activities (both get stamped)", code: "FRIEND07" },
-  { id: 8, title: "Veggie Cooking Workshop", desc: "Join the hands-on vegetarian cooking workshop on 11/18", code: "COOK08" },
-  { id: 9, title: "Featured Club Class (Choose 1)", desc: "Attend either the intro class on 10/14 or wrap-up class on 11/25", code: "CLASS09" }
+  { id: 1, title: "Eco Cup & Tableware", desc: "Use your own reusable cup or tableware when buying food/drinks once" },
+  { id: 2, title: "Visit Exhibition & Wish Tree", desc: "Visit the static exhibition and write a wish card on the Wish Tree" },
+  { id: 3, title: "Share Exhibition on IG", desc: "Share the exhibition on IG Story and tag @nthu_bwy" },
+  { id: 4, title: "Sports Day Booth", desc: "Join and participate at our Sports Day booth on 11/11" },
+  { id: 5, title: "Have a Plant-Based Meal", desc: "Enjoy a delicious vegetarian/vegan meal (Core Task)" },
+  { id: 6, title: "Share Cooking on IG", desc: "Share cooking workshop photos/videos on IG Story and tag @nthu_bwy" },
+  { id: 7, title: "Bring a Friend Along", desc: "Bring a friend to join the Veggie Month activities (both get stamped)" },
+  { id: 8, title: "Veggie Cooking Workshop", desc: "Join the hands-on vegetarian cooking workshop on 11/18" },
+  { id: 9, title: "Featured Club Class (Choose 1)", desc: "Attend either the intro class on 10/14 or wrap-up class on 11/25" }
 ];
+
+// Sanitize tasks helper: completely strips away any code property
+function sanitizeTasks(tasks) {
+  if (!Array.isArray(tasks)) return DEFAULT_TASKS_EN;
+  return tasks.map((t, i) => {
+    const fallback = DEFAULT_TASKS_EN[i] || {};
+    return {
+      id: t.id || i + 1,
+      title: t.titleEn || t.title || fallback.title || ("Task " + (i + 1)),
+      desc: t.descEn || t.desc || fallback.desc || ""
+    };
+  });
+}
 
 function getInitialTasks() {
   try {
     const cached = JSON.parse(localStorage.getItem("veg_tasks_cache_en") || "null");
     if (cached && Array.isArray(cached) && cached.length === 9) {
-      return cached;
+      return sanitizeTasks(cached);
     }
   } catch(e) {
     console.warn(e);
@@ -123,15 +136,7 @@ async function fetchTasksFromCloud(quiet = true) {
     const res = await resp.json();
     
     if (res.success && Array.isArray(res.tasks) && res.tasks.length === 9) {
-      TASKS_DEF = res.tasks.map((t, i) => {
-        const fallback = DEFAULT_TASKS_EN[i] || {};
-        return {
-          id: t.id || i + 1,
-          title: t.titleEn || fallback.title || t.title,
-          desc: t.descEn || fallback.desc || t.desc,
-          code: t.code || fallback.code || ""
-        };
-      });
+      TASKS_DEF = sanitizeTasks(res.tasks);
       localStorage.setItem("veg_tasks_cache_en", JSON.stringify(TASKS_DEF));
       if (currentUser) {
         renderBingoCard();
@@ -414,52 +419,43 @@ function openStampModal(idx) {
 
 function handleVerifyStamp(e) {
   e.preventDefault();
-  const idx = parseInt(document.getElementById("stampGridIndex").value, 10);
-  const codeInput = document.getElementById("verifyCode").value.trim().toUpperCase();
-  const expectedCode = TASKS_DEF[idx].code.toUpperCase();
-
-  if (codeInput !== expectedCode) {
-    alert("Passcode error! Please check with the booth staff.");
+  const codeInput = document.getElementById("verifyCode").value.trim();
+  if (!codeInput) {
+    alert("Please enter the official task passcode!");
     return;
   }
-
-  confirmStamp(false);
+  // Server-side verification: passcode sent directly to Google Apps Script
+  confirmStamp(false, codeInput);
 }
 
-// Confirm Stamp
-async function confirmStamp(isBypass) {
+// Confirm Stamp (Verified on Google Apps Script server)
+async function confirmStamp(isBypass, userVerifyCode = "") {
   const idx = parseInt(document.getElementById("stampGridIndex").value, 10);
   
   const btnStaff = document.querySelector("#staffQuickSection button");
   const btnSubmit = document.querySelector("#stampModal button[type='submit']");
-  if (btnStaff) { btnStaff.disabled = true; btnStaff.innerText = "Writing to Sheets..."; }
-  if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = "Stamping..."; }
-  showToast("Saving stamp to Google Sheets...");
+  if (btnStaff) { btnStaff.disabled = true; btnStaff.innerText = "Verifying with Sheets..."; }
+  if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = "Verifying Passcode..."; }
+  showToast("Verifying passcode with Google Sheets...");
 
   if (gasApiUrl) {
     try {
-      const stampUrl = `${gasApiUrl}?action=stamp&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${idx}&isStaffOverride=${isBypass}&staffPasscode=${encodeURIComponent(isBypass ? sessionStaffCode : "")}&t=${Date.now()}`;
+      const stampUrl = `${gasApiUrl}?action=stamp&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${idx}&isStaffOverride=${isBypass}&staffPasscode=${encodeURIComponent(isBypass ? sessionStaffCode : "")}&verifyCode=${encodeURIComponent(userVerifyCode)}&t=${Date.now()}`;
       const resp = await fetch(stampUrl);
       const res = await resp.json();
       
       if (!res.success) {
-        alert(`【Cloud Error】${res.message || res.error}
-Please try again.`);
+        alert(`【Verification Failed】${res.message || res.error || "Incorrect passcode."}`);
         if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "Staff Fast-Track Stamp"; }
         if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
         return;
       }
     } catch (err) {
       console.error("GAS stamp request failed", err);
-      const goLocal = confirm(`Network error while writing to Google Sheets:
-${err.message}
-
-Do you want to stamp locally for now?`);
-      if (!goLocal) {
-        if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "Staff Fast-Track Stamp"; }
-        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
-        return;
-      }
+      alert(`Network connection error with Google Sheets:\n${err.message}\n\nPlease check your connection or request booth staff verification.`);
+      if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "Staff Fast-Track Stamp"; }
+      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
+      return;
     }
   }
 

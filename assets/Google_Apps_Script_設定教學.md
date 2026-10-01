@@ -33,11 +33,13 @@ function getTasksSheet(ss) {
 }
 
 // 讀取九宮格任務（1~9 格）與工作人員綠色通道代碼（第 0 格）
+// 安全升級：嚴格區分「公開任務清單（無 code）」與「內部檢驗清單（含 code）」
 function getTasksAndStaffCode(ss) {
   const sheet = getTasksSheet(ss);
   const data = sheet.getDataRange().getValues();
-  const tasks = [];
-  let staffCode = "nthu.bwy2026"; // 預設代碼
+  const publicTasks = [];   // 對外 API 回傳（絕不包含通關密碼，徹底防範 DevTools Dump）
+  const internalTasks = []; // 僅留在後端記憶體供 handleStamp 核對
+  let staffCode = "nthu.bwy2026"; // 預設工作人員代碼
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
@@ -46,19 +48,26 @@ function getTasksAndStaffCode(ss) {
     // 若編號為 0 或標題包含「工作人員」，擷取為綠色通道認證碼（僅留在後端校驗，絕不外洩）
     if (gridIdStr === "0" || String(row[1]).indexOf("工作人員") !== -1) {
       staffCode = String(row[3] || "").trim() || staffCode;
-    } else if (gridIdStr !== "" && tasks.length < 9) {
-      tasks.push({
-        id: tasks.length + 1,
+    } else if (gridIdStr !== "" && internalTasks.length < 9) {
+      const taskCode = String(row[3] || "").trim();
+      const taskInfo = {
+        id: internalTasks.length + 1,
         title: String(row[1] || "").trim(),
         desc: String(row[2] || "").trim(),
-        code: String(row[3] || "").trim(),
         titleEn: String(row[4] || "").trim() || String(row[1] || "").trim(),
         descEn: String(row[5] || "").trim() || String(row[2] || "").trim()
-      });
+      };
+      
+      publicTasks.push(taskInfo);
+      internalTasks.push(Object.assign({}, taskInfo, { code: taskCode }));
     }
   }
   
-  return { tasks: tasks, staffCode: staffCode };
+  return { 
+    tasks: publicTasks,          // 公開任務（前端僅獲得標題與說明）
+    internalTasks: internalTasks,// 內部任務（含通關密碼，僅供伺服器端核驗）
+    staffCode: staffCode 
+  };
 }
 
 // 處理 GET 請求
@@ -70,16 +79,18 @@ function doGet(e) {
     const sheet = getUsersSheet(ss);
     const meta = getTasksAndStaffCode(ss);
     
-    // 1. 蓋章端點（寫入數值 1）
+    // 1. 蓋章端點（由後端權威核驗 verifyCode 或 staffPasscode）
     if (action === "stamp" && serial) {
       const gridIndex = parseInt(e.parameter.gridIndex, 10);
       const isStaffOverride = e.parameter.isStaffOverride === "true";
       const staffPasscode = e.parameter.staffPasscode || "";
+      const verifyCode = e.parameter.verifyCode || "";
       return handleStamp(ss, sheet, {
         serial: serial,
         gridIndex: gridIndex,
         isStaffOverride: isStaffOverride,
-        staffPasscode: staffPasscode
+        staffPasscode: staffPasscode,
+        verifyCode: verifyCode
       });
     }
 
@@ -208,15 +219,35 @@ function handleStamp(ss, sheet, payload) {
       return createJsonResponse({ success: false, message: "格子索引超出範圍（必須為 0 至 8）" });
     }
 
-    // 2. 工作人員綠色通道安全認證（後端核驗，杜絕偽造）
+    // 2. 通關代碼或工作人員綠色通道安全認證（後端權威核驗，杜絕前端繞過與外洩）
+    const meta = getTasksAndStaffCode(ss);
     if (payload.isStaffOverride) {
-      const meta = getTasksAndStaffCode(ss);
+      // 工作人員綠色通道認證
       const inputCode = String(payload.staffPasscode || "").trim();
       const actualCode = String(meta.staffCode || "").trim();
       if (!actualCode || inputCode !== actualCode) {
         return createJsonResponse({
           success: false,
-          message: "工作人員認證代碼錯誤，非工作人員無法使用綠色通道核銷！"
+          message: "工作人員認證代碼錯誤，無法使用綠色通道核銷！"
+        });
+      }
+    } else {
+      // 一般學員通關代碼校驗（後端直接比對，前端永遠拿不到正確密碼）
+      const userCode = String(payload.verifyCode || "").trim().toUpperCase();
+      const taskDef = meta.internalTasks[gridIndex];
+      const actualCode = taskDef ? String(taskDef.code || "").trim().toUpperCase() : "";
+      
+      if (!actualCode) {
+        return createJsonResponse({
+          success: false,
+          message: "此任務未開放通關碼手動核銷，請由工作人員現場蓋章或依簽到表統一核銷。"
+        });
+      }
+      
+      if (userCode !== actualCode) {
+        return createJsonResponse({
+          success: false,
+          message: "通關代碼錯誤！請向現場工作人員或活動關主確認。"
         });
       }
     }

@@ -6,20 +6,31 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
  * 2026 蔬食月・森活賓果卡 前端核心互動邏輯與連線模組
  * ========================================================================== */
 
-// 預備骨架：僅維持 9 格陣列結構防呆，任務內容 100% 由 Google 試算表動態同步
+// 任務資料結構徹底脫敏：通關密碼 100% 留在後端校驗，前端絕不儲存或傳輸 code 屬性
     const DEFAULT_TASKS = Array.from({ length: 9 }, (_, i) => ({
       id: i + 1,
       title: "任務載入中...",
-      desc: "正在與 Google 試算表同步任務資料...",
-      code: ""
+      desc: "正在與 Google 試算表同步任務資料..."
     }));
 
-    // 動態任務清單（完全依據試算表同步資料）
+    // 安全脫敏函式：強制過濾掉任何 code 屬性，防範 DevTools 讀取或舊快取殘留
+    function sanitizeTasks(tasks) {
+      if (!Array.isArray(tasks)) return DEFAULT_TASKS;
+      return tasks.map((t, idx) => ({
+        id: t.id || idx + 1,
+        title: t.title || "任務 " + (idx + 1),
+        desc: t.desc || "",
+        titleEn: t.titleEn || t.title || "",
+        descEn: t.descEn || t.desc || ""
+      }));
+    }
+
+    // 動態任務清單（完全依據試算表同步資料，且經過前端脫敏過濾）
     function getInitialTasks() {
       try {
         const cached = JSON.parse(localStorage.getItem("veg_tasks_cache") || "null");
         if (cached && Array.isArray(cached) && cached.length === 9) {
-          return cached;
+          return sanitizeTasks(cached);
         }
       } catch(e) {
         console.warn(e);
@@ -124,7 +135,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         
         if (res.success) {
           if (Array.isArray(res.tasks) && res.tasks.length === 9) {
-            TASKS_DEF = res.tasks;
+            TASKS_DEF = sanitizeTasks(res.tasks);
             localStorage.setItem("veg_tasks_cache", JSON.stringify(TASKS_DEF));
           }
 // 後端已不再於公開 API 傳輸工作人員代碼，密碼絕不洩漏
@@ -413,48 +424,43 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
     function handleVerifyStamp(e) {
       e.preventDefault();
-      const idx = parseInt(document.getElementById("stampGridIndex").value, 10);
-      const codeInput = document.getElementById("verifyCode").value.trim().toUpperCase();
-      const expectedCode = TASKS_DEF[idx].code.toUpperCase();
-
-      if (codeInput !== expectedCode) {
-        alert('通關代碼錯誤！請向該活動關主確認通關代碼。');
+      const codeInput = document.getElementById("verifyCode").value.trim();
+      if (!codeInput) {
+        alert("請輸入官方通關代碼！");
         return;
       }
-
-      confirmStamp(false);
+      // 安全架構升級：代碼直接送往 Google 試算表後端權威驗證，前端絕不儲存密碼或自行判定
+      confirmStamp(false, codeInput);
     }
 
-    // 執行蓋章（可靠同步：等待試算表確認回傳後才蓋章）
-    async function confirmStamp(isBypass) {
+    // 執行蓋章（由 Google Apps Script 後端嚴格校驗通關碼或綠色通道認證碼）
+    async function confirmStamp(isBypass, userVerifyCode = "") {
       const idx = parseInt(document.getElementById("stampGridIndex").value, 10);
       
       const btnStaff = document.querySelector("#staffQuickSection button");
       const btnSubmit = document.querySelector("#stampModal button[type='submit']");
-      if (btnStaff) { btnStaff.disabled = true; btnStaff.innerText = "寫入試算表中..."; }
-      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = "蓋章寫入中..."; }
-      showToast("正在寫入 Google 試算表...");
+      if (btnStaff) { btnStaff.disabled = true; btnStaff.innerText = "雲端驗證中..."; }
+      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = "代碼驗證中..."; }
+      showToast("正在連線 Google 試算表進行密碼核驗與蓋章...");
 
       if (gasApiUrl) {
         try {
-          const stampUrl = `${gasApiUrl}?action=stamp&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${idx}&isStaffOverride=${isBypass}&staffPasscode=${encodeURIComponent(isBypass ? sessionStaffCode : "")}&t=${Date.now()}`;
+          const stampUrl = `${gasApiUrl}?action=stamp&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${idx}&isStaffOverride=${isBypass}&staffPasscode=${encodeURIComponent(isBypass ? sessionStaffCode : "")}&verifyCode=${encodeURIComponent(userVerifyCode)}&t=${Date.now()}`;
           const resp = await fetch(stampUrl);
           const res = await resp.json();
           
           if (!res.success) {
-            alert(`【雲端寫入失敗】${res.message || res.error}\n本機暫不更新，請稍後重試。`);
+            alert(`【核銷失敗】${res.message || res.error || "通關代碼錯誤"}`);
             if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "工作人員綠色通道蓋章"; }
             if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
             return;
           }
         } catch (err) {
           console.error("GAS 蓋章請求失敗", err);
-          const goLocal = confirm(`向 Google 試算表寫入時發生連線錯誤：\n${err.message}\n\n是否仍要先在本機標記蓋章？\n（建議檢查網路後重新蓋章以確保試算表同步）`);
-          if (!goLocal) {
-            if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "工作人員綠色通道蓋章"; }
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
-            return;
-          }
+          alert(`向 Google 試算表連線時發生錯誤：\n${err.message}\n\n請檢查網路連線或請現場工作人員以綠色通道為您核銷。`);
+          if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "工作人員綠色通道蓋章"; }
+          if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
+          return;
         }
       }
 
