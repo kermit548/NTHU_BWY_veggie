@@ -106,6 +106,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
     // 切換為工作人員身份（記憶體存放通行碼，由後端蓋章時校驗）
     function toggleStaffMode() {
+      const btn = document.getElementById("btnStaffToggle");
       if (!isStaffMode) {
         const input = prompt("請輸入工作人員認證代碼以開啟綠色通道：");
         if (input === null) return;
@@ -117,11 +118,19 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         sessionStaffCode = cleanInput;
         isStaffMode = true;
         document.getElementById("staffIndicator").style.display = "inline-block";
+        if (btn) {
+          btn.innerText = "切換回一般人員模式";
+          btn.classList.add("btn-staff-active");
+        }
         showToast("已切換為工作人員身份（綠色通道已備妥）");
       } else {
         isStaffMode = false;
         sessionStaffCode = "";
         document.getElementById("staffIndicator").style.display = "none";
+        if (btn) {
+          btn.innerText = "切換為工作人員身份";
+          btn.classList.remove("btn-staff-active");
+        }
         showToast("已切換回一般學員身份");
       }
     }

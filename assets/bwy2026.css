@@ -85,9 +85,11 @@
       header {
         flex-wrap: wrap;
         padding: 0 12px;
+        box-sizing: border-box;
       }
       .brand {
-        padding: 12px 8px 12px 0;
+        padding: 10px 4px 6px 0;
+        font-size: 0.98rem;
       }
       .header-nav {
         order: 3;
@@ -96,12 +98,55 @@
         flex: unset;
       }
       .header-nav a {
-        padding: 8px 12px;
+        padding: 8px 10px;
         font-size: 0.8rem;
       }
       .header-actions {
-        margin-left: auto;
-        padding: 8px 0;
+        width: 100%;
+        margin-left: 0;
+        padding: 4px 0 8px;
+        gap: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+      }
+      .header-actions .badge-staff {
+        padding: 3px 6px;
+        font-size: 0.75rem;
+      }
+      .header-actions .btn-sm {
+        padding: 3px 8px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+      }
+      .lang-switch-wrap {
+        padding: 2px 6px;
+        font-size: 0.75rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      header {
+        padding: 0 8px;
+      }
+      .brand {
+        font-size: 0.92rem;
+      }
+      .header-actions {
+        gap: 4px 6px;
+      }
+      .header-actions .btn-sm {
+        padding: 2px 6px;
+        font-size: 0.72rem;
+      }
+      .header-actions .badge-staff {
+        padding: 2px 5px;
+        font-size: 0.72rem;
+      }
+      .lang-switch-wrap {
+        padding: 2px 5px;
+        font-size: 0.72rem;
       }
     }
 
@@ -213,6 +258,13 @@
       border-radius: 4px;
       font-size: 0.8rem;
       font-weight: bold;
+    }
+
+    .btn-staff-active {
+      background-color: #fff3e0 !important;
+      color: #e65100 !important;
+      border-color: #ffb74d !important;
+      font-weight: 700;
     }
 
     /* 主容器 */

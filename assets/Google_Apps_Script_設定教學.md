@@ -222,9 +222,9 @@ function handleStamp(ss, sheet, payload) {
     // 2. 通關代碼或工作人員綠色通道安全認證（後端權威核驗，杜絕前端繞過與外洩）
     const meta = getTasksAndStaffCode(ss);
     if (payload.isStaffOverride) {
-      // 工作人員綠色通道認證
-      const inputCode = String(payload.staffPasscode || "").trim();
-      const actualCode = String(meta.staffCode || "").trim();
+      // 工作人員綠色通道認證（不區分大小寫，貼心防呆避免手機自動大寫錯誤）
+      const inputCode = String(payload.staffPasscode || "").trim().toUpperCase();
+      const actualCode = String(meta.staffCode || "").trim().toUpperCase();
       if (!actualCode || inputCode !== actualCode) {
         return createJsonResponse({
           success: false,

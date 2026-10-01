@@ -108,6 +108,7 @@ function closeModal(id) {
 
 // Toggle Staff Mode
 function toggleStaffMode() {
+  const btn = document.getElementById("btnStaffToggle");
   if (!isStaffMode) {
     const input = prompt("Please enter Staff Passcode to activate Fast-Track:");
     if (input === null) return;
@@ -119,12 +120,20 @@ function toggleStaffMode() {
     sessionStaffCode = cleanInput;
     isStaffMode = true;
     document.getElementById("staffIndicator").style.display = "inline-block";
+    if (btn) {
+      btn.innerText = "Normal mode";
+      btn.classList.add("btn-staff-active");
+    }
     showToast("Staff Mode Activated (Fast-track ready)");
   } else {
     isStaffMode = false;
     sessionStaffCode = "";
     document.getElementById("staffIndicator").style.display = "none";
-    showToast("Switched back to Participant Mode");
+    if (btn) {
+      btn.innerText = "Staff Mode";
+      btn.classList.remove("btn-staff-active");
+    }
+    showToast("Switched back to Normal mode");
   }
 }
 
