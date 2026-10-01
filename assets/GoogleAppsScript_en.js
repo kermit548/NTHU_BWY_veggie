@@ -457,8 +457,15 @@ async function confirmStamp(isBypass, userVerifyCode = "") {
       if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
       return;
     }
+  } else {
+    // gasApiUrl not configured: reject stamp without backend authorization
+    alert("Google Sheets connection is not configured. Cannot complete verification.\nPlease ask booth staff for manual stamping.");
+    if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "Staff Fast-Track Stamp"; }
+    if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
+    return;
   }
 
+  // Cloud verification succeeded — sync to local cache
   currentUser.stamps[idx] = 1;
   saveCurrentUserData();
 

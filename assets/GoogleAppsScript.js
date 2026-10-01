@@ -462,9 +462,15 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
           if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
           return;
         }
+      } else {
+        // gasApiUrl 未設定：拒絕在無後端授權下蓋章，避免繞過驗證
+        alert("系統尚未設定 Google 試算表連線，無法完成核銷。\n請洽工作人員由後台手動蓋章。");
+        if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "工作人員綠色通道蓋章"; }
+        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
+        return;
       }
 
-      // 改用數值 1 記錄已蓋章
+      // 雲端核銷成功後，同步更新本機快取
       currentUser.stamps[idx] = 1;
       saveCurrentUserData();
 
