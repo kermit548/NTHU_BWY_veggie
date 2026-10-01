@@ -18,15 +18,37 @@ const DEFAULT_TASKS_EN = [
   { id: 9, title: "Featured Club Class (Choose 1)", desc: "Attend either the intro class on 10/14 or wrap-up class on 11/25" }
 ];
 
-// Sanitize tasks helper: completely strips away any code property
+// Sanitize tasks helper: completely strips away any code property & guarantees English content
 function sanitizeTasks(tasks) {
   if (!Array.isArray(tasks)) return DEFAULT_TASKS_EN;
+  const hasChinese = (str) => /[\u4e00-\u9fa5]/.test(str || "");
+
   return tasks.map((t, i) => {
     const fallback = DEFAULT_TASKS_EN[i] || {};
+    
+    // 嚴格優先使用英文：若有後端傳來的 titleEn（試算表 E 欄）則採用；若為中文則強制回退英文備份
+    let enTitle = "";
+    if (t.titleEn && t.titleEn.trim()) {
+      enTitle = t.titleEn.trim();
+    } else if (t.title && !hasChinese(t.title)) {
+      enTitle = t.title.trim();
+    } else {
+      enTitle = fallback.title || ("Task " + (i + 1));
+    }
+
+    let enDesc = "";
+    if (t.descEn && t.descEn.trim()) {
+      enDesc = t.descEn.trim();
+    } else if (t.desc && !hasChinese(t.desc)) {
+      enDesc = t.desc.trim();
+    } else {
+      enDesc = fallback.desc || "";
+    }
+
     return {
       id: t.id || i + 1,
-      title: t.titleEn || t.title || fallback.title || ("Task " + (i + 1)),
-      desc: t.descEn || t.desc || fallback.desc || ""
+      title: enTitle,
+      desc: enDesc
     };
   });
 }
