@@ -43,7 +43,7 @@
       <p>連續整個月的綠色探索！點擊下方按鈕填寫報名，立即領取專屬九宮格賓果卡。參加指定講座、餐飲打卡即可完成蓋章，完成連線兌換豐富限量蔬食好禮！</p>
       <div class="hero-buttons">
         <button class="btn btn-primary" onclick="openRegisterModal()">立即報名領取賓果卡</button>
-        <button class="btn btn-outline" onclick="openLookupModal()">已有流水號？查詢舊卡</button>
+        <button class="btn btn-outline" onclick="openLookupModal()">已有卡片？查詢舊卡</button>
       </div>
     </div>
 
@@ -140,11 +140,14 @@
   <div id="lookupModal" class="modal-overlay">
     <div class="modal">
       <h2>查詢既有賓果卡</h2>
-      <p class="subtitle">輸入您先前報名取得的專屬流水號，載入您的任務進度。</p>
+      <p class="subtitle">支援「專屬卡號」、「報名姓名」或「手機聯絡方式」（三擇一輸入），載入您的任務進度。</p>
       <form onsubmit="handleLookup(event)">
         <div class="form-group">
-          <label for="lookupSerial">專屬流水號 *</label>
-          <input type="text" id="lookupSerial" required placeholder="例如：VEG-2026-0001">
+          <label for="lookupSerial">卡號 / 姓名 / 手機或聯絡方式 *</label>
+          <input type="text" id="lookupSerial" required placeholder="例如：VEG-2026-0001、孫家明、或 0912345678">
+          <small style="color: #64748b; font-size: 0.78rem; display: block; margin-top: 5px; line-height: 1.4;">
+            💡 手機號碼有無輸入開頭的「0」皆可自動比對匹配
+          </small>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-outline" onclick="closeModal('lookupModal')">取消</button>

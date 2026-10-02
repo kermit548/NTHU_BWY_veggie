@@ -43,7 +43,7 @@
       <p>A month-long green exploration! Click below to sign up and get your exclusive 3x3 Bingo Card. Attend featured events, complete green habits, and get digital stamps to complete lines for limited eco-friendly prizes!</p>
       <div class="hero-buttons">
         <button class="btn btn-primary" onclick="openRegisterModal()">Sign Up & Get Bingo Card</button>
-        <button class="btn btn-outline" onclick="openLookupModal()">Already Have Serial No.? Check Card</button>
+        <button class="btn btn-outline" onclick="openLookupModal()">Already Registered? Check Card</button>
       </div>
     </div>
 
@@ -139,11 +139,14 @@
   <div id="lookupModal" class="modal-overlay">
     <div class="modal">
       <h2>Look Up Existing Bingo Card</h2>
-      <p class="subtitle">Enter your exclusive serial number to restore your bingo progress:</p>
+      <p class="subtitle">Enter your Card Serial, Registered Name, or Phone/Email (choose one):</p>
       <form onsubmit="handleLookup(event)">
         <div class="form-group">
-          <label for="lookupSerial">Card Serial Number (Serial No.) *</label>
-          <input type="text" id="lookupSerial" required placeholder="e.g. VEG-2026-0001" style="text-transform: uppercase;">
+          <label for="lookupSerial">Card Serial / Name / Phone or Email *</label>
+          <input type="text" id="lookupSerial" required placeholder="e.g. VEG-2026-0001, Soen Chou, or 0912345678">
+          <small style="color: #64748b; font-size: 0.78rem; display: block; margin-top: 5px; line-height: 1.4;">
+            💡 Phone numbers match automatically with or without the leading '0'
+          </small>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-outline" onclick="closeModal('lookupModal')">Cancel</button>

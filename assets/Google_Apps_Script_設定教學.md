@@ -1,9 +1,9 @@
-# 蔬食月九宮格賓果系統 —— Google Apps Script 後端設定（v8 後端安全性提升版）
+# 蔬食月九宮格賓果系統 —— Google Apps Script 後端設定（v9 多維查詢與安全性加強版）
 
 ```javascript
 /**
- * 2026 蔬食月九宮格賓果卡後端程式 (v8 後端安全性提升版)
- * 升級重點：後端權威核銷防弊、公開任務資料脫敏（絕不傳輸通關碼至前端）、強制 GMT+8 台灣時間
+ * 2026 蔬食月九宮格賓果卡後端程式 (v9 多維查詢與安全性加強版)
+ * 升級重點：支援卡號/姓名/聯絡方式三擇一彈性查卡（智慧相容手機開頭0自動移除）、後端權威核銷防弊、強制 GMT+8 台灣時間
  */
 
 const PREFERRED_USERS_SHEET = "學員報名與賓果總表";
@@ -115,9 +115,16 @@ function doGet(e) {
       });
     }
     
-    // 4. 查詢個人卡片端點（安全：絕不回傳 staffCode）
-    if (action === "getCard" && serial) {
-      const user = findUserBySerial(sheet, serial);
+    // 4. 查詢個人卡片端點（支援卡號、姓名、聯絡方式三擇一查詢）
+    if (action === "getCard") {
+      const queryKey = String(e.parameter.query || e.parameter.serial || serial || "").trim();
+      if (!queryKey) {
+        return createJsonResponse({ 
+          success: false, 
+          message: "請提供卡號、姓名或手機聯絡方式進行查詢。" 
+        });
+      }
+      const user = findUserByQuery(sheet, queryKey);
       if (user) {
         return createJsonResponse({ 
           success: true, 
@@ -127,7 +134,7 @@ function doGet(e) {
       } else {
         return createJsonResponse({
           success: false,
-          message: "在工作表「" + sheet.getName() + "」中未找到流水號「" + serial + "」。"
+          message: "在工作表「" + sheet.getName() + "」中未找到與「" + queryKey + "」匹配的卡片資料（請確認卡號、姓名或手機是否正確）。"
         });
       }
     }
@@ -316,32 +323,86 @@ function handleStamp(ss, sheet, payload) {
   }
 }
 
-// 依流水號查詢學員（相容 1 與 TRUE）
-function findUserBySerial(sheet, serial) {
+// 標準化聯絡方式（精準處理手機開頭 0 被試算表儲存格自動移除、連字號、空格、國碼等狀況）
+function normalizeContact(val) {
+  if (val === null || val === undefined) return "";
+  let s = String(val).trim();
+  // 去除試算表可能產生的小數點 (例如 921980052.0)
+  s = s.replace(/\.0+$/, "");
+  // 去除常見格式標點 (空格、連字號、括號、斜線、加號)
+  s = s.replace(/[\s\-\(\)\/\+]/g, "");
+  // 處理國碼 886 開頭手機號碼 (如 8869xxxxxxxx -> 9xxxxxxxx)
+  if (/^886\d{8,11}$/.test(s)) {
+    s = s.substring(3);
+  }
+  // 處理 0 開頭手機號碼 (如 09xxxxxxxx -> 9xxxxxxxx，與試算表儲存格無0格式對齊)
+  if (/^0\d{8,11}$/.test(s)) {
+    s = s.substring(1);
+  }
+  return s.toLowerCase();
+}
+
+// 封裝學員卡片資料物件
+function buildUserData(row) {
+  const stamps = [];
+  for (let g = 5; g < 14; g++) {
+    const val = row[g];
+    // 相容數值 1、布林值 TRUE、字串 "1" 與 "TRUE"
+    const isCompleted = (val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE") ? 1 : 0;
+    stamps.push(isCompleted);
+  }
+  return {
+    serial: String(row[0] || "").trim(),
+    name: String(row[2] || "").trim(),
+    studentId: String(row[3] || "").trim(),
+    contact: row[4],
+    stamps: stamps,
+    lines: row[14] || 0
+  };
+}
+
+// 多維查詢學員卡片（支援 A 欄卡號、C 欄姓名、E 欄聯絡方式三擇一彈性匹配）
+function findUserByQuery(sheet, query) {
   const data = sheet.getDataRange().getValues();
-  const searchKey = String(serial).trim().toUpperCase();
+  const rawKey = String(query || "").trim();
+  if (!rawKey) return null;
   
-  for (let i = 1; i < data.length; i++) {
-    const rowKey = String(data[i][0]).trim().toUpperCase();
-    if (rowKey === searchKey) {
-      const stamps = [];
-      for (let g = 5; g < 14; g++) {
-        const val = data[i][g];
-        // 相容 1、TRUE、"1"、"TRUE"
-        const isCompleted = (val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE") ? 1 : 0;
-        stamps.push(isCompleted);
-      }
-      return {
-        serial: data[i][0],
-        name: data[i][2],
-        studentId: data[i][3],
-        contact: data[i][4],
-        stamps: stamps,
-        lines: data[i][14] || 0
-      };
+  const searchUpper = rawKey.toUpperCase();
+  const searchLower = rawKey.toLowerCase();
+  const searchContactNorm = normalizeContact(rawKey);
+
+  // 1. 優先精準比對 A 欄（專屬卡號 / 流水號）
+  for (let i = data.length - 1; i >= 1; i--) {
+    const rowSerial = String(data[i][0] || "").trim().toUpperCase();
+    if (rowSerial && rowSerial === searchUpper) {
+      return buildUserData(data[i]);
     }
   }
+
+  // 2. 比對 C 欄（姓名，完全相符）
+  for (let i = data.length - 1; i >= 1; i--) {
+    const rowName = String(data[i][2] || "").trim().toLowerCase();
+    if (rowName && rowName === searchLower) {
+      return buildUserData(data[i]);
+    }
+  }
+
+  // 3. 比對 E 欄（聯絡方式，支援手機去0正規化、連字號與 Email）
+  if (searchContactNorm) {
+    for (let i = data.length - 1; i >= 1; i--) {
+      const rowContactNorm = normalizeContact(data[i][4]);
+      if (rowContactNorm && rowContactNorm === searchContactNorm) {
+        return buildUserData(data[i]);
+      }
+    }
+  }
+
   return null;
+}
+
+// 舊函式別名相容
+function findUserBySerial(sheet, serial) {
+  return findUserByQuery(sheet, serial);
 }
 
 // 連線試算（相容 1 與 true）

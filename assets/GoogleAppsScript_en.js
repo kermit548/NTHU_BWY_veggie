@@ -328,11 +328,20 @@ async function handleRegister(e) {
   showToast(`Welcome! Your Card Serial No. is: ${serial}`);
 }
 
-// Handle Lookup
+// Normalize contact string (phone number leading zero, dashes, spaces)
+function normalizeContact(val) {
+  if (val === null || val === undefined) return "";
+  let s = String(val).trim().replace(/\.0+$/, "").replace(/[\s\-\(\)\/\+]/g, "");
+  if (/^886\d{8,11}$/.test(s)) s = s.substring(3);
+  if (/^0\d{8,11}$/.test(s)) s = s.substring(1);
+  return s.toLowerCase();
+}
+
+// Handle Lookup (Supports Serial No., Name, or Phone/Email)
 async function handleLookup(e) {
   e.preventDefault();
-  const serial = document.getElementById("lookupSerial").value.trim();
-  if (!serial) return;
+  const query = document.getElementById("lookupSerial").value.trim();
+  if (!query) return;
 
   const submitBtn = document.getElementById("btnSubmitLookup");
   submitBtn.disabled = true;
@@ -341,7 +350,7 @@ async function handleLookup(e) {
   if (gasApiUrl) {
     showToast("Retrieving latest card progress from Google Sheets...");
     try {
-      const fetchUrl = `${gasApiUrl}?action=getCard&serial=${encodeURIComponent(serial)}&t=${Date.now()}`;
+      const fetchUrl = `${gasApiUrl}?action=getCard&serial=${encodeURIComponent(query)}&query=${encodeURIComponent(query)}&t=${Date.now()}`;
       const resp = await fetch(fetchUrl);
       const text = await resp.text();
       
@@ -362,12 +371,12 @@ async function handleLookup(e) {
         submitBtn.disabled = false;
         submitBtn.innerText = "Search Card";
         renderBingoCard();
-        showToast("Synchronized latest progress from Google Sheets!");
+        showToast(`Loaded card for ${currentUser.name || "Participant"}!`);
         return;
       } else {
         submitBtn.disabled = false;
         submitBtn.innerText = "Search Card";
-        alert(`【Search Failed】${res.message || "Serial number not found."}`);
+        alert(`【Search Failed】${res.message || "Card record not found."}\n\nPlease verify:\n1. Card Serial No. (e.g. VEG-2026-0001)\n2. Registered Name\n3. Contact Phone (matches with or without leading 0)`);
         return;
       }
     } catch (err) {
@@ -375,21 +384,30 @@ async function handleLookup(e) {
     }
   }
 
-  const local = localStorage.getItem("veg_user_" + serial);
-  if (local) {
-    currentUser = JSON.parse(local);
-    saveCurrentUserData();
-    closeModal("lookupModal");
-    submitBtn.disabled = false;
-    submitBtn.innerText = "Search Card";
-    renderBingoCard();
-    showToast("(Offline Mode) Loaded local cached progress!");
-    return;
+  // Fallback to local storage
+  const savedUser = JSON.parse(localStorage.getItem("veg_current_user") || "null");
+  if (savedUser) {
+    const sUpper = (savedUser.serial || "").toUpperCase();
+    const sName = (savedUser.name || "").trim().toLowerCase();
+    const sContact = normalizeContact(savedUser.contact);
+    const qUpper = query.toUpperCase();
+    const qLower = query.toLowerCase();
+    const qContact = normalizeContact(query);
+
+    if (sUpper === qUpper || sName === qLower || (qContact && sContact === qContact)) {
+      currentUser = savedUser;
+      closeModal("lookupModal");
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Search Card";
+      renderBingoCard();
+      showToast(`(Offline Mode) Loaded local card for ${currentUser.name}!`);
+      return;
+    }
   }
 
   submitBtn.disabled = false;
   submitBtn.innerText = "Search Card";
-  alert("Serial number not found!\nPlease verify your number or contact the staff booth.");
+  alert("Card not found!\nPlease verify your Serial No., Name, or Contact Phone/Email.");
 }
 
 function saveCurrentUserData() {

@@ -307,11 +307,20 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       showToast(`報名成功！您的流水號為：${serial}`);
     }
 
-    // 查詢卡片（雲端優先）
+    // 標準化聯絡方式（精準比對手機開頭 0 移除問題、連字號、空格等）
+    function normalizeContact(val) {
+      if (val === null || val === undefined) return "";
+      let s = String(val).trim().replace(/\.0+$/, "").replace(/[\s\-\(\)\/\+]/g, "");
+      if (/^886\d{8,11}$/.test(s)) s = s.substring(3);
+      if (/^0\d{8,11}$/.test(s)) s = s.substring(1);
+      return s.toLowerCase();
+    }
+
+    // 查詢卡片（雲端優先，支援卡號、姓名、聯絡方式三擇一彈性匹配）
     async function handleLookup(e) {
       e.preventDefault();
-      const serial = document.getElementById("lookupSerial").value.trim();
-      if (!serial) return;
+      const query = document.getElementById("lookupSerial").value.trim();
+      if (!query) return;
 
       const submitBtn = document.getElementById("btnSubmitLookup");
       submitBtn.disabled = true;
@@ -321,7 +330,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       if (gasApiUrl) {
         showToast("正在從 Google 試算表檢索卡片最新狀態...");
         try {
-          const fetchUrl = `${gasApiUrl}?action=getCard&serial=${encodeURIComponent(serial)}&t=${Date.now()}`;
+          const fetchUrl = `${gasApiUrl}?action=getCard&serial=${encodeURIComponent(query)}&query=${encodeURIComponent(query)}&t=${Date.now()}`;
           const resp = await fetch(fetchUrl);
           const text = await resp.text();
           
@@ -342,12 +351,12 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
             submitBtn.disabled = false;
             submitBtn.innerText = "查詢卡片";
             renderBingoCard();
-            showToast("已從 Google 試算表同步最新進度！");
+            showToast(`已成功載入【${currentUser.name || "學員"}】的賓果卡！`);
             return;
           } else {
             submitBtn.disabled = false;
             submitBtn.innerText = "查詢卡片";
-            alert(`【試算表回報】${res.message || res.error || "查無此流水號"}\n\n若試算表中確實有此筆資料，請確認：\n1. 工作表分頁名稱是否為「學員報名與賓果總表」\n2. 流水號欄位前後是否有空白字元`);
+            alert(`【查無卡片】${res.message || "未找到符合的資料"}\n\n請確認：\n1. 專屬卡號（例如：VEG-2026-0001）\n2. 報名姓名（須完全相符）\n3. 手機聯絡方式（有無輸入 0 皆可比對）`);
             return;
           }
         } catch (err) {
@@ -356,21 +365,29 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       }
 
       // 降級方案：離線或無後端時查詢本機
-      const local = localStorage.getItem("veg_user_" + serial);
-      if (local) {
-        currentUser = JSON.parse(local);
-        saveCurrentUserData();
-        closeModal("lookupModal");
-        submitBtn.disabled = false;
-        submitBtn.innerText = "查詢卡片";
-        renderBingoCard();
-        showToast("（離線模式）已載入本機暫存進度！");
-        return;
+      const savedUser = JSON.parse(localStorage.getItem("veg_current_user") || "null");
+      if (savedUser) {
+        const sUpper = (savedUser.serial || "").toUpperCase();
+        const sName = (savedUser.name || "").trim().toLowerCase();
+        const sContact = normalizeContact(savedUser.contact);
+        const qUpper = query.toUpperCase();
+        const qLower = query.toLowerCase();
+        const qContact = normalizeContact(query);
+
+        if (sUpper === qUpper || sName === qLower || (qContact && sContact === qContact)) {
+          currentUser = savedUser;
+          closeModal("lookupModal");
+          submitBtn.disabled = false;
+          submitBtn.innerText = "查詢卡片";
+          renderBingoCard();
+          showToast(`（離線模式）已載入本機暫存卡片（${currentUser.name}）！`);
+          return;
+        }
       }
 
       submitBtn.disabled = false;
       submitBtn.innerText = "查詢卡片";
-      alert("查無此流水號！\n請確認號碼是否正確，或至 Google 試算表核對。");
+      alert("查無此卡片資料！\n請確認卡號、姓名或手機聯絡方式是否正確。");
     }
 
     function saveCurrentUserData() {
