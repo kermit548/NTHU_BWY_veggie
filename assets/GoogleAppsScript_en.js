@@ -150,14 +150,14 @@ async function toggleStaffMode() {
         const res = await resp.json();
         const msg = res.message || res.error || "";
         if (msg.indexOf("工作人員認證代碼錯誤") !== -1 || msg.indexOf("Staff passcode error") !== -1) {
-          alert("【Authentication Failed】Invalid staff passcode! Access denied.");
           if (btn) btn.innerText = "Staff Mode";
+          alert("【Authentication Failed】Invalid staff passcode! Access denied.");
           return;
         }
       } catch (err) {
         console.warn("Staff auth check failed", err);
-        alert(`Network error during staff authentication:\n${err.message}\nPlease check your network connection.`);
         if (btn) btn.innerText = "Staff Mode";
+        alert(`Network error during staff authentication:\n${err.message}\nPlease check your network connection.`);
         return;
       }
     }

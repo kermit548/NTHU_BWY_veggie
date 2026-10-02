@@ -126,14 +126,14 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
             const res = await resp.json();
             const msg = res.message || res.error || "";
             if (msg.indexOf("工作人員認證代碼錯誤") !== -1) {
-              alert("【認證失敗】工作人員認證代碼錯誤，無法開啟綠色通道！");
               if (btn) btn.innerText = "切換為工作人員身份";
+              alert("【認證失敗】工作人員認證代碼錯誤，無法開啟綠色通道！");
               return;
             }
           } catch (err) {
             console.warn("工作人員代碼連線驗證失敗", err);
-            alert(`連線 Google 試算表驗證時發生錯誤：\n${err.message}\n請檢查網路連線。`);
             if (btn) btn.innerText = "切換為工作人員身份";
+            alert(`連線 Google 試算表驗證時發生錯誤：\n${err.message}\n請檢查網路連線。`);
             return;
           }
         }

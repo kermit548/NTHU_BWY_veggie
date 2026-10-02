@@ -117,7 +117,7 @@ function doGet(e) {
     
     // 4. 查詢個人卡片端點（支援卡號、姓名、聯絡方式三擇一查詢）
     if (action === "getCard") {
-      const queryKey = String(e.parameter.query || e.parameter.serial || serial || "").trim();
+      const queryKey = String(e.parameter.query || e.parameter.serial || "").trim();
       if (!queryKey) {
         return createJsonResponse({ 
           success: false, 
@@ -335,8 +335,8 @@ function normalizeContact(val) {
   if (/^886\d{8,11}$/.test(s)) {
     s = s.substring(3);
   }
-  // 處理 0 開頭手機號碼 (如 09xxxxxxxx -> 9xxxxxxxx，與試算表儲存格無0格式對齊)
-  if (/^0\d{8,11}$/.test(s)) {
+  // 處理 0 開頭手機號碼（僅限台灣手機 09xxxxxxxx，避免市話誤去開頭 0）
+  if (/^09\d{8}$/.test(s)) {
     s = s.substring(1);
   }
   return s.toLowerCase();
