@@ -376,7 +376,7 @@ async function handleLookup(e) {
       } else {
         submitBtn.disabled = false;
         submitBtn.innerText = "Search Card";
-        alert(`【Search Failed】${res.message || "Card record not found."}\n\nPlease verify:\n1. Card Serial No. (e.g. VEG-2026-0001)\n2. Registered Name\n3. Contact Phone (matches with or without leading 0)`);
+        alert("【Card Not Found】No matching record found for the entered keyword.");
         return;
       }
     } catch (err) {
@@ -407,7 +407,7 @@ async function handleLookup(e) {
 
   submitBtn.disabled = false;
   submitBtn.innerText = "Search Card";
-  alert("Card not found!\nPlease verify your Serial No., Name, or Contact Phone/Email.");
+  alert("【Card Not Found】No matching record found for the entered keyword.");
 }
 
 function saveCurrentUserData() {

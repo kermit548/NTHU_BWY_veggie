@@ -134,7 +134,7 @@ function doGet(e) {
       } else {
         return createJsonResponse({
           success: false,
-          message: "在工作表「" + sheet.getName() + "」中未找到與「" + queryKey + "」匹配的卡片資料（請確認卡號、姓名或手機是否正確）。"
+          message: "輸入關鍵字未查找到對應資料"
         });
       }
     }

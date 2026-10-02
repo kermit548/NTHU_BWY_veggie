@@ -356,7 +356,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
           } else {
             submitBtn.disabled = false;
             submitBtn.innerText = "查詢卡片";
-            alert(`【查無卡片】${res.message || "未找到符合的資料"}\n\n請確認：\n1. 專屬卡號（例如：VEG-2026-0001）\n2. 報名姓名（須完全相符）\n3. 手機聯絡方式（有無輸入 0 皆可比對）`);
+            alert("【查無卡片】輸入關鍵字未查找到對應資料");
             return;
           }
         } catch (err) {
@@ -387,7 +387,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
       submitBtn.disabled = false;
       submitBtn.innerText = "查詢卡片";
-      alert("查無此卡片資料！\n請確認卡號、姓名或手機聯絡方式是否正確。");
+      alert("【查無卡片】輸入關鍵字未查找到對應資料");
     }
 
     function saveCurrentUserData() {
