@@ -23,23 +23,23 @@
       --center-cell-border: #cfd8dc;
     }
 
-    /* 中文版專用配色：套用方案 C（深灰綠 #5E7960 + 暖陽黃 #FFDF76 + 鮮青綠 #78A95B） */
+    /* 中文版專用配色：自訂調優（頁面背景加深 #c3ce6a + 標題 #1b5e20 + 連線背景 #78A95B） */
     html[lang="zh-TW"],
     html:not([lang="en"]) {
       --primary: #78A95B;              /* 主色：鮮青綠 */
       --primary-light: #eff6eb;        /* 極淺柔和綠底 */
-      --primary-dark: #5E7960;         /* 品牌/文字深灰綠 */
+      --primary-dark: #1b5e20;         /* 品牌/文字標題深綠 */
       --accent: #e59a00;               /* 警示/認證橘 */
       --stamp-red: #c62828;            /* 印章紅 */
-      --bg: #f4f8f2;                   /* 頁面自然淺青灰底（加深對比感） */
+      --bg: #c3ce6a;                   /* 頁面背景加深（方案 A 嫩黃綠） */
       --card-bg: #ffffff;              /* 卡片白底 */
       --text-main: #253327;            /* 深森林墨綠字（對比度高且柔和） */
-      --text-muted: #627565;           /* 次要說明灰綠字 */
-      --border: #d4e0d3;               /* 柔和自然綠灰邊框 */
-      --bingo-gold: #FFDF76;           /* 方案 C 暖陽黃（連線/核心亮點） */
-      --bingo-line-bg: #fffde8;        /* 連線高亮淺黃底 */
-      --bingo-line-border: #e6b800;     /* 連線金黃邊框 */
-      --bingo-line-shadow: rgba(230, 184, 0, 0.4);
+      --text-muted: #556658;           /* 次要說明灰綠字 */
+      --border: #b8c99d;               /* 柔和自然綠邊框 */
+      --bingo-gold: #FFDF76;           /* 方案 C 暖陽黃（連線金黃邊框/核心亮點） */
+      --bingo-line-bg: #78A95B;        /* 連線高亮背景改為鮮青綠 */
+      --bingo-line-border: #FFDF76;     /* 連線金黃邊框 */
+      --bingo-line-shadow: rgba(120, 169, 91, 0.5);
       --stamped-border: #9ec686;       /* 方案 C 鮮綠蓋章邊框 */
       --stamped-bg: #f7fbf5;           /* 蓋章淺綠底 */
       --stats-pill-bg: #f2f7ee;        /* 連線狀態膠囊背景 */
@@ -502,6 +502,21 @@
       border-color: var(--bingo-line-border);
       background-color: var(--bingo-line-bg);
       box-shadow: 0 0 10px var(--bingo-line-shadow);
+    }
+
+    /* 中文版連線狀態：在鮮青綠底色 (#78A95B) 上強化文字對比 */
+    html[lang="zh-TW"] .grid-cell.bingo-line .cell-title,
+    html:not([lang="en"]) .grid-cell.bingo-line .cell-title {
+      color: #0d3810;
+    }
+    html[lang="zh-TW"] .grid-cell.bingo-line .cell-number,
+    html:not([lang="en"]) .grid-cell.bingo-line .cell-number,
+    html[lang="zh-TW"] .grid-cell.bingo-line .cell-desc,
+    html:not([lang="en"]) .grid-cell.bingo-line .cell-desc,
+    html[lang="zh-TW"] .grid-cell.bingo-line .cell-status-hint,
+    html:not([lang="en"]) .grid-cell.bingo-line .cell-status-hint {
+      color: #164013;
+      font-weight: 700;
     }
 
     /* 獎勵進度說明卡 */
