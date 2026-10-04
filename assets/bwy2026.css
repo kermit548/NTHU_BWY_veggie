@@ -19,6 +19,8 @@
       --stamped-bg: #f9fbf9;
       --stats-pill-bg: #f1f8e9;
       --stats-pill-border: #c5e1a5;
+      --center-cell-bg: #fafafa;
+      --center-cell-border: #cfd8dc;
     }
 
     /* 中文版專用配色：套用方案 C（深灰綠 #5E7960 + 暖陽黃 #FFDF76 + 鮮青綠 #78A95B） */
@@ -29,7 +31,7 @@
       --primary-dark: #5E7960;         /* 品牌/文字深灰綠 */
       --accent: #e59a00;               /* 警示/認證橘 */
       --stamp-red: #c62828;            /* 印章紅 */
-      --bg: #f7faf5;                   /* 頁面自然淺底 */
+      --bg: #f4f8f2;                   /* 頁面自然淺青灰底（加深對比感） */
       --card-bg: #ffffff;              /* 卡片白底 */
       --text-main: #253327;            /* 深森林墨綠字（對比度高且柔和） */
       --text-muted: #627565;           /* 次要說明灰綠字 */
@@ -37,11 +39,13 @@
       --bingo-gold: #FFDF76;           /* 方案 C 暖陽黃（連線/核心亮點） */
       --bingo-line-bg: #fffde8;        /* 連線高亮淺黃底 */
       --bingo-line-border: #e6b800;     /* 連線金黃邊框 */
-      --bingo-line-shadow: rgba(230, 184, 0, 0.35);
+      --bingo-line-shadow: rgba(230, 184, 0, 0.4);
       --stamped-border: #9ec686;       /* 方案 C 鮮綠蓋章邊框 */
       --stamped-bg: #f7fbf5;           /* 蓋章淺綠底 */
       --stats-pill-bg: #f2f7ee;        /* 連線狀態膠囊背景 */
       --stats-pill-border: #b8d7a3;    /* 連線狀態膠囊邊框 */
+      --center-cell-bg: #fffbf0;       /* 核心任務特調暖黃底色 */
+      --center-cell-border: #fedc78;   /* 核心任務暖黃邊框 */
     }
 
     * {
@@ -424,7 +428,8 @@
     }
 
     .grid-cell.center-cell {
-      background: #fafafa;
+      background: var(--center-cell-bg);
+      border-color: var(--center-cell-border);
     }
 
     .cell-number {
