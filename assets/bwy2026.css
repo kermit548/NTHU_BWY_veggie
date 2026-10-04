@@ -21,9 +21,11 @@
       --stats-pill-border: #c5e1a5;
       --center-cell-bg: #fafafa;
       --center-cell-border: #cfd8dc;
+      --header-bg: #ffffff;
+      --header-border: var(--border);
     }
 
-    /* 中文版專用配色：自訂調優（頁面背景 #c3ce6a + 標題 #1b5e20 + 蓋章未連線 #78A95B + 連線背景 #FFDF76 + 連線邊框 #e6b800） */
+    /* 中文版專用配色：自訂調優（頁面背景 #c3ce6a + 頂部選單 #c3ce6a + 標題 #1b5e20 + 蓋章未連線 #78A95B + 連線背景 #FFDF76 + 連線邊框 #e6b800） */
     html[lang="zh-TW"],
     html:not([lang="en"]) {
       --primary: #78A95B;              /* 主色：鮮青綠 */
@@ -32,6 +34,8 @@
       --accent: #e59a00;               /* 警示/認證橘 */
       --stamp-red: #c62828;            /* 印章紅 */
       --bg: #c3ce6a;                   /* 頁面背景加深（方案 A 嫩黃綠） */
+      --header-bg: #c3ce6a;            /* 頂部導航選單背景同步為嫩黃綠 */
+      --header-border: rgba(0, 0, 0, 0.08); /* 頂部柔和微細分隔線 */
       --card-bg: #ffffff;              /* 卡片白底 */
       --text-main: #253327;            /* 深森林墨綠字（對比度高且柔和） */
       --text-muted: #556658;           /* 次要說明灰綠字 */
@@ -64,8 +68,8 @@
 
     /* 頂部導航 */
     header {
-      background: white;
-      border-bottom: 1px solid var(--border);
+      background: var(--header-bg, white);
+      border-bottom: 1px solid var(--header-border, var(--border));
       padding: 0 20px;
       display: flex;
       align-items: stretch;
@@ -107,8 +111,23 @@
 
     .header-nav a.nav-active {
       color: var(--primary-dark);
-      border-bottom-color: var(--primary);
+      border-bottom-color: var(--primary-dark);
       font-weight: 700;
+    }
+
+    /* 中文版頂部導航在 #c3ce6a 底色上的文字對比強化 */
+    html[lang="zh-TW"] .header-nav a,
+    html:not([lang="en"]) .header-nav a {
+      color: #2b3d27;
+    }
+    html[lang="zh-TW"] .header-nav a:hover,
+    html:not([lang="en"]) .header-nav a:hover {
+      color: #1b5e20;
+    }
+    html[lang="zh-TW"] .header-nav a.nav-active,
+    html:not([lang="en"]) .header-nav a.nav-active {
+      color: #1b5e20;
+      border-bottom-color: #1b5e20;
     }
 
     .header-actions {
@@ -129,7 +148,7 @@
       .header-nav {
         order: 3;
         width: 100%;
-        border-top: 1px solid var(--border);
+        border-top: 1px solid var(--header-border, var(--border));
         flex: unset;
       }
       .header-nav a {
