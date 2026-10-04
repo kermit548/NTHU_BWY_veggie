@@ -23,7 +23,7 @@
       --center-cell-border: #cfd8dc;
     }
 
-    /* 中文版專用配色：自訂調優（頁面背景加深 #c3ce6a + 標題 #1b5e20 + 連線背景 #78A95B） */
+    /* 中文版專用配色：自訂調優（頁面背景 #c3ce6a + 標題 #1b5e20 + 蓋章未連線 #78A95B + 連線背景 #FFDF76 + 連線邊框 #e6b800） */
     html[lang="zh-TW"],
     html:not([lang="en"]) {
       --primary: #78A95B;              /* 主色：鮮青綠 */
@@ -36,12 +36,12 @@
       --text-main: #253327;            /* 深森林墨綠字（對比度高且柔和） */
       --text-muted: #556658;           /* 次要說明灰綠字 */
       --border: #b8c99d;               /* 柔和自然綠邊框 */
-      --bingo-gold: #FFDF76;           /* 方案 C 暖陽黃（連線金黃邊框/核心亮點） */
-      --bingo-line-bg: #78A95B;        /* 連線高亮背景改為鮮青綠 */
-      --bingo-line-border: #FFDF76;     /* 連線金黃邊框 */
-      --bingo-line-shadow: rgba(120, 169, 91, 0.5);
-      --stamped-border: #9ec686;       /* 方案 C 鮮綠蓋章邊框 */
-      --stamped-bg: #f7fbf5;           /* 蓋章淺綠底 */
+      --bingo-gold: #FFDF76;           /* 方案 C 暖陽黃（連線背景/核心亮點） */
+      --bingo-line-bg: #FFDF76;        /* 連線背景為暖陽金黃 */
+      --bingo-line-border: #e6b800;     /* 連線邊框維持深金黃 */
+      --bingo-line-shadow: rgba(230, 184, 0, 0.45);
+      --stamped-border: #5b8a3e;       /* 蓋章格子邊框（深青綠，配合 #78A95B 背景） */
+      --stamped-bg: #78A95B;           /* 蓋章但未連線的格子背景：鮮青綠 */
       --stats-pill-bg: #f2f7ee;        /* 連線狀態膠囊背景 */
       --stats-pill-border: #b8d7a3;    /* 連線狀態膠囊邊框 */
       --center-cell-bg: #fffbf0;       /* 核心任務特調暖黃底色 */
@@ -497,6 +497,23 @@
       100% { transform: translate(-50%, -50%) scale(1) rotate(-8deg); opacity: 0.95; }
     }
 
+    /* 中文版蓋章但未連線狀態：在鮮青綠底色 (#78A95B) 上強化文字對比 */
+    html[lang="zh-TW"] .grid-cell.stamped .cell-title,
+    html:not([lang="en"]) .grid-cell.stamped .cell-title {
+      color: #0d3810;
+    }
+    html[lang="zh-TW"] .grid-cell.stamped .cell-number,
+    html:not([lang="en"]) .grid-cell.stamped .cell-number,
+    html[lang="zh-TW"] .grid-cell.stamped .cell-desc,
+    html:not([lang="en"]) .grid-cell.stamped .cell-desc {
+      color: #1a4515;
+    }
+    html[lang="zh-TW"] .grid-cell.stamped .cell-status-hint,
+    html:not([lang="en"]) .grid-cell.stamped .cell-status-hint {
+      color: #0d3810;
+      font-weight: 700;
+    }
+
     /* 連線高亮狀態 */
     .grid-cell.bingo-line {
       border-color: var(--bingo-line-border);
@@ -504,19 +521,29 @@
       box-shadow: 0 0 10px var(--bingo-line-shadow);
     }
 
-    /* 中文版連線狀態：在鮮青綠底色 (#78A95B) 上強化文字對比 */
+    /* 中文版連線狀態：在暖陽金黃底色 (#FFDF76) 上呈現高對比深金棕文字 */
     html[lang="zh-TW"] .grid-cell.bingo-line .cell-title,
     html:not([lang="en"]) .grid-cell.bingo-line .cell-title {
-      color: #0d3810;
+      color: #3b2800;
     }
     html[lang="zh-TW"] .grid-cell.bingo-line .cell-number,
     html:not([lang="en"]) .grid-cell.bingo-line .cell-number,
     html[lang="zh-TW"] .grid-cell.bingo-line .cell-desc,
-    html:not([lang="en"]) .grid-cell.bingo-line .cell-desc,
+    html:not([lang="en"]) .grid-cell.bingo-line .cell-desc {
+      color: #523902;
+    }
     html[lang="zh-TW"] .grid-cell.bingo-line .cell-status-hint,
     html:not([lang="en"]) .grid-cell.bingo-line .cell-status-hint {
-      color: #164013;
-      font-weight: 700;
+      color: #8c5d00;
+      font-weight: 800;
+    }
+
+    /* 右下角追蹤按讚浮動按鈕：鎖定為原本深綠色漸層，避免過亮 */
+    .qr-fab-btn {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20) !important;
+    }
+    .qr-fab-btn:hover {
+      background: linear-gradient(135deg, #388e3c, #2e7d32) !important;
     }
 
     /* 獎勵進度說明卡 */

@@ -10,7 +10,7 @@
     bottom: 24px;
     right: 24px;
     z-index: 9998;
-    background: linear-gradient(135deg, var(--primary, #2e7d32), var(--primary-dark, #1b5e20));
+    background: linear-gradient(135deg, #2e7d32, #1b5e20);
     color: #ffffff;
     border: none;
     border-radius: 50px;
