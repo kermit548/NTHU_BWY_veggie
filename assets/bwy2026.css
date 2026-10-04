@@ -1,5 +1,6 @@
 /* 2026 蔬食月・森活賓果卡 主樣式表 */
 :root {
+      /* 預設 / 英文版保留原版配色（作為對照組） */
       --primary: #2e7d32;
       --primary-light: #e8f5e9;
       --primary-dark: #1b5e20;
@@ -11,6 +12,36 @@
       --text-muted: #607d8b;
       --border: #cfd8dc;
       --bingo-gold: #ffd54f;
+      --bingo-line-bg: #fffde7;
+      --bingo-line-border: #ffb300;
+      --bingo-line-shadow: rgba(255, 179, 0, 0.4);
+      --stamped-border: #a5d6a7;
+      --stamped-bg: #f9fbf9;
+      --stats-pill-bg: #f1f8e9;
+      --stats-pill-border: #c5e1a5;
+    }
+
+    /* 中文版專用配色：套用方案 C（深灰綠 #5E7960 + 暖陽黃 #FFDF76 + 鮮青綠 #78A95B） */
+    html[lang="zh-TW"],
+    html:not([lang="en"]) {
+      --primary: #78A95B;              /* 主色：鮮青綠 */
+      --primary-light: #eff6eb;        /* 極淺柔和綠底 */
+      --primary-dark: #5E7960;         /* 品牌/文字深灰綠 */
+      --accent: #e59a00;               /* 警示/認證橘 */
+      --stamp-red: #c62828;            /* 印章紅 */
+      --bg: #f7faf5;                   /* 頁面自然淺底 */
+      --card-bg: #ffffff;              /* 卡片白底 */
+      --text-main: #253327;            /* 深森林墨綠字（對比度高且柔和） */
+      --text-muted: #627565;           /* 次要說明灰綠字 */
+      --border: #d4e0d3;               /* 柔和自然綠灰邊框 */
+      --bingo-gold: #FFDF76;           /* 方案 C 暖陽黃（連線/核心亮點） */
+      --bingo-line-bg: #fffde8;        /* 連線高亮淺黃底 */
+      --bingo-line-border: #e6b800;     /* 連線金黃邊框 */
+      --bingo-line-shadow: rgba(230, 184, 0, 0.35);
+      --stamped-border: #9ec686;       /* 方案 C 鮮綠蓋章邊框 */
+      --stamped-bg: #f7fbf5;           /* 蓋章淺綠底 */
+      --stats-pill-bg: #f2f7ee;        /* 連線狀態膠囊背景 */
+      --stats-pill-border: #b8d7a3;    /* 連線狀態膠囊邊框 */
     }
 
     * {
@@ -352,9 +383,9 @@
     }
 
     .stats-pill {
-      background: #f1f8e9;
+      background: var(--stats-pill-bg);
       color: var(--primary-dark);
-      border: 1px solid #c5e1a5;
+      border: 1px solid var(--stats-pill-border);
       padding: 6px 14px;
       border-radius: 20px;
       font-weight: bold;
@@ -427,12 +458,12 @@
 
     /* 已蓋章樣式 */
     .grid-cell.stamped {
-      background: #f9fbf9;
-      border-color: #a5d6a7;
+      background: var(--stamped-bg);
+      border-color: var(--stamped-border);
     }
 
     .grid-cell.stamped .cell-title {
-      color: #37474f;
+      color: var(--text-main);
     }
 
     /* 抱抱地球2 蓋章圖示視覺（置於下方空白處，不遮擋任務文字） */
@@ -463,9 +494,9 @@
 
     /* 連線高亮狀態 */
     .grid-cell.bingo-line {
-      border-color: #ffb300;
-      background-color: #fffde7;
-      box-shadow: 0 0 8px rgba(255, 179, 0, 0.4);
+      border-color: var(--bingo-line-border);
+      background-color: var(--bingo-line-bg);
+      box-shadow: 0 0 10px var(--bingo-line-shadow);
     }
 
     /* 獎勵進度說明卡 */
