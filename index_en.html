@@ -6,12 +6,12 @@
   <title>2026 Veggie Month ・ Green Bingo Challenge</title>
   <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
   <link rel="stylesheet" href="./assets/style.css">
-  <link rel="stylesheet" href="./assets/bwy2026.css">
-  <script src="./assets/GoogleAppsScript_en.js"></script>
+  <link rel="stylesheet" href="./assets/bwy2026.css?v=20261010a">
+  <script src="./assets/GoogleAppsScript_en.js?v=20261010a"></script>
 </head>
 <body>
   <!-- Social QR Code Module (Adaptive FAB & Modal) -->
-  <script src="./assets/qr-fixed.js"></script>
+  <script src="./assets/qr-fixed.js?v=20261010a"></script>
 
   <!-- Top Header -->
   <header>
@@ -26,6 +26,11 @@
     </nav>
     <div class="header-actions">
       <span id="staffIndicator" class="badge-staff" style="display: none;">Staff Mode</span>
+      <div class="theme-switch-wrap" id="themeSwitchWrap" title="Theme">
+        <button type="button" class="theme-btn" id="btnThemeSimple" onclick="setTheme(1)">Simple</button>
+        <span class="theme-divider">|</span>
+        <button type="button" class="theme-btn" id="btnThemeColorful" onclick="setTheme(2)">Colorful</button>
+      </div>
       <button id="btnStaffToggle" class="btn btn-outline btn-sm" onclick="toggleStaffMode()">Staff Mode</button>
       <button class="btn btn-outline btn-sm" onclick="openConfigModal()">Settings</button>
       <div class="lang-switch-wrap" title="切換語言 / Language">

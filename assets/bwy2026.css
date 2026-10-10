@@ -1,6 +1,8 @@
 /* 2026 蔬食月・森活賓果卡 主樣式表 */
-:root {
-      /* 預設 / 英文版保留原版配色（作為對照組） */
+:root,
+html[data-theme="simple"],
+html[data-theme="1"] {
+      /* [淡雅 Simple] 主題配色（原版清爽草本綠白底） */
       --primary: #2e7d32;
       --primary-light: #e8f5e9;
       --primary-dark: #1b5e20;
@@ -25,9 +27,9 @@
       --header-border: var(--border);
     }
 
-    /* 中文版專用配色：自訂調優（頁面背景 #c3ce6a + 頂部選單 #c3ce6a + 標題 #1b5e20 + 蓋章未連線 #78A95B + 連線背景 #FFDF76 + 連線邊框 #e6b800） */
-    html[lang="zh-TW"],
-    html:not([lang="en"]) {
+    /* [鮮豔 Colorful] 主題配色（頁面背景 #c3ce6a + 頂部選單 #c3ce6a + 標題 #1b5e20 + 蓋章未連線 #78A95B + 連線背景 #FFDF76 + 連線邊框 #e6b800） */
+    html[data-theme="colorful"],
+    html[data-theme="2"] {
       --primary: #78A95B;              /* 主色：鮮青綠 */
       --primary-light: #eff6eb;        /* 極淺柔和綠底 */
       --primary-dark: #1b5e20;         /* 品牌/文字標題深綠 */
@@ -40,7 +42,7 @@
       --text-main: #253327;            /* 深森林墨綠字（對比度高且柔和） */
       --text-muted: #556658;           /* 次要說明灰綠字 */
       --border: #b8c99d;               /* 柔和自然綠邊框 */
-      --bingo-gold: #FFDF76;           /* 方案 C 暖陽黃（連線背景/核心亮點） */
+      --bingo-gold: #FFDF76;           /* 暖陽黃（連線背景/核心亮點） */
       --bingo-line-bg: #FFDF76;        /* 連線背景為暖陽金黃 */
       --bingo-line-border: #e6b800;     /* 連線邊框維持深金黃 */
       --bingo-line-shadow: rgba(230, 184, 0, 0.45);
@@ -115,17 +117,17 @@
       font-weight: 700;
     }
 
-    /* 中文版頂部導航在 #c3ce6a 底色上的文字對比強化 */
-    html[lang="zh-TW"] .header-nav a,
-    html:not([lang="en"]) .header-nav a {
+    /* 鮮豔主題頂部導航在 #c3ce6a 底色上的文字對比強化 */
+    html[data-theme="colorful"] .header-nav a,
+    html[data-theme="2"] .header-nav a {
       color: #2b3d27;
     }
-    html[lang="zh-TW"] .header-nav a:hover,
-    html:not([lang="en"]) .header-nav a:hover {
+    html[data-theme="colorful"] .header-nav a:hover,
+    html[data-theme="2"] .header-nav a:hover {
       color: #1b5e20;
     }
-    html[lang="zh-TW"] .header-nav a.nav-active,
-    html:not([lang="en"]) .header-nav a.nav-active {
+    html[data-theme="colorful"] .header-nav a.nav-active,
+    html[data-theme="2"] .header-nav a.nav-active {
       color: #1b5e20;
       border-bottom-color: #1b5e20;
     }
@@ -258,6 +260,50 @@
     }
 
     .lang-switch-wrap .lang-divider {
+      color: #cbd5e1;
+      font-size: 0.75rem;
+      user-select: none;
+    }
+
+    /* 佈景主題切換器 */
+    .theme-switch-wrap {
+      display: inline-flex;
+      align-items: center;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      gap: 6px;
+    }
+
+    .theme-switch-wrap span.theme-btn,
+    .theme-switch-wrap button.theme-btn {
+      background: none;
+      border: none;
+      padding: 2px 5px;
+      border-radius: 4px;
+      line-height: 1.2;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .theme-switch-wrap .theme-btn:hover {
+      color: var(--primary);
+    }
+
+    .theme-switch-wrap .theme-btn.active {
+      color: var(--primary);
+      font-weight: 700;
+      background: rgba(46, 125, 50, 0.08);
+    }
+
+    .theme-switch-wrap .theme-divider {
       color: #cbd5e1;
       font-size: 0.75rem;
       user-select: none;
@@ -516,19 +562,19 @@
       100% { transform: translate(-50%, -50%) scale(1) rotate(-8deg); opacity: 0.95; }
     }
 
-    /* 中文版蓋章但未連線狀態：在鮮青綠底色 (#78A95B) 上強化文字對比 */
-    html[lang="zh-TW"] .grid-cell.stamped .cell-title,
-    html:not([lang="en"]) .grid-cell.stamped .cell-title {
+    /* 鮮豔主題蓋章但未連線狀態：在鮮青綠底色 (#78A95B) 上強化文字對比 */
+    html[data-theme="colorful"] .grid-cell.stamped .cell-title,
+    html[data-theme="2"] .grid-cell.stamped .cell-title {
       color: #0d3810;
     }
-    html[lang="zh-TW"] .grid-cell.stamped .cell-number,
-    html:not([lang="en"]) .grid-cell.stamped .cell-number,
-    html[lang="zh-TW"] .grid-cell.stamped .cell-desc,
-    html:not([lang="en"]) .grid-cell.stamped .cell-desc {
+    html[data-theme="colorful"] .grid-cell.stamped .cell-number,
+    html[data-theme="2"] .grid-cell.stamped .cell-number,
+    html[data-theme="colorful"] .grid-cell.stamped .cell-desc,
+    html[data-theme="2"] .grid-cell.stamped .cell-desc {
       color: #1a4515;
     }
-    html[lang="zh-TW"] .grid-cell.stamped .cell-status-hint,
-    html:not([lang="en"]) .grid-cell.stamped .cell-status-hint {
+    html[data-theme="colorful"] .grid-cell.stamped .cell-status-hint,
+    html[data-theme="2"] .grid-cell.stamped .cell-status-hint {
       color: #0d3810;
       font-weight: 700;
     }
@@ -540,19 +586,19 @@
       box-shadow: 0 0 10px var(--bingo-line-shadow);
     }
 
-    /* 中文版連線狀態：在暖陽金黃底色 (#FFDF76) 上呈現高對比深金棕文字 */
-    html[lang="zh-TW"] .grid-cell.bingo-line .cell-title,
-    html:not([lang="en"]) .grid-cell.bingo-line .cell-title {
+    /* 鮮豔主題連線狀態：在暖陽金黃底色 (#FFDF76) 上呈現高對比深金棕文字 */
+    html[data-theme="colorful"] .grid-cell.bingo-line .cell-title,
+    html[data-theme="2"] .grid-cell.bingo-line .cell-title {
       color: #3b2800;
     }
-    html[lang="zh-TW"] .grid-cell.bingo-line .cell-number,
-    html:not([lang="en"]) .grid-cell.bingo-line .cell-number,
-    html[lang="zh-TW"] .grid-cell.bingo-line .cell-desc,
-    html:not([lang="en"]) .grid-cell.bingo-line .cell-desc {
+    html[data-theme="colorful"] .grid-cell.bingo-line .cell-number,
+    html[data-theme="2"] .grid-cell.bingo-line .cell-number,
+    html[data-theme="colorful"] .grid-cell.bingo-line .cell-desc,
+    html[data-theme="2"] .grid-cell.bingo-line .cell-desc {
       color: #523902;
     }
-    html[lang="zh-TW"] .grid-cell.bingo-line .cell-status-hint,
-    html:not([lang="en"]) .grid-cell.bingo-line .cell-status-hint {
+    html[data-theme="colorful"] .grid-cell.bingo-line .cell-status-hint,
+    html[data-theme="2"] .grid-cell.bingo-line .cell-status-hint {
       color: #8c5d00;
       font-weight: 800;
     }

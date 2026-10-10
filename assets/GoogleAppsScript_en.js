@@ -74,17 +74,70 @@ let gasApiUrl = typeof GOOGLE_APPS_SCRIPT_URL !== "undefined" && GOOGLE_APPS_SCR
 
 let currentUser = null;
 let isStaffMode = false;
+let currentTheme = "simple";
+
+function applyTheme(themeVal, syncToCloud = false) {
+  const valStr = String(themeVal || "").trim();
+  currentTheme = (valStr === "2" || valStr === "colorful") ? "colorful" : "simple";
+  
+  document.documentElement.setAttribute("data-theme", currentTheme);
+  localStorage.setItem("veg_theme", currentTheme === "colorful" ? "2" : "1");
+  
+  const btnSimple = document.getElementById("btnThemeSimple");
+  const btnColorful = document.getElementById("btnThemeColorful");
+  if (btnSimple && btnColorful) {
+    if (currentTheme === "colorful") {
+      btnSimple.classList.remove("active");
+      btnColorful.classList.add("active");
+    } else {
+      btnSimple.classList.add("active");
+      btnColorful.classList.remove("active");
+    }
+  }
+
+  if (currentUser) {
+    currentUser.theme = currentTheme === "colorful" ? 2 : 1;
+    saveCurrentUserData();
+    if (syncToCloud && gasApiUrl && currentUser.serial) {
+      syncThemeWithCloud(currentUser.serial, currentUser.theme);
+    }
+  }
+}
+
+function setTheme(themeVal) {
+  applyTheme(themeVal, true);
+  showToast(currentTheme === "colorful" ? "Switched to [Colorful] theme" : "Switched to [Simple] theme");
+}
+
+async function syncThemeWithCloud(serial, themeVal) {
+  if (!gasApiUrl || !serial) return;
+  try {
+    await fetch(`${gasApiUrl}?action=setTheme&serial=${encodeURIComponent(serial)}&theme=${themeVal}&t=${Date.now()}`);
+  } catch (err) {
+    console.warn("Failed to sync theme with sheet", err);
+  }
+}
 
 window.addEventListener("DOMContentLoaded", () => {
   const savedUser = localStorage.getItem("veg_current_user");
+  let initTheme = "1";
   if (savedUser) {
     try {
       currentUser = JSON.parse(savedUser);
+      if (currentUser.theme !== undefined && currentUser.theme !== null) {
+        initTheme = String(currentUser.theme);
+      } else {
+        initTheme = localStorage.getItem("veg_theme") || "1";
+      }
       renderBingoCard();
     } catch (e) {
       console.error("Failed to parse saved user", e);
     }
+  } else {
+    initTheme = localStorage.getItem("veg_theme") || "1";
   }
+
+  applyTheme(initTheme, false);
   
   if (gasApiUrl) {
     const endpointInput = document.getElementById("gasEndpoint");
@@ -212,6 +265,9 @@ async function syncCardWithCloud(serial, quiet = false) {
     const res = await resp.json();
     if (res.success && res.data) {
       currentUser = res.data;
+      if (currentUser.theme !== undefined && currentUser.theme !== null) {
+        applyTheme(currentUser.theme, false);
+      }
       saveCurrentUserData();
       renderBingoCard();
       if (!quiet) {
@@ -366,6 +422,9 @@ async function handleLookup(e) {
 
       if (res.success && res.data) {
         currentUser = res.data;
+        if (currentUser.theme !== undefined && currentUser.theme !== null) {
+          applyTheme(currentUser.theme, false);
+        }
         saveCurrentUserData();
         closeModal("lookupModal");
         submitBtn.disabled = false;
@@ -396,6 +455,9 @@ async function handleLookup(e) {
 
     if (sUpper === qUpper || sName === qLower || (qContact && sContact === qContact)) {
       currentUser = savedUser;
+      if (currentUser.theme !== undefined && currentUser.theme !== null) {
+        applyTheme(currentUser.theme, false);
+      }
       closeModal("lookupModal");
       submitBtn.disabled = false;
       submitBtn.innerText = "Search Card";

@@ -50,23 +50,77 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
     let currentUser = null;
     let isStaffMode = false;
+    let currentTheme = "simple";
+
+    function applyTheme(themeVal, syncToCloud = false) {
+      const valStr = String(themeVal || "").trim();
+      currentTheme = (valStr === "2" || valStr === "colorful") ? "colorful" : "simple";
+      
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      localStorage.setItem("veg_theme", currentTheme === "colorful" ? "2" : "1");
+      
+      const btnSimple = document.getElementById("btnThemeSimple");
+      const btnColorful = document.getElementById("btnThemeColorful");
+      if (btnSimple && btnColorful) {
+        if (currentTheme === "colorful") {
+          btnSimple.classList.remove("active");
+          btnColorful.classList.add("active");
+        } else {
+          btnSimple.classList.add("active");
+          btnColorful.classList.remove("active");
+        }
+      }
+
+      if (currentUser) {
+        currentUser.theme = currentTheme === "colorful" ? 2 : 1;
+        saveCurrentUserData();
+        if (syncToCloud && gasApiUrl && currentUser.serial) {
+          syncThemeWithCloud(currentUser.serial, currentUser.theme);
+        }
+      }
+    }
+
+    function setTheme(themeVal) {
+      applyTheme(themeVal, true);
+      showToast(currentTheme === "colorful" ? "已切換為【鮮豔】主題" : "已切換為【淡雅】主題");
+    }
+
+    async function syncThemeWithCloud(serial, themeVal) {
+      if (!gasApiUrl || !serial) return;
+      try {
+        await fetch(`${gasApiUrl}?action=setTheme&serial=${encodeURIComponent(serial)}&theme=${themeVal}&t=${Date.now()}`);
+      } catch (err) {
+        console.warn("同步主題至試算表失敗", err);
+      }
+    }
 
     window.addEventListener("DOMContentLoaded", () => {
+      // 1. 優先讀取暫存的使用者設定，若無則讀取本機主題偏好（預設為 1: 淡雅）
       const savedUser = localStorage.getItem("veg_current_user");
+      let initTheme = "1";
       if (savedUser) {
         try {
           currentUser = JSON.parse(savedUser);
+          if (currentUser.theme !== undefined && currentUser.theme !== null) {
+            initTheme = String(currentUser.theme);
+          } else {
+            initTheme = localStorage.getItem("veg_theme") || "1";
+          }
           renderBingoCard();
         } catch (e) {
           console.error("Failed to parse saved user", e);
         }
+      } else {
+        initTheme = localStorage.getItem("veg_theme") || "1";
       }
+
+      applyTheme(initTheme, false);
       
       if (gasApiUrl) {
         document.getElementById("gasEndpoint").value = gasApiUrl;
         // 自動向試算表同步最新九宮格任務與工作人員綠色通道代碼
         fetchTasksFromCloud();
-        // 自動與雲端校正最新蓋章進度
+        // 自動與雲端校正最新蓋章進度與主題設定
         if (currentUser && currentUser.serial) {
           syncCardWithCloud(currentUser.serial, true);
         }
@@ -191,6 +245,9 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         const res = await resp.json();
         if (res.success && res.data) {
           currentUser = res.data;
+          if (currentUser.theme !== undefined && currentUser.theme !== null) {
+            applyTheme(currentUser.theme, false);
+          }
           saveCurrentUserData();
           renderBingoCard();
           if (!quiet) {
@@ -346,6 +403,9 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
           if (res.success && res.data) {
             currentUser = res.data;
+            if (currentUser.theme !== undefined && currentUser.theme !== null) {
+              applyTheme(currentUser.theme, false);
+            }
             saveCurrentUserData();
             closeModal("lookupModal");
             submitBtn.disabled = false;
@@ -376,6 +436,9 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
         if (sUpper === qUpper || sName === qLower || (qContact && sContact === qContact)) {
           currentUser = savedUser;
+          if (currentUser.theme !== undefined && currentUser.theme !== null) {
+            applyTheme(currentUser.theme, false);
+          }
           closeModal("lookupModal");
           submitBtn.disabled = false;
           submitBtn.innerText = "查詢卡片";

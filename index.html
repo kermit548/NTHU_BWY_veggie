@@ -6,12 +6,12 @@
   <title>2026 蔬食月・集食行善 九宮格賓果挑戰</title>
   <!-- 引入後端 Google Apps Script 設定檔 -->
   <link rel="stylesheet" href="./assets/style.css">
-  <link rel="stylesheet" href="./assets/bwy2026.css?v=20261004f">
-  <script src="./assets/GoogleAppsScript.js?v=20261004f"></script>
+  <link rel="stylesheet" href="./assets/bwy2026.css?v=20261010a">
+  <script src="./assets/GoogleAppsScript.js?v=20261010a"></script>
 </head>
 <body>
   <!-- 社群二維碼模組（獨立模組化引入，原生支援 file:// 與點擊事件，零遮擋） -->
-  <script src="./assets/qr-fixed.js?v=20261004f"></script>
+  <script src="./assets/qr-fixed.js?v=20261010a"></script>
 
   <!-- 頂部列 -->
   <header>
@@ -26,6 +26,11 @@
     </nav>
     <div class="header-actions">
       <span id="staffIndicator" class="badge-staff" style="display: none;">工作人員模式</span>
+      <div class="theme-switch-wrap" id="themeSwitchWrap" title="佈景主題 / Theme">
+        <button type="button" class="theme-btn" id="btnThemeSimple" onclick="setTheme(1)">淡雅</button>
+        <span class="theme-divider">|</span>
+        <button type="button" class="theme-btn" id="btnThemeColorful" onclick="setTheme(2)">鮮豔</button>
+      </div>
       <button id="btnStaffToggle" class="btn btn-outline btn-sm" onclick="toggleStaffMode()">切換為工作人員身份</button>
       <button class="btn btn-outline btn-sm" onclick="openConfigModal()">系統設定</button>
       <div class="lang-switch-wrap" title="切換語言 / Language">

@@ -115,6 +115,12 @@ function doGet(e) {
       });
     }
     
+    // 3-B. 設定學員偏好主題端點 (action=setTheme)
+    if (action === "setTheme" && serial) {
+      const themeVal = String(e.parameter.theme || "1").trim();
+      return handleSetTheme(sheet, serial, themeVal);
+    }
+
     // 4. 查詢個人卡片端點（支援卡號、姓名、聯絡方式三擇一查詢）
     if (action === "getCard") {
       const queryKey = String(e.parameter.query || e.parameter.serial || "").trim();
@@ -351,13 +357,18 @@ function buildUserData(row) {
     const isCompleted = (val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE") ? 1 : 0;
     stamps.push(isCompleted);
   }
+  // 欄位 18 (R 欄，索引 17)：主題設定（空白或 "1" 為淡雅，"2" 為鮮豔）
+  const rawTheme = row.length > 17 ? String(row[17] || "").trim() : "";
+  const theme = (rawTheme === "2" || rawTheme.toLowerCase() === "colorful") ? 2 : 1;
+
   return {
     serial: String(row[0] || "").trim(),
     name: String(row[2] || "").trim(),
     studentId: String(row[3] || "").trim(),
     contact: row[4],
     stamps: stamps,
-    lines: row[14] || 0
+    lines: row[14] || 0,
+    theme: theme
   };
 }
 
