@@ -438,6 +438,32 @@ function createJsonResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+// 設定學員主題偏好（寫入第 18 欄 R 欄，索引 17）
+function handleSetTheme(sheet, serial, themeVal) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const data = sheet.getDataRange().getValues();
+    const targetSerial = String(serial).trim().toUpperCase();
+    let targetRow = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim().toUpperCase() === targetSerial) {
+        targetRow = i + 1;
+        break;
+      }
+    }
+    if (targetRow === -1) {
+      return createJsonResponse({ success: false, message: "找不到學員流水號：" + targetSerial });
+    }
+    const valToSave = (String(themeVal).trim() === "2" || String(themeVal).trim().toLowerCase() === "colorful") ? 2 : 1;
+    sheet.getRange(targetRow, 18).setValue(valToSave);
+    SpreadsheetApp.flush();
+    return createJsonResponse({ success: true, theme: valToSave });
+  } finally {
+    lock.releaseLock();
+  }
+}
 ```
 
 ---
