@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>活動報名・清大福青 2026 蔬食月</title>
+  <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
+  <link rel="stylesheet" href="./assets/style.css">
+  <link rel="stylesheet" href="./assets/bwy2026.css">
+  <style>
+    .form-hero {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: white;
+      padding: 28px 32px 20px;
+      text-align: center;
+    }
+    .form-hero h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .form-hero p {
+      font-size: 0.92rem;
+      color: #c8e6c9;
+    }
+    .form-wrap {
+      max-width: 900px;
+      margin: 28px auto;
+      padding: 0 20px;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+    /* 桌面螢幕（1200px ~ 1439px）：最大化寬度，同時避開右側 200px 固定 QR 側欄（right: 24px） */
+    @media (min-width: 1200px) and (max-width: 1439px) {
+      .form-wrap {
+        max-width: calc(100vw - 275px);
+        margin: 28px 0 28px 30px;
+        padding: 0 10px 0 0;
+      }
+    }
+    /* 超寬桌面螢幕（≥ 1440px）：加大寬度至 950px 且置中，與右側 QR 側欄具備充裕安全間隔 */
+    @media (min-width: 1440px) {
+      .form-wrap {
+        max-width: 950px;
+        margin: 32px auto;
+      }
+    }
+    /* 中窄螢幕與手機（< 1200px）：QR 轉為右下角 FAB 按鈕，表單自適應延展，底部留白避開 FAB */
+    @media (max-width: 1199px) {
+      .form-wrap {
+        max-width: 100%;
+        margin: 20px auto;
+        padding: 0 16px 80px;
+      }
+    }
+    .form-frame-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+    }
+    .form-frame-card iframe {
+      width: 100%;
+      height: 3200px;
+      border: none;
+      display: block;
+    }
+    .form-note {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #607d8b;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .form-note a {
+      color: #2e7d32;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    .form-note a:hover {
+      color: #1b5e20;
+    }
+    @media (max-width: 600px) {
+      .form-frame-card iframe {
+        height: 3600px;
+      }
+      .form-hero {
+        padding: 20px 16px 14px;
+      }
+      .form-hero h1 {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 社群二維碼模組（獨立模組化引入，原生支援 file:// 與點擊事件，零遮擋） -->
+  <script src="./assets/qr-fixed.js"></script>
+
+  <!-- 頂部列 -->
+  <header>
+    <div class="brand">
+      <span>🌱</span>
+      <span>清大福青・2026 蔬食月</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">🃏 賓果挑戰</a>
+      <a href="form.html" class="nav-active">📝 活動報名</a>
+      <a href="map.html">🗺️ 蔬食地圖</a>
+      <a href="2025.html" target="_blank" rel="noopener">📖 2025 回顧</a>
+    </nav>
+    <div class="header-actions">
+      <div class="lang-switch-wrap" title="切換語言 / Language">
+        <span class="lang-btn active">繁中</span>
+        <span class="lang-divider">|</span>
+        <a href="index_en.html" class="lang-btn">English</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="form-hero">
+    <h1>📝 活動報名</h1>
+    <p>2026 清大福青社蔬食月・特蔬任務系列活動線上報名</p>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-frame-card">
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfs-bQVfpW8DhumHevG0FUIStkvgyTsxUp6CfRqKtNlZHhgFQ/viewform?embedded=true" width="640" height="5868" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+    </div>
+    <p class="form-note">
+      若上方表單無法完整顯示，請點此 <a href="https://docs.google.com/forms/d/e/1FAIpQLSfs-bQVfpW8DhumHevG0FUIStkvgyTsxUp6CfRqKtNlZHhgFQ/viewform" target="_blank" rel="noopener">在新分頁開啟 Google 表單填寫</a><br>
+      若有任何報名問題，歡迎私訊清大福智青年社 FB 粉專或 IG
+    </p>
+  </div>
+
+</body>
+</html>
