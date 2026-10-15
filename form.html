@@ -24,6 +24,61 @@
         padding: 0 16px 80px;
       }
     }
+    .bilingual-guide-card {
+      background: var(--card-bg, #ffffff);
+      border: 1px solid var(--border, #cfd8dc);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .bilingual-guide-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .guide-icon {
+      font-size: 1.5rem;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+    .guide-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--primary-dark, #1b5e20);
+      margin-bottom: 2px;
+    }
+    .guide-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted, #607d8b);
+      line-height: 1.4;
+    }
+    .bilingual-guide-action {
+      display: flex;
+      justify-content: flex-start;
+    }
+    .translate-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--primary-light, #e8f5e9);
+      color: var(--primary-dark, #1b5e20);
+      border: 1px solid var(--border, #cfd8dc);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .translate-btn:hover {
+      background: var(--primary, #2e7d32);
+      color: #ffffff;
+      border-color: var(--primary, #2e7d32);
+    }
     .form-frame-card iframe {
       width: 100%;
       height: 3200px;
@@ -80,6 +135,22 @@
   </div>
 
   <div class="form-wrap">
+    <!-- 雙語填表輔助指引 / Bilingual Guide & Auto-Translation -->
+    <div class="bilingual-guide-card">
+      <div class="bilingual-guide-header">
+        <span class="guide-icon">🌐</span>
+        <div class="guide-text">
+          <div class="guide-title">English Guide / 雙語填表提示</div>
+          <div class="guide-desc">The form below is bilingual (Chinese &amp; English). If you prefer complete browser auto-translation:</div>
+        </div>
+      </div>
+      <div class="bilingual-guide-action">
+        <a href="https://docs-google-com.translate.goog/forms/d/e/1FAIpQLSfs-bQVfpW8DhumHevG0FUIStkvgyTsxUp6CfRqKtNlZHhgFQ/viewform?_x_tr_sl=zh-TW&_x_tr_tl=en&_x_tr_hl=en" target="_blank" rel="noopener" class="translate-btn">
+          <span>🚀 Open in Google Translate (English)</span>
+        </a>
+      </div>
+    </div>
+
     <div class="form-frame-card">
       <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfs-bQVfpW8DhumHevG0FUIStkvgyTsxUp6CfRqKtNlZHhgFQ/viewform?embedded=true" width="640" height="5868" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
     </div>
