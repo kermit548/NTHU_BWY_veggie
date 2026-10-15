@@ -6,24 +6,9 @@
   <title>活動報名・清大福青 2026 蔬食月</title>
   <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
   <link rel="stylesheet" href="./assets/style.css">
-  <link rel="stylesheet" href="./assets/bwy2026.css">
+  <link rel="stylesheet" href="./assets/bwy2026.css?v=20261015">
+  <script src="./assets/theme-sync.js?v=20261015"></script>
   <style>
-    .form-hero {
-      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
-      color: white;
-      padding: 28px 32px 20px;
-      text-align: center;
-    }
-    .form-hero h1 {
-      font-size: 1.55rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
-    }
-    .form-hero p {
-      font-size: 0.92rem;
-      color: #c8e6c9;
-    }
     .form-wrap {
       max-width: 900px;
       margin: 28px auto;
@@ -54,33 +39,11 @@
         padding: 0 16px 80px;
       }
     }
-    .form-frame-card {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      border: 1px solid #e2e8f0;
-    }
     .form-frame-card iframe {
       width: 100%;
       height: 3200px;
       border: none;
       display: block;
-    }
-    .form-note {
-      margin-top: 16px;
-      font-size: 0.85rem;
-      color: #607d8b;
-      text-align: center;
-      line-height: 1.6;
-    }
-    .form-note a {
-      color: #2e7d32;
-      font-weight: 600;
-      text-decoration: underline;
-    }
-    .form-note a:hover {
-      color: #1b5e20;
     }
     @media (max-width: 600px) {
       .form-frame-card iframe {
@@ -113,6 +76,11 @@
       <a href="2025.html" target="_blank" rel="noopener">📖 2025 回顧</a>
     </nav>
     <div class="header-actions">
+      <div class="theme-switch-wrap" id="themeSwitchWrap" title="佈景主題 / Theme">
+        <button type="button" class="theme-btn" id="btnThemeSimple" onclick="setTheme(1)">淡雅</button>
+        <span class="theme-divider">|</span>
+        <button type="button" class="theme-btn" id="btnThemeColorful" onclick="setTheme(2)">鮮豔</button>
+      </div>
       <div class="lang-switch-wrap" title="切換語言 / Language">
         <span class="lang-btn active">繁中</span>
         <span class="lang-divider">|</span>

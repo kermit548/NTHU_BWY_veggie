@@ -767,3 +767,107 @@ html[data-theme="1"] {
         display: none;
       }
     }
+
+    /* ==========================================================================
+     * 跨頁面活動報名 (form.html) 與蔬食地圖 (map.html) 佈景主題適配
+     * ========================================================================== */
+
+    /* [淡雅 Simple] 預設樣式 */
+    .map-hero,
+    .form-hero {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+      color: white;
+      padding: 28px 32px 20px;
+      text-align: center;
+    }
+    .map-hero h1,
+    .form-hero h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .map-hero p,
+    .form-hero p {
+      font-size: 0.92rem;
+      color: #c8e6c9;
+    }
+    .map-frame-card,
+    .form-frame-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+    }
+    .map-note,
+    .form-note {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #607d8b;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .form-note a {
+      color: #2e7d32;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    .form-note a:hover {
+      color: #1b5e20;
+    }
+
+    /* [鮮豔 Colorful] 專屬適配樣式 */
+    html[data-theme="colorful"] .map-hero,
+    html[data-theme="2"] .map-hero,
+    html[data-theme="colorful"] .form-hero,
+    html[data-theme="2"] .form-hero {
+      background: linear-gradient(135deg, #5b8a3e 0%, #1b5e20 100%);
+      border-bottom: 3px solid #e6b800;
+      box-shadow: 0 4px 16px rgba(27, 94, 32, 0.2);
+    }
+
+    html[data-theme="colorful"] .map-hero p,
+    html[data-theme="2"] .map-hero p,
+    html[data-theme="colorful"] .form-hero p,
+    html[data-theme="2"] .form-hero p {
+      color: #f1f8e9;
+    }
+
+    html[data-theme="colorful"] .map-frame-card,
+    html[data-theme="2"] .map-frame-card,
+    html[data-theme="colorful"] .form-frame-card,
+    html[data-theme="2"] .form-frame-card {
+      border: 2px solid #b8c99d;
+      box-shadow: 0 8px 24px rgba(43, 61, 39, 0.15);
+    }
+
+    html[data-theme="colorful"] .map-note,
+    html[data-theme="2"] .map-note,
+    html[data-theme="colorful"] .form-note,
+    html[data-theme="2"] .form-note {
+      color: #253327;
+      font-weight: 600;
+    }
+
+    html[data-theme="colorful"] .form-note a,
+    html[data-theme="2"] .form-note a {
+      color: #1b5e20;
+      font-weight: 700;
+    }
+
+    html[data-theme="colorful"] .theme-switch-wrap,
+    html[data-theme="2"] .theme-switch-wrap,
+    html[data-theme="colorful"] .lang-switch-wrap,
+    html[data-theme="2"] .lang-switch-wrap {
+      background: #ffffff;
+      border-color: #9cb882;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="colorful"] .theme-switch-wrap .theme-btn.active,
+    html[data-theme="2"] .theme-switch-wrap .theme-btn.active {
+      color: #1b5e20;
+      background: rgba(120, 169, 91, 0.25);
+      font-weight: 700;
+    }
