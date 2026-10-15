@@ -10,31 +10,16 @@
   <script src="./assets/theme-sync.js?v=20261015"></script>
   <style>
     .form-wrap {
-      max-width: 900px;
+      max-width: 680px;
       margin: 28px auto;
-      padding: 0 20px;
+      padding: 0 16px;
       box-sizing: border-box;
       transition: all 0.25s ease;
-    }
-    /* 桌面螢幕（1200px ~ 1439px）：最大化寬度，同時避開右側 200px 固定 QR 側欄（right: 24px） */
-    @media (min-width: 1200px) and (max-width: 1439px) {
-      .form-wrap {
-        max-width: calc(100vw - 275px);
-        margin: 28px 0 28px 30px;
-        padding: 0 10px 0 0;
-      }
-    }
-    /* 超寬桌面螢幕（≥ 1440px）：加大寬度至 950px 且置中，與右側 QR 側欄具備充裕安全間隔 */
-    @media (min-width: 1440px) {
-      .form-wrap {
-        max-width: 950px;
-        margin: 32px auto;
-      }
     }
     /* 中窄螢幕與手機（< 1200px）：QR 轉為右下角 FAB 按鈕，表單自適應延展，底部留白避開 FAB */
     @media (max-width: 1199px) {
       .form-wrap {
-        max-width: 100%;
+        width: 100%;
         margin: 20px auto;
         padding: 0 16px 80px;
       }
