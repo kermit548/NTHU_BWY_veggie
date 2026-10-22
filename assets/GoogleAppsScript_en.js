@@ -593,13 +593,13 @@ function renderBingoCard() {
       let actionBtnHtml = "";
 
       if (isStamped) {
-        statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 Mission Stamped (Status: 1)</span></div>`;
+        statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 Mission Stamped</span></div>`;
         actionBtnHtml = `<button class="btn-reg btn-reg-disabled" disabled><span>✓ Completed</span></button>`;
       } else if (isRegistered) {
-        statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ RSVP Confirmed (DB: 2)</span></div>`;
+        statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ RSVP Confirmed</span></div>`;
         actionBtnHtml = `<button class="btn-reg btn-reg-cancel" onclick="toggleEventRegistration(${ev.gridIndex}, 0)"><span>✕ Cancel RSVP</span></button>`;
       } else {
-        statusTagHtml = `<div class="event-status-tag status-not-reg"><span>⚪ Not Registered (DB: 0)</span></div>`;
+        statusTagHtml = `<div class="event-status-tag status-not-reg"><span>⚪ Not Registered</span></div>`;
         actionBtnHtml = `<button class="btn-reg btn-reg-action" onclick="toggleEventRegistration(${ev.gridIndex}, 2)"><span>➕ RSVP for ${ev.date.split(' ')[0]}</span></button>`;
       }
 

@@ -575,13 +575,13 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         let actionBtnHtml = "";
 
         if (isStamped) {
-          statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 已完成活動蓋章 (狀態: 1)</span></div>`;
+          statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 已完成活動蓋章</span></div>`;
           actionBtnHtml = `<button class="btn-reg btn-reg-disabled" disabled><span>✓ 已出席並完成任務</span></button>`;
         } else if (isRegistered) {
-          statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ 已預約報名 (資料庫值: 2)</span></div>`;
+          statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ 已預約報名</span></div>`;
           actionBtnHtml = `<button class="btn-reg btn-reg-cancel" onclick="toggleEventRegistration(${ev.gridIndex}, 0)"><span>✕ 取消預約登記</span></button>`;
         } else {
-          statusTagHtml = `<div class="event-status-tag status-not-reg"><span>⚪ 尚未報名 (資料庫值: 0)</span></div>`;
+          statusTagHtml = `<div class="event-status-tag status-not-reg"><span>⚪ 尚未報名</span></div>`;
           actionBtnHtml = `<button class="btn-reg btn-reg-action" onclick="toggleEventRegistration(${ev.gridIndex}, 2)"><span>➕ 我要報名 ${ev.date.split(' ')[0]} 活動</span></button>`;
         }
 
