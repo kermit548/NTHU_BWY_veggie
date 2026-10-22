@@ -1,9 +1,13 @@
-# 蔬食月九宮格賓果系統 —— Google Apps Script 後端設定（V11 新增支援佈景主題選擇-補上尾端 setTheme）
+# 蔬食月九宮格賓果系統 —— Google Apps Script 後端設定（V12 新增快速活動預約按鈕）
 
 ```javascript
 /**
- * 2026 蔬食月九宮格賓果卡後端程式 (V11 新增支援佈景主題選擇-補上尾端 setTheme)
- * 升級重點：依照開發團隊其他成員要求，提供第二套佈景主題，並允許前端使用者自行選擇（淡雅/鮮豔）
+ * 2026 蔬食月九宮格賓果卡後端程式 (V12 新增快速活動預約按鈕支援)
+ * 升級重點：
+ * 1. 支援實體活動快速預約登記（action=setEventReg）：學員點擊預約時將該格數值設為 2，取消時還原為 0。
+ * 2. 蓋章防護機制：若該格已被工作人員正式蓋章（值為 1），則鎖定禁止透過預約按鈕覆蓋。
+ * 3. 完美相容連線判定：連線試算與完成度僅採計數值 1，狀態 2（預約）絕不干擾賓果連線。
+ * 4. 保留主題偏好設定（action=setTheme）與既有安全脫敏機制。
  */
 
 const PREFERRED_USERS_SHEET = "學員報名與賓果總表";
@@ -94,7 +98,14 @@ function doGet(e) {
       });
     }
 
-    // 2. 動態任務查詢端點（安全：絕不回傳 staffCode）
+    // 2. 實體活動一鍵預約/取消登記端點 (V12 新增：支援狀態 2 報名登記)
+    if (action === "setEventReg" && serial) {
+      const gridIndex = parseInt(e.parameter.gridIndex, 10);
+      const targetVal = parseInt(e.parameter.value, 10); // 2 代表預約登記, 0 代表取消登記
+      return handleSetEventReg(sheet, serial, gridIndex, targetVal);
+    }
+
+    // 3. 動態任務查詢端點（安全：絕不回傳 staffCode）
     if (action === "getTasks") {
       return createJsonResponse({
         success: true,
@@ -103,7 +114,7 @@ function doGet(e) {
       });
     }
     
-    // 3. 診斷測試端點
+    // 4. 診斷測試端點
     if (action === "test") {
       return createJsonResponse({
         success: true,
@@ -115,13 +126,13 @@ function doGet(e) {
       });
     }
     
-    // 3-B. 設定學員偏好主題端點 (action=setTheme)
+    // 5. 設定學員偏好主題端點 (action=setTheme)
     if (action === "setTheme" && serial) {
       const themeVal = String(e.parameter.theme || "1").trim();
       return handleSetTheme(sheet, serial, themeVal);
     }
 
-    // 4. 查詢個人卡片端點（支援卡號、姓名、聯絡方式三擇一查詢）
+    // 6. 查詢個人卡片端點（支援卡號、姓名、聯絡方式三擇一查詢）
     if (action === "getCard") {
       const queryKey = String(e.parameter.query || e.parameter.serial || "").trim();
       if (!queryKey) {
@@ -168,6 +179,8 @@ function doPost(e) {
       return handleRegister(sheet, payload);
     } else if (action === "stamp") {
       return handleStamp(ss, sheet, payload);
+    } else if (action === "setEventReg") {
+      return handleSetEventReg(sheet, payload.serial, payload.gridIndex, payload.value);
     }
     
     return createJsonResponse({ success: false, message: "無效的操作指令" });
@@ -219,6 +232,56 @@ function handleRegister(sheet, payload) {
   }
 }
 
+// 實體活動一鍵預約/取消登記處理 (V12 新增核心邏輯)
+function handleSetEventReg(sheet, serial, gridIndex, targetVal) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const gIdx = parseInt(gridIndex, 10);
+    if (isNaN(gIdx) || gIdx < 0 || gIdx > 8) {
+      return createJsonResponse({ success: false, message: "格子索引超出範圍（必須為 0 至 8）" });
+    }
+
+    const valToSet = parseInt(targetVal, 10);
+    if (valToSet !== 2 && valToSet !== 0) {
+      return createJsonResponse({ success: false, message: "預約登記數值無效（必須為 2 或 0）" });
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const targetSerial = String(serial).trim().toUpperCase();
+    let targetRow = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim().toUpperCase() === targetSerial) {
+        targetRow = i + 1;
+        break;
+      }
+    }
+    if (targetRow === -1) {
+      return createJsonResponse({ success: false, message: "找不到學員流水號：" + targetSerial });
+    }
+
+    // F 欄為第 6 欄（格1）；目標欄位為 6 + gIdx
+    const targetCol = 6 + gIdx;
+    const currentVal = sheet.getRange(targetRow, targetCol).getValue();
+
+    // 關鍵防呆：若該格已經完成蓋章（值為 1 或 TRUE），則鎖定不允許變更
+    const isAlreadyStamped = (currentVal == 1 || currentVal === true || String(currentVal).trim() === "1" || String(currentVal).trim().toUpperCase() === "TRUE");
+    if (isAlreadyStamped) {
+      return createJsonResponse({ success: false, message: "此任務已完成現場簽到蓋章，無法變更預約狀態！" });
+    }
+
+    // 寫入預約狀態 (2 或 0) 並記錄最後更新時間
+    sheet.getRange(targetRow, targetCol).setValue(valToSet);
+    const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy/MM/dd HH:mm:ss");
+    sheet.getRange(targetRow, 17).setValue(nowStr);
+    SpreadsheetApp.flush();
+
+    return createJsonResponse({ success: true, gridIndex: gIdx, value: valToSet });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 // 蓋章處理（含格子範圍檢查、綠色通道後端驗證、冪等防護）
 function handleStamp(ss, sheet, payload) {
   const lock = LockService.getScriptLock();
@@ -227,7 +290,7 @@ function handleStamp(ss, sheet, payload) {
   try {
     const gridIndex = parseInt(payload.gridIndex, 10);
     
-    // 1. 格子範圍安全驗證（P1-1）
+    // 1. 格子範圍安全驗證
     if (isNaN(gridIndex) || gridIndex < 0 || gridIndex > 8) {
       return createJsonResponse({ success: false, message: "格子索引超出範圍（必須為 0 至 8）" });
     }
@@ -284,7 +347,7 @@ function handleStamp(ss, sheet, payload) {
     // F 欄為第 6 欄（格1）；N 欄為第 14 欄（格9）
     const targetCol = 6 + gridIndex;
 
-    // 3. 冪等性防重複蓋章機制（P1-2）
+    // 3. 冪等性防重複蓋章機制（狀態為 1 時防呆）
     const currentVal = sheet.getRange(targetRow, targetCol).getValue();
     const alreadyStamped = (currentVal == 1 || currentVal === true ||
       String(currentVal).trim() === "1" || String(currentVal).trim().toUpperCase() === "TRUE");
@@ -333,29 +396,30 @@ function handleStamp(ss, sheet, payload) {
 function normalizeContact(val) {
   if (val === null || val === undefined) return "";
   let s = String(val).trim();
-  // 去除試算表可能產生的小數點 (例如 921980052.0)
   s = s.replace(/\.0+$/, "");
-  // 去除常見格式標點 (空格、連字號、括號、斜線、加號)
   s = s.replace(/[\s\-\(\)\/\+]/g, "");
-  // 處理國碼 886 開頭手機號碼 (如 8869xxxxxxxx -> 9xxxxxxxx)
   if (/^886\d{8,11}$/.test(s)) {
     s = s.substring(3);
   }
-  // 處理 0 開頭手機號碼（僅限台灣手機 09xxxxxxxx，避免市話誤去開頭 0）
   if (/^09\d{8}$/.test(s)) {
     s = s.substring(1);
   }
   return s.toLowerCase();
 }
 
-// 封裝學員卡片資料物件
+// 封裝學員卡片資料物件（V12 支援回傳數值 2 預約狀態）
 function buildUserData(row) {
   const stamps = [];
   for (let g = 5; g < 14; g++) {
     const val = row[g];
-    // 相容數值 1、布林值 TRUE、字串 "1" 與 "TRUE"
-    const isCompleted = (val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE") ? 1 : 0;
-    stamps.push(isCompleted);
+    // 相容判斷：已蓋章為 1；已預約登記為 2；其餘為 0
+    if (val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE") {
+      stamps.push(1);
+    } else if (val == 2 || String(val).trim() === "2") {
+      stamps.push(2);
+    } else {
+      stamps.push(0);
+    }
   }
   // 欄位 18 (R 欄，索引 17)：主題設定（空白或 "1" 為淡雅，"2" 為鮮豔）
   const rawTheme = row.length > 17 ? String(row[17] || "").trim() : "";
@@ -416,7 +480,7 @@ function findUserBySerial(sheet, serial) {
   return findUserByQuery(sheet, serial);
 }
 
-// 連線試算（相容 1 與 true）
+// 連線試算（嚴格僅採計 1 與 true，狀態 2 絕不誤判為連線）
 function calculateLines(stamps) {
   const isDone = (v) => v == 1 || v === true || String(v).trim() === "1" || String(v).trim().toUpperCase() === "TRUE";
   const combos = [
@@ -495,4 +559,3 @@ function handleSetTheme(sheet, serial, themeVal) {
 3. 點選「儲存並重新載入」。
 
 > 本系統後端腳本已內建 `Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy/MM/dd HH:mm:ss")`，配合上述試算表時區設定即可達成 100% 台灣標準時間記錄。
-
