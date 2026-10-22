@@ -611,6 +611,206 @@ html[data-theme="1"] {
       background: linear-gradient(135deg, #388e3c, #2e7d32) !important;
     }
 
+    /* 九宮格格子中若為已預約報名(2)的樣式標記 */
+    .grid-cell.registered-cell {
+      border: 2px dashed #ff9800;
+      background: #fffde7;
+    }
+    .grid-cell.registered-cell:hover:not(.stamped) {
+      border-color: #f57c00;
+      box-shadow: 0 4px 10px rgba(255, 152, 0, 0.2);
+    }
+    .cell-reg-tag {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 0.7rem;
+      background: #ff9800;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      z-index: 1;
+    }
+    html[data-theme="colorful"] .grid-cell.registered-cell,
+    html[data-theme="2"] .grid-cell.registered-cell {
+      border: 2px dashed #e65100;
+      background: #fff9c4;
+    }
+
+    /* 活動報名登記卡片樣式 */
+    .event-reg-card {
+      background: var(--card-bg, #ffffff);
+      border: 1px solid var(--border, #cfd8dc);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-top: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .event-reg-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 100%;
+      background: linear-gradient(180deg, #ff9800, #4caf50);
+    }
+    .event-reg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .event-reg-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary-dark, #1b5e20);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .event-reg-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted, #607d8b);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .event-reg-badge {
+      font-size: 0.75rem;
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      border: 1px solid #c8e6c9;
+    }
+
+    /* 活動清單網格 */
+    .event-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .event-item {
+      background: #fafbfa;
+      border: 1.5px solid #e0e6df;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .event-item:hover {
+      border-color: #81c784;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.12);
+      transform: translateY(-2px);
+    }
+    .event-item.registered {
+      border-color: #4caf50;
+      background: #f1f8e9;
+    }
+    .event-item.stamped {
+      border-color: #2196f3;
+      background: #e3f2fd;
+    }
+    .event-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .event-grid-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #fff3e0;
+      color: #e65100;
+    }
+    .event-date {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #2e7d32;
+    }
+    .event-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #263238;
+      margin-bottom: 4px;
+    }
+    .event-loc {
+      font-size: 0.78rem;
+      color: #78909c;
+      margin-bottom: 12px;
+    }
+    .event-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .status-not-reg {
+      background: #f5f5f5;
+      color: #757575;
+    }
+    .status-is-reg {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .status-is-stamped {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    .btn-reg {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-reg-action {
+      background: #4caf50;
+      color: white;
+    }
+    .btn-reg-action:hover {
+      background: #43a047;
+    }
+    .btn-reg-cancel {
+      background: #ffffff;
+      color: #e53935;
+      border: 1px solid #ffcdd2;
+    }
+    .btn-reg-cancel:hover {
+      background: #ffebee;
+    }
+    .btn-reg-disabled {
+      background: #cfd8dc;
+      color: #546e7a;
+      cursor: not-allowed;
+    }
+
     /* 獎勵進度說明卡 */
     .rules-card {
       background: white;

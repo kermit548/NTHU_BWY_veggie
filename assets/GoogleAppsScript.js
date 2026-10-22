@@ -492,25 +492,152 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       gridContainer.innerHTML = "";
 
       TASKS_DEF.forEach((task, idx) => {
-        const isStamped = isCellStamped(currentUser.stamps[idx]);
+        const cellVal = currentUser.stamps[idx];
+        const isStamped = isCellStamped(cellVal);
+        const isRegistered = isCellRegistered(cellVal);
         const isCenter = idx === 4;
         const isLineCell = lines.involvedCells.includes(idx);
 
+        let statusHint = "點擊蓋章 →";
+        if (isStamped) {
+          statusHint = "已蓋章";
+        } else if (isRegistered) {
+          statusHint = "待現場簽到蓋章";
+        }
+
         const cell = document.createElement("div");
-        cell.className = `grid-cell ${isStamped ? "stamped" : ""} ${isCenter ? "center-cell" : ""} ${isLineCell ? "bingo-line" : ""}`;
+        cell.className = `grid-cell ${isStamped ? "stamped" : ""} ${isRegistered ? "registered-cell" : ""} ${isCenter ? "center-cell" : ""} ${isLineCell ? "bingo-line" : ""}`;
         cell.onclick = () => openStampModal(idx);
 
         cell.innerHTML = `
           <div class="cell-number">#${idx + 1} ${isCenter ? "★ 核心任務" : ""}</div>
+          ${isRegistered && !isStamped ? '<span class="cell-reg-tag">已預約登記</span>' : ''}
           <div class="cell-title">${task.title}</div>
           <div class="cell-desc">${task.desc}</div>
-          <div class="cell-status-hint">${isStamped ? "已蓋章" : "點擊蓋章 →"}</div>
+          <div class="cell-status-hint" ${isRegistered && !isStamped ? 'style="color: #e65100; font-weight: bold;"' : ''}>${statusHint}</div>
           <img class="stamp-mark" src="./img/抱抱地球2.png" alt="已蓋章">
         `;
 
         gridContainer.appendChild(cell);
       });
+
+      renderEventRegistrationSection();
     }
+
+    // 判斷是否為預約報名狀態 (值為 2 或 "2")
+    const isCellRegistered = (val) => val == 2 || String(val).trim() === "2";
+
+    // 實體活動定義清單（對應九宮格 #4, #8, #9）
+    const PHYSICAL_EVENTS = [
+      {
+        gridIndex: 3, // #4
+        date: "11/11 (二)",
+        name: "蔬食玩家養成記",
+        loc: "📍 運動會擺攤（闖關送胡椒餅）"
+      },
+      {
+        gridIndex: 7, // #8
+        date: "11/18 (二)",
+        name: "一口愛地球・料理實作",
+        loc: "📍 風雲樓 3F 國際青年活動中心"
+      },
+      {
+        gridIndex: 8, // #9
+        date: "11/25 (二)",
+        name: "吃「蔬」地球的微笑",
+        loc: "📍 實體社課（現場抽獎頒獎）"
+      }
+    ];
+
+    // 渲染實體活動快速預約登記區塊
+    function renderEventRegistrationSection() {
+      const card = document.getElementById("eventRegCard");
+      const grid = document.getElementById("eventRegGrid");
+      const badge = document.getElementById("eventRegUserBadge");
+      if (!card || !grid || !currentUser) return;
+
+      if (badge) {
+        badge.innerText = `資料庫連線中：${currentUser.name}`;
+      }
+
+      grid.innerHTML = "";
+      const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+
+      PHYSICAL_EVENTS.forEach(ev => {
+        const val = currentUser.stamps[ev.gridIndex];
+        const isStamped = isCellStamped(val);
+        const isRegistered = isCellRegistered(val);
+
+        const item = document.createElement("div");
+        item.className = `event-item ${isStamped ? "stamped" : (isRegistered ? "registered" : "")}`;
+
+        let statusTagHtml = "";
+        let actionBtnHtml = "";
+
+        if (isStamped) {
+          statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 已完成活動蓋章 (狀態: 1)</span></div>`;
+          actionBtnHtml = `<button class="btn-reg btn-reg-disabled" disabled><span>✓ 已出席並完成任務</span></button>`;
+        } else if (isRegistered) {
+          statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ 已預約報名 (資料庫值: 2)</span></div>`;
+          actionBtnHtml = `<button class="btn-reg btn-reg-cancel" onclick="toggleEventRegistration(${ev.gridIndex}, 0)"><span>✕ 取消預約登記</span></button>`;
+        } else {
+          statusTagHtml = `<div class="event-status-tag status-not-reg"><span>⚪ 尚未報名 (資料庫值: 0)</span></div>`;
+          actionBtnHtml = `<button class="btn-reg btn-reg-action" onclick="toggleEventRegistration(${ev.gridIndex}, 2)"><span>➕ 我要報名 ${ev.date.split(' ')[0]} 活動</span></button>`;
+        }
+
+        item.innerHTML = `
+          <div>
+            <div class="event-item-top">
+              <span class="event-grid-tag">對應九宮格 #${ev.gridIndex + 1}</span>
+              <span class="event-date">${ev.date}</span>
+            </div>
+            <div class="event-name">${ev.name}</div>
+            <div class="event-loc">${ev.loc}</div>
+            ${statusTagHtml}
+          </div>
+          ${actionBtnHtml}
+        `;
+
+        grid.appendChild(item);
+      });
+    }
+
+    // 登記或取消活動報名 (targetVal: 2 代表預約, 0 代表取消)
+    async function toggleEventRegistration(gridIndex, targetVal) {
+      if (!currentUser) return;
+      const ev = PHYSICAL_EVENTS.find(e => e.gridIndex === gridIndex);
+      const evName = ev ? ev.name : `第 ${gridIndex + 1} 格`;
+      const actionText = targetVal === 2 ? "預約登記" : "取消登記";
+
+      if (!confirm(`確定要【${actionText}】「${evName}」嗎？`)) {
+        return;
+      }
+
+      showToast(`正在連線 Google 試算表進行${actionText}...`);
+
+      if (gasApiUrl && currentUser.serial) {
+        try {
+          const url = `${gasApiUrl}?action=setEventReg&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${gridIndex}&value=${targetVal}&t=${Date.now()}`;
+          const resp = await fetch(url);
+          const res = await resp.json();
+          if (!res.success) {
+            alert(`【${actionText}失敗】${res.message || res.error || "無法更新試算表"}`);
+            return;
+          }
+        } catch (err) {
+          console.error("更新活動報名失敗", err);
+          alert(`連線 Google 試算表時發生錯誤：
+${err.message}
+已先行於本機暫存記錄。`);
+        }
+      }
+
+      currentUser.stamps[gridIndex] = targetVal;
+      saveCurrentUserData();
+      renderBingoCard();
+      showToast(`已成功${actionText}「${evName}」！`);
+    }
+
 
     function openStampModal(idx) {
       if (!currentUser) return;

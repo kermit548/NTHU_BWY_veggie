@@ -86,6 +86,31 @@
         <!-- 9 個格子透過 JavaScript 動態渲染 -->
       </div>
 
+      <!-- 實體活動一鍵登記卡片（支援狀態 2 報名登記） -->
+      <div class="event-reg-card" id="eventRegCard">
+        <div class="event-reg-header">
+          <div>
+            <div class="event-reg-title">
+              <span>🎟️</span>
+              <span>蔬食月系列實體活動・快速登記預約</span>
+            </div>
+            <div class="event-reg-subtitle">
+              免重複填寫個人姓名與系級資料！點擊即可一鍵登記參與，現場備餐與名額有限請把握。
+            </div>
+          </div>
+          <span class="event-reg-badge" id="eventRegUserBadge">資料庫連線中</span>
+        </div>
+
+        <div class="event-grid" id="eventRegGrid">
+          <!-- 由 JavaScript 動態渲染活動小卡 -->
+        </div>
+
+        <div style="margin-top: 14px; font-size: 0.78rem; color: #78909c; display: flex; align-items: center; gap: 6px;">
+          <span>💡</span>
+          <span>系統說明：登記後資料庫該格將標註為「2」（預約報名），當日出席活動並完成簽到闖關後，將由工作人員正式轉為「1」（已蓋章）。</span>
+        </div>
+      </div>
+
       <!-- 獎勵兌換指南 -->
       <div class="rules-card">
         <h3>獎勵機制</h3>

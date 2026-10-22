@@ -510,25 +510,152 @@ function renderBingoCard() {
   gridContainer.innerHTML = "";
 
   TASKS_DEF.forEach((task, idx) => {
-    const isStamped = isCellStamped(currentUser.stamps[idx]);
+    const cellVal = currentUser.stamps[idx];
+    const isStamped = isCellStamped(cellVal);
+    const isRegistered = isCellRegistered(cellVal);
     const isCenter = idx === 4;
     const isLineCell = lines.involvedCells.includes(idx);
 
+    let statusHint = "Click to Stamp →";
+    if (isStamped) {
+      statusHint = "Stamped";
+    } else if (isRegistered) {
+      statusHint = "Pending on-site stamp";
+    }
+
     const cell = document.createElement("div");
-    cell.className = `grid-cell ${isStamped ? "stamped" : ""} ${isCenter ? "center-cell" : ""} ${isLineCell ? "bingo-line" : ""}`;
+    cell.className = `grid-cell ${isStamped ? "stamped" : ""} ${isRegistered ? "registered-cell" : ""} ${isCenter ? "center-cell" : ""} ${isLineCell ? "bingo-line" : ""}`;
     cell.onclick = () => openStampModal(idx);
 
     cell.innerHTML = `
       <div class="cell-number">#${idx + 1} ${isCenter ? "★ Core Task" : ""}</div>
+      ${isRegistered && !isStamped ? '<span class="cell-reg-tag">RSVP Done</span>' : ''}
       <div class="cell-title">${task.title}</div>
       <div class="cell-desc">${task.desc}</div>
-      <div class="cell-status-hint">${isStamped ? "Stamped" : "Click to Stamp →"}</div>
+      <div class="cell-status-hint" ${isRegistered && !isStamped ? 'style="color: #e65100; font-weight: bold;"' : ''}>${statusHint}</div>
       <img class="stamp-mark" src="./img/抱抱地球2.png" alt="Stamped">
     `;
 
     gridContainer.appendChild(cell);
   });
+
+  renderEventRegistrationSection();
 }
+
+  // Check if cell is in RSVP status (value is 2 or "2")
+  const isCellRegistered = (val) => val == 2 || String(val).trim() === "2";
+
+  // Physical events list (mapping to #4, #8, #9)
+  const PHYSICAL_EVENTS_EN = [
+    {
+      gridIndex: 3, // #4
+      date: "11/11 (Tue)",
+      name: "Sports Day Booth",
+      loc: "📍 Sports Day Booth (Challenges & Pepper Buns)"
+    },
+    {
+      gridIndex: 7, // #8
+      date: "11/18 (Tue)",
+      name: "Veggie Cooking Workshop",
+      loc: "📍 Feng-Yun Bldg 3F International Youth Activity Center"
+    },
+    {
+      gridIndex: 8, // #9
+      date: "11/25 (Tue)",
+      name: "Smile with Veggies for the Earth",
+      loc: "📍 Wrap-up Class & Lucky Draw Awarding"
+    }
+  ];
+
+  // Render physical events RSVP section
+  function renderEventRegistrationSection() {
+    const card = document.getElementById("eventRegCard");
+    const grid = document.getElementById("eventRegGrid");
+    const badge = document.getElementById("eventRegUserBadge");
+    if (!card || !grid || !currentUser) return;
+
+    if (badge) {
+      badge.innerText = `Connected: ${currentUser.name}`;
+    }
+
+    grid.innerHTML = "";
+    const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+
+    PHYSICAL_EVENTS_EN.forEach(ev => {
+      const val = currentUser.stamps[ev.gridIndex];
+      const isStamped = isCellStamped(val);
+      const isRegistered = isCellRegistered(val);
+
+      const item = document.createElement("div");
+      item.className = `event-item ${isStamped ? "stamped" : (isRegistered ? "registered" : "")}`;
+
+      let statusTagHtml = "";
+      let actionBtnHtml = "";
+
+      if (isStamped) {
+        statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 Mission Stamped (Status: 1)</span></div>`;
+        actionBtnHtml = `<button class="btn-reg btn-reg-disabled" disabled><span>✓ Completed</span></button>`;
+      } else if (isRegistered) {
+        statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ RSVP Confirmed (DB: 2)</span></div>`;
+        actionBtnHtml = `<button class="btn-reg btn-reg-cancel" onclick="toggleEventRegistration(${ev.gridIndex}, 0)"><span>✕ Cancel RSVP</span></button>`;
+      } else {
+        statusTagHtml = `<div class="event-status-tag status-not-reg"><span>⚪ Not Registered (DB: 0)</span></div>`;
+        actionBtnHtml = `<button class="btn-reg btn-reg-action" onclick="toggleEventRegistration(${ev.gridIndex}, 2)"><span>➕ RSVP for ${ev.date.split(' ')[0]}</span></button>`;
+      }
+
+      item.innerHTML = `
+        <div>
+          <div class="event-item-top">
+            <span class="event-grid-tag">Grid #${ev.gridIndex + 1}</span>
+            <span class="event-date">${ev.date}</span>
+          </div>
+          <div class="event-name">${ev.name}</div>
+          <div class="event-loc">${ev.loc}</div>
+          ${statusTagHtml}
+        </div>
+        ${actionBtnHtml}
+      `;
+
+      grid.appendChild(item);
+    });
+  }
+
+  // Toggle event registration
+  async function toggleEventRegistration(gridIndex, targetVal) {
+    if (!currentUser) return;
+    const ev = PHYSICAL_EVENTS_EN.find(e => e.gridIndex === gridIndex);
+    const evName = ev ? ev.name : `Grid #${gridIndex + 1}`;
+    const actionText = targetVal === 2 ? "RSVP for" : "Cancel RSVP for";
+
+    if (!confirm(`Are you sure you want to ${actionText} "${evName}"?`)) {
+      return;
+    }
+
+    showToast(`Connecting to Google Sheets to update RSVP...`);
+
+    if (gasApiUrl && currentUser.serial) {
+      try {
+        const url = `${gasApiUrl}?action=setEventReg&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${gridIndex}&value=${targetVal}&t=${Date.now()}`;
+        const resp = await fetch(url);
+        const res = await resp.json();
+        if (!res.success) {
+          alert(`[Update Failed] ${res.message || res.error || "Cannot update sheet"}`);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to update RSVP", err);
+        alert(`Network error connecting to Google Sheets:
+${err.message}
+Saved locally for now.`);
+      }
+    }
+
+    currentUser.stamps[gridIndex] = targetVal;
+    saveCurrentUserData();
+    renderBingoCard();
+    showToast(`Successfully updated RSVP for "${evName}"!`);
+  }
+
 
 function openStampModal(idx) {
   if (!currentUser) return;
