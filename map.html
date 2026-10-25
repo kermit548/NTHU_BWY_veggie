@@ -66,9 +66,19 @@
   <!-- 頂部列 -->
   <header>
     <button type="button" class="hamburger-btn" id="btnHamburger" aria-label="切換選單" onclick="toggleMobileNav(event)">
-      <span class="hamburger-bar"></span>
-      <span class="hamburger-bar"></span>
-      <span class="hamburger-bar"></span>
+      <span class="hamburger-lines">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </span>
+      <svg class="hamburger-cutlery" viewBox="0 0 100 100" aria-hidden="true">
+        <g transform="translate(50, 50) rotate(-45)">
+          <path d="M -3,-44 C 4,-43 10,-32 10,-14 C 10,-4 7,4 3,10 L 4.5,42 C 4.5,46.5 -1.5,46.5 -1.5,42 L -0.5,10 C -2.5,8 -3,4 -3,0 Z" />
+        </g>
+        <g transform="translate(50, 50) rotate(45)">
+          <path d="M -9,-45 L -6,-45 L -6,-24 L -3,-24 L -3,-45 L 0,-45 L 0,-24 L 3,-24 L 3,-45 L 6,-45 L 6,-24 L 9,-45 L 11.5,-44 C 11.5,-44 11,-22 9,-14 C 7,-6 4,4 1.5,10 L 3,42 C 3,46.5 -3,46.5 -3,42 L -1.5,10 C -4,4 -7,-6 -9,-14 C -11,-22 -11.5,-44 -11.5,-44 Z" />
+        </g>
+      </svg>
     </button>
     <div class="brand">
       <span>🌱</span>

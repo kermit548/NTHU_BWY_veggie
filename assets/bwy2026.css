@@ -83,21 +83,35 @@ html[data-theme="1"] {
     /* 漢堡選單按鈕（位於 brand 左側） */
     .hamburger-btn {
       display: none;
-      background: transparent;
-      border: none;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(0, 0, 0, 0.06);
       cursor: pointer;
-      padding: 8px 10px 8px 0;
+      padding: 6px;
+      margin-right: 6px;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
-      gap: 4px;
+      position: relative;
+      width: 38px;
+      height: 38px;
       align-self: center;
       flex-shrink: 0;
-      transition: opacity 0.2s ease;
+      border-radius: 8px;
+      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .hamburger-btn:hover {
-      opacity: 0.8;
+      background: rgba(255, 255, 255, 0.5);
+    }
+    .hamburger-btn:active {
+      transform: scale(0.94);
+    }
+    .hamburger-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.22s ease, transform 0.25s ease;
     }
     .hamburger-bar {
       display: block;
@@ -105,16 +119,27 @@ html[data-theme="1"] {
       height: 2.5px;
       background-color: var(--primary-dark, #2e7d32);
       border-radius: 2px;
-      transition: transform 0.25s ease, opacity 0.25s ease;
     }
-    .hamburger-btn.is-active .hamburger-bar:nth-child(1) {
-      transform: translateY(6.5px) rotate(45deg);
-    }
-    .hamburger-btn.is-active .hamburger-bar:nth-child(2) {
+    /* 刀叉相交彩蛋圖示（點擊展開時呈現） */
+    .hamburger-cutlery {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      fill: var(--primary-dark, #2e7d32);
       opacity: 0;
+      transform: scale(0.5) rotate(-45deg);
+      transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
     }
-    .hamburger-btn.is-active .hamburger-bar:nth-child(3) {
-      transform: translateY(-6.5px) rotate(-45deg);
+
+    /* 點擊展開（.is-active）時：三條線淡出收合，刀叉相交小彩蛋彈跳浮現 */
+    .hamburger-btn.is-active .hamburger-lines {
+      opacity: 0;
+      transform: scale(0.5) rotate(45deg);
+    }
+    .hamburger-btn.is-active .hamburger-cutlery {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
     }
 
     /* 工作人員專屬選單項目控制（預設隱藏，驗證通過後顯示） */
