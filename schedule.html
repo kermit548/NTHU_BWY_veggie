@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>排班時段・清大福青 2026 蔬食月</title>
+  <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
+  <link rel="stylesheet" href="./assets/style.css">
+  <link rel="stylesheet" href="./assets/bwy2026.css?v=20261025">
+  <script src="./assets/theme-sync.js?v=20261025"></script>
+  <style>
+    .schedule-hero {
+      text-align: center;
+      padding: 28px 16px 16px;
+    }
+    .schedule-hero h1 {
+      font-size: 1.6rem;
+      color: var(--primary-dark, #2e7d32);
+      margin: 0 0 8px;
+    }
+    .schedule-hero p {
+      color: var(--text-muted, #666);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    .schedule-wrap {
+      max-width: 1000px;
+      margin: 16px auto 32px;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+    @media (max-width: 1199px) {
+      .schedule-wrap {
+        width: 100%;
+        margin: 16px auto;
+        padding: 0 16px 80px;
+      }
+    }
+    .schedule-frame-card {
+      background: var(--card-bg, #ffffff);
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 1px solid var(--border, #e0e0e0);
+    }
+    .schedule-frame-card iframe {
+      width: 100%;
+      height: 850px;
+      border: none;
+      display: block;
+    }
+    @media (max-width: 600px) {
+      .schedule-frame-card iframe {
+        height: 750px;
+      }
+      .schedule-hero {
+        padding: 20px 16px 12px;
+      }
+      .schedule-hero h1 {
+        font-size: 1.25rem;
+      }
+    }
+    .schedule-note {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: var(--text-muted, #666);
+      line-height: 1.6;
+    }
+    .schedule-note a {
+      color: var(--primary-dark, #2e7d32);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 社群二維碼模組（獨立模組化引入，原生支援 file:// 與點擊事件，零遮擋） -->
+  <script src="./assets/qr-fixed.js"></script>
+
+  <!-- 頂部列 -->
+  <header>
+    <button type="button" class="hamburger-btn" id="btnHamburger" aria-label="切換選單" onclick="toggleMobileNav()">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </button>
+    <div class="brand">
+      <span>🌱</span>
+      <span>清大福青・2026 蔬食月</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">🃏 賓果挑戰</a>
+      <a href="form.html">📝 活動報名</a>
+      <a href="map.html">🗺️ 蔬食地圖</a>
+      <a href="2025.html" target="_blank" rel="noopener">📖 2025 回顧</a>
+      <a href="schedule.html" class="nav-active nav-staff-only" id="navSchedule">📅 排班時段</a>
+    </nav>
+    <div class="header-actions">
+      <span id="staffIndicator" class="badge-staff" style="display: none;">工作人員模式</span>
+      <div class="theme-switch-wrap" id="themeSwitchWrap" title="佈景主題 / Theme">
+        <button type="button" class="theme-btn" id="btnThemeSimple" onclick="setTheme(1)">淡雅</button>
+        <span class="theme-divider">|</span>
+        <button type="button" class="theme-btn" id="btnThemeColorful" onclick="setTheme(2)">鮮豔</button>
+      </div>
+      <div class="lang-switch-wrap" title="切換語言 / Language">
+        <span class="lang-btn active">繁中</span>
+        <span class="lang-divider">|</span>
+        <a href="index_en.html" class="lang-btn">English</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="schedule-hero">
+    <h1>📅 排班時段登記</h1>
+    <p>2026 清大福青社蔬食月・工作人員排班與出勤時段登記系統</p>
+  </div>
+
+  <div class="schedule-wrap">
+    <div class="schedule-frame-card">
+      <iframe src="https://script.google.com/macros/s/AKfycbwdvZE4YRg3xaLFyCnGrJBba2QYFesZs0vhwPssDB8O_azvmpYjy8Yek3tKQS0seiIR/exec" width="100%" height="850" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+    </div>
+    <p class="schedule-note">
+      若上方排班系統無法完整載入，請點此 <a href="https://script.google.com/macros/s/AKfycbwdvZE4YRg3xaLFyCnGrJBba2QYFesZs0vhwPssDB8O_azvmpYjy8Yek3tKQS0seiIR/exec" target="_blank" rel="noopener">在新分頁開啟排班系統</a><br>
+      若排班資料有異動或需調班，請主動於工作群組告知。
+    </p>
+  </div>
+
+</body>
+</html>

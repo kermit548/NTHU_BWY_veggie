@@ -16,6 +16,11 @@
 
   <!-- 頂部列 -->
   <header>
+    <button type="button" class="hamburger-btn" id="btnHamburger" aria-label="切換選單" onclick="toggleMobileNav(event)">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </button>
     <div class="brand">
       <span>🌱</span>
       <span>清大福青・2026 蔬食月</span>
@@ -25,6 +30,7 @@
       <a href="form.html">📝 活動報名</a>
       <a href="map.html">🗺️ 蔬食地圖</a>
       <a href="2025.html" target="_blank" rel="noopener">📖 2025 回顧</a>
+      <a href="schedule.html" class="nav-staff-only" id="navSchedule">📅 排班時段</a>
     </nav>
     <div class="header-actions">
       <span id="staffIndicator" class="badge-staff" style="display: none;">工作人員模式</span>

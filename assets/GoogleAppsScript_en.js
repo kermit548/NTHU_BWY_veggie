@@ -138,6 +138,17 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   applyTheme(initTheme, false);
+
+  if (localStorage.getItem("veg_is_staff") === "1") {
+    isStaffMode = true;
+    const staffInd = document.getElementById("staffIndicator");
+    if (staffInd) staffInd.style.display = "inline-block";
+    const btn = document.getElementById("btnStaffToggle");
+    if (btn) {
+      btn.innerText = "Normal mode";
+      btn.classList.add("btn-staff-active");
+    }
+  }
   
   if (gasApiUrl) {
     const endpointInput = document.getElementById("gasEndpoint");
@@ -217,6 +228,8 @@ async function toggleStaffMode() {
 
     sessionStaffCode = cleanInput;
     isStaffMode = true;
+    localStorage.setItem("veg_is_staff", "1");
+    if (window.syncStaffModeDOM) window.syncStaffModeDOM();
     document.getElementById("staffIndicator").style.display = "inline-block";
     if (btn) {
       btn.innerText = "Normal mode";
@@ -226,6 +239,8 @@ async function toggleStaffMode() {
   } else {
     isStaffMode = false;
     sessionStaffCode = "";
+    localStorage.setItem("veg_is_staff", "0");
+    if (window.syncStaffModeDOM) window.syncStaffModeDOM();
     document.getElementById("staffIndicator").style.display = "none";
     if (btn) {
       btn.innerText = "Staff Mode";

@@ -115,6 +115,17 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       }
 
       applyTheme(initTheme, false);
+
+      if (localStorage.getItem("veg_is_staff") === "1") {
+        isStaffMode = true;
+        const staffInd = document.getElementById("staffIndicator");
+        if (staffInd) staffInd.style.display = "inline-block";
+        const btn = document.getElementById("btnStaffToggle");
+        if (btn) {
+          btn.innerText = "切換回一般人員模式";
+          btn.classList.add("btn-staff-active");
+        }
+      }
       
       if (gasApiUrl) {
         document.getElementById("gasEndpoint").value = gasApiUrl;
@@ -194,6 +205,8 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
         sessionStaffCode = cleanInput;
         isStaffMode = true;
+        localStorage.setItem("veg_is_staff", "1");
+        if (window.syncStaffModeDOM) window.syncStaffModeDOM();
         document.getElementById("staffIndicator").style.display = "inline-block";
         if (btn) {
           btn.innerText = "切換回一般人員模式";
@@ -203,6 +216,8 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       } else {
         isStaffMode = false;
         sessionStaffCode = "";
+        localStorage.setItem("veg_is_staff", "0");
+        if (window.syncStaffModeDOM) window.syncStaffModeDOM();
         document.getElementById("staffIndicator").style.display = "none";
         if (btn) {
           btn.innerText = "切換為工作人員身份";

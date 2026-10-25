@@ -70,6 +70,7 @@ html[data-theme="1"] {
 
     /* 頂部導航 */
     header {
+      position: relative;
       background: var(--header-bg, white);
       border-bottom: 1px solid var(--header-border, var(--border));
       padding: 0 20px;
@@ -77,6 +78,51 @@ html[data-theme="1"] {
       align-items: stretch;
       gap: 0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    /* 漢堡選單按鈕（位於 brand 左側） */
+    .hamburger-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 8px 10px 8px 0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+      align-self: center;
+      flex-shrink: 0;
+      transition: opacity 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hamburger-btn:hover {
+      opacity: 0.8;
+    }
+    .hamburger-bar {
+      display: block;
+      width: 20px;
+      height: 2.5px;
+      background-color: var(--primary-dark, #2e7d32);
+      border-radius: 2px;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+    .hamburger-btn.is-active .hamburger-bar:nth-child(1) {
+      transform: translateY(6.5px) rotate(45deg);
+    }
+    .hamburger-btn.is-active .hamburger-bar:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger-btn.is-active .hamburger-bar:nth-child(3) {
+      transform: translateY(-6.5px) rotate(-45deg);
+    }
+
+    /* 工作人員專屬選單項目控制（預設隱藏，驗證通過後顯示） */
+    .nav-staff-only {
+      display: none !important;
+    }
+    html.staff-active .nav-staff-only {
+      display: inline-flex !important;
     }
 
     .brand {
@@ -137,6 +183,50 @@ html[data-theme="1"] {
       flex-shrink: 0;
     }
 
+    /* 響應式可視範圍不足時（<= 960px）：改由左側漢堡選單展開 */
+    @media (max-width: 960px) {
+      .hamburger-btn {
+        display: inline-flex;
+      }
+      .header-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--header-bg, #ffffff);
+        border-top: 1px solid var(--header-border, var(--border));
+        border-bottom: 2px solid var(--border);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        flex-direction: column;
+        z-index: 1000;
+        padding: 8px 12px;
+        box-sizing: border-box;
+      }
+      .header-nav.nav-open {
+        display: flex !important;
+      }
+      .header-nav a {
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        border-radius: 6px;
+        justify-content: flex-start;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .header-nav a:last-child {
+        border-bottom: none;
+      }
+      .header-nav a:hover,
+      .header-nav a.nav-active {
+        background: rgba(0,0,0,0.04);
+      }
+      html.staff-active .header-nav.nav-open .nav-staff-only {
+        display: flex !important;
+      }
+    }
+
     @media (max-width: 640px) {
       header {
         flex-wrap: wrap;
@@ -146,16 +236,6 @@ html[data-theme="1"] {
       .brand {
         padding: 10px 4px 6px 0;
         font-size: 0.98rem;
-      }
-      .header-nav {
-        order: 3;
-        width: 100%;
-        border-top: 1px solid var(--header-border, var(--border));
-        flex: unset;
-      }
-      .header-nav a {
-        padding: 8px 10px;
-        font-size: 0.8rem;
       }
       .header-actions {
         width: 100%;
