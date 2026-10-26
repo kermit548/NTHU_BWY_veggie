@@ -44,7 +44,7 @@
   // 工作人員狀態同步函式
   function syncStaffModeDOM() {
     try {
-      var isStaff = (localStorage.getItem("veg_is_staff") === "1");
+      var isStaff = (localStorage.getItem("veg_is_staff") === "1" && !!localStorage.getItem("veg_staff_code"));
       if (isStaff) {
         document.documentElement.classList.add("staff-active");
       } else {
@@ -75,7 +75,7 @@
   var initialTheme = getPreferredTheme();
   document.documentElement.setAttribute("data-theme", (initialTheme === "2" || initialTheme === "colorful") ? "colorful" : "simple");
   try {
-    if (localStorage.getItem("veg_is_staff") === "1") {
+    if (localStorage.getItem("veg_is_staff") === "1" && !!localStorage.getItem("veg_staff_code")) {
       document.documentElement.classList.add("staff-active");
     } else {
       document.documentElement.classList.remove("staff-active");

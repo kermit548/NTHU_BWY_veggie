@@ -18,6 +18,16 @@ const DEFAULT_TASKS_EN = [
   { id: 9, title: "Featured Club Class (Choose 1)", desc: "Attend either the intro class on 10/14 or wrap-up class on 11/25" }
 ];
 
+// HTML entity escape helper (XSS prevention)
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // Sanitize tasks helper: completely strips away any code property & guarantees English content
 function sanitizeTasks(tasks) {
   if (!Array.isArray(tasks)) return DEFAULT_TASKS_EN;
@@ -139,8 +149,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
   applyTheme(initTheme, false);
 
-  if (localStorage.getItem("veg_is_staff") === "1") {
+  const savedStaffCode = localStorage.getItem("veg_staff_code") || "";
+  if (localStorage.getItem("veg_is_staff") === "1" && savedStaffCode) {
     isStaffMode = true;
+    sessionStaffCode = savedStaffCode;
     const staffInd = document.getElementById("staffIndicator");
     if (staffInd) staffInd.style.display = "inline-block";
     const btn = document.getElementById("btnStaffToggle");
@@ -148,6 +160,10 @@ window.addEventListener("DOMContentLoaded", () => {
       btn.innerText = "Normal mode";
       btn.classList.add("btn-staff-active");
     }
+  } else {
+    localStorage.setItem("veg_is_staff", "0");
+    localStorage.removeItem("veg_staff_code");
+    if (window.syncStaffModeDOM) window.syncStaffModeDOM();
   }
   
   if (gasApiUrl) {
@@ -204,30 +220,46 @@ async function toggleStaffMode() {
       return;
     }
 
+    if (!gasApiUrl) {
+      alert("Google Sheets connection is not configured. Cannot verify staff identity!");
+      return;
+    }
+
     if (btn) btn.innerText = "Verifying...";
     showToast("Verifying staff passcode...");
 
-    if (gasApiUrl) {
-      try {
-        const checkUrl = `${gasApiUrl}?action=stamp&serial=__AUTH_CHECK__&gridIndex=0&isStaffOverride=true&staffPasscode=${encodeURIComponent(cleanInput)}&t=${Date.now()}`;
-        const resp = await fetch(checkUrl);
-        const res = await resp.json();
-        const msg = res.message || res.error || "";
-        if (msg.indexOf("工作人員認證代碼錯誤") !== -1 || msg.indexOf("Staff passcode error") !== -1) {
-          if (btn) btn.innerText = "Staff Mode";
-          alert("【Authentication Failed】Invalid staff passcode! Access denied.");
-          return;
-        }
-      } catch (err) {
-        console.warn("Staff auth check failed", err);
+    try {
+      const resp = await fetch(gasApiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "stamp",
+          payload: {
+            serial: "__AUTH_CHECK__",
+            gridIndex: 0,
+            isStaffOverride: true,
+            staffPasscode: cleanInput
+          }
+        })
+      });
+      const res = await resp.json();
+      const msg = String(res.message || res.error || "");
+      const isVerified = (res && res.staffVerified === true) || (msg.indexOf("__AUTH_CHECK__") !== -1);
+      if (!isVerified) {
         if (btn) btn.innerText = "Staff Mode";
-        alert(`Network error during staff authentication:\n${err.message}\nPlease check your network connection.`);
+        alert("【Authentication Failed】Invalid staff passcode! Access denied.");
         return;
       }
+    } catch (err) {
+      console.warn("Staff auth check failed", err);
+      if (btn) btn.innerText = "Staff Mode";
+      alert(`Network error during staff authentication:\n${err.message}\nPlease check your network connection.`);
+      return;
     }
 
     sessionStaffCode = cleanInput;
     isStaffMode = true;
+    localStorage.setItem("veg_staff_code", cleanInput);
     localStorage.setItem("veg_is_staff", "1");
     if (window.syncStaffModeDOM) window.syncStaffModeDOM();
     document.getElementById("staffIndicator").style.display = "inline-block";
@@ -239,6 +271,7 @@ async function toggleStaffMode() {
   } else {
     isStaffMode = false;
     sessionStaffCode = "";
+    localStorage.removeItem("veg_staff_code");
     localStorage.setItem("veg_is_staff", "0");
     if (window.syncStaffModeDOM) window.syncStaffModeDOM();
     document.getElementById("staffIndicator").style.display = "none";
@@ -327,16 +360,16 @@ async function testConnection() {
     if (res.success) {
       box.style.background = "#e8f5e9";
       box.style.color = "#2e7d32";
-      box.innerHTML = `<strong>Connection Successful!</strong><br>${res.message || "API online"}<br>Sheet: ${res.sheetName || "Database"} (${res.totalRows || 0} rows)<br>Tasks: ${res.tasksCount || 0} items<br>Staff Fast-Track: Configured`;
+      box.innerHTML = `<strong>Connection Successful!</strong><br>${escapeHtml(res.message || "API online")}<br>Sheet: ${escapeHtml(res.sheetName || "Database")} (${Number(res.totalRows) || 0} rows)<br>Tasks: ${Number(res.tasksCount) || 0} items<br>Staff Fast-Track: Configured`;
     } else {
       box.style.background = "#fff3e0";
       box.style.color = "#e65100";
-      box.innerHTML = `<strong>Backend Error:</strong> ${res.error || res.message}`;
+      box.innerHTML = `<strong>Backend Error:</strong> ${escapeHtml(res.error || res.message)}`;
     }
   } catch (netErr) {
     box.style.background = "#ffebee";
     box.style.color = "#c62828";
-    box.innerHTML = `<strong>Connection Failed:</strong> ${netErr.message}<br>Check your network or ensure Web App access is set to "Anyone".`;
+    box.innerHTML = `<strong>Connection Failed:</strong> ${escapeHtml(netErr.message)}<br>Check your network or ensure Web App access is set to "Anyone".`;
   }
 }
 
@@ -373,18 +406,26 @@ async function handleRegister(e) {
 
   if (gasApiUrl) {
     try {
-      await fetch(gasApiUrl, {
+      const resp = await fetch(gasApiUrl, {
         method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "register",
           payload: newUser
         })
       });
-      showToast("Registered and synchronized with Google Sheets!");
+      const res = await resp.json();
+      if (res && res.success) {
+        if (res.serial) {
+          newUser.serial = String(res.serial).trim();
+        }
+        showToast("Registered and synchronized with Google Sheets!");
+      } else {
+        throw new Error((res && (res.message || res.error)) || "Failed to write to Google Sheets");
+      }
     } catch (err) {
       console.warn("Failed to sync with GAS, switching to local mode", err);
+      alert(`Connection warning (${err.message}). A local card has been created.`);
     }
   }
 
@@ -396,7 +437,7 @@ async function handleRegister(e) {
   submitBtn.innerText = "Complete Registration & Get Bingo Card";
 
   renderBingoCard();
-  showToast(`Welcome! Your Card Serial No. is: ${serial}`);
+  showToast(`Welcome! Your Card Serial No. is: ${newUser.serial}`);
 }
 
 // Normalize contact string (phone number leading zero, dashes, spaces)
@@ -545,8 +586,8 @@ function renderBingoCard() {
     cell.innerHTML = `
       <div class="cell-number">#${idx + 1} ${isCenter ? "★ Core Task" : ""}</div>
       ${isRegistered && !isStamped ? '<span class="cell-reg-tag">RSVP Done</span>' : ''}
-      <div class="cell-title">${task.title}</div>
-      <div class="cell-desc">${task.desc}</div>
+      <div class="cell-title">${escapeHtml(task.title)}</div>
+      <div class="cell-desc">${escapeHtml(task.desc)}</div>
       <div class="cell-status-hint" ${isRegistered && !isStamped ? 'style="color: #e65100; font-weight: bold;"' : ''}>${statusHint}</div>
       <img class="stamp-mark" src="./img/抱抱地球2.png" alt="Stamped">
     `;
@@ -659,9 +700,8 @@ function renderBingoCard() {
         }
       } catch (err) {
         console.error("Failed to update RSVP", err);
-        alert(`Network error connecting to Google Sheets:
-${err.message}
-Saved locally for now.`);
+        alert(`Network error connecting to Google Sheets:\n${err.message}\nPlease check your internet connection and try again.`);
+        return;
       }
     }
 
@@ -714,23 +754,40 @@ async function confirmStamp(isBypass, userVerifyCode = "") {
   if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = "Verifying Passcode..."; }
   showToast("Verifying passcode with Google Sheets...");
 
+  const resetStampBtns = (delayMs = 0) => {
+    setTimeout(() => {
+      if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "Staff Fast-Track Stamp"; }
+      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
+    }, delayMs);
+  };
+
   if (gasApiUrl) {
     try {
-      const stampUrl = `${gasApiUrl}?action=stamp&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${idx}&isStaffOverride=${isBypass}&staffPasscode=${encodeURIComponent(isBypass ? sessionStaffCode : "")}&verifyCode=${encodeURIComponent(userVerifyCode)}&t=${Date.now()}`;
-      const resp = await fetch(stampUrl);
+      const resp = await fetch(gasApiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "stamp",
+          payload: {
+            serial: currentUser.serial,
+            gridIndex: idx,
+            isStaffOverride: isBypass,
+            staffPasscode: isBypass ? sessionStaffCode : "",
+            verifyCode: userVerifyCode
+          }
+        })
+      });
       const res = await resp.json();
       
       if (!res.success) {
         alert(`【Verification Failed】${res.message || res.error || "Incorrect passcode."}`);
-        if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "Staff Fast-Track Stamp"; }
-        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
+        resetStampBtns(2000);
         return;
       }
     } catch (err) {
       console.error("GAS stamp request failed", err);
       alert(`Network connection error with Google Sheets:\n${err.message}\n\nPlease check your connection or request booth staff verification.`);
-      if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "Staff Fast-Track Stamp"; }
-      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Verify & Stamp"; }
+      resetStampBtns(1000);
       return;
     }
   } else {

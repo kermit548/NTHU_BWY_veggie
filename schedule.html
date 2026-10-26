@@ -49,6 +49,28 @@
       border: none;
       display: block;
     }
+    .schedule-guard-card {
+      display: none;
+      background: var(--card-bg, #ffffff);
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border: 1px solid var(--border, #e0e0e0);
+      padding: 40px 24px;
+      text-align: center;
+      max-width: 520px;
+      margin: 24px auto;
+    }
+    .schedule-guard-card h2 {
+      color: var(--primary-dark, #2e7d32);
+      font-size: 1.25rem;
+      margin: 0 0 10px;
+    }
+    .schedule-guard-card p {
+      color: var(--text-muted, #666);
+      font-size: 0.92rem;
+      margin: 0 0 20px;
+      line-height: 1.6;
+    }
     @media (max-width: 600px) {
       .schedule-frame-card iframe {
         height: 750px;
@@ -127,14 +149,56 @@
   </div>
 
   <div class="schedule-wrap">
-    <div class="schedule-frame-card">
-      <iframe src="https://script.google.com/macros/s/AKfycbwdvZE4YRg3xaLFyCnGrJBba2QYFesZs0vhwPssDB8O_azvmpYjy8Yek3tKQS0seiIR/exec" width="100%" height="850" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+    <!-- 非工作人員存取守衛提示 -->
+    <div class="schedule-guard-card" id="scheduleGuardCard">
+      <h2>🔒 工作人員專屬頁面</h2>
+      <p>此排班時段系統僅供活動工作人員使用。<br>請先返回首頁點擊右上角「切換為工作人員身份」完成認證後再進入。</p>
+      <a href="index.html" class="btn btn-primary" style="text-decoration: none; display: inline-block;">返回賓果挑戰首頁</a>
     </div>
-    <p class="schedule-note">
-      若上方排班系統無法完整載入，請點此 <a href="https://script.google.com/macros/s/AKfycbwdvZE4YRg3xaLFyCnGrJBba2QYFesZs0vhwPssDB8O_azvmpYjy8Yek3tKQS0seiIR/exec" target="_blank" rel="noopener">在新分頁開啟排班系統</a><br>
-      若排班資料有異動或需調班，請主動於工作群組告知。
-    </p>
+
+    <!-- 工作人員排班內嵌區 -->
+    <div id="scheduleProtectedContent" style="display: none;">
+      <div class="schedule-frame-card">
+        <iframe id="scheduleIframe" data-src="https://script.google.com/macros/s/AKfycbwdvZE4YRg3xaLFyCnGrJBba2QYFesZs0vhwPssDB8O_azvmpYjy8Yek3tKQS0seiIR/exec" width="100%" height="850" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+      </div>
+      <p class="schedule-note">
+        若上方排班系統無法完整載入，請點此 <a href="https://script.google.com/macros/s/AKfycbwdvZE4YRg3xaLFyCnGrJBba2QYFesZs0vhwPssDB8O_azvmpYjy8Yek3tKQS0seiIR/exec" target="_blank" rel="noopener">在新分頁開啟排班系統</a><br>
+        若排班資料有異動或需調班，請主動於工作群組告知。
+      </p>
+    </div>
   </div>
+
+  <script>
+    (function() {
+      function checkScheduleAccess() {
+        var isStaff = (localStorage.getItem("veg_is_staff") === "1" && !!localStorage.getItem("veg_staff_code"));
+        var guardCard = document.getElementById("scheduleGuardCard");
+        var protectedContent = document.getElementById("scheduleProtectedContent");
+        var iframe = document.getElementById("scheduleIframe");
+        if (isStaff) {
+          if (guardCard) guardCard.style.display = "none";
+          if (protectedContent) protectedContent.style.display = "block";
+          if (iframe && !iframe.getAttribute("src")) {
+            iframe.setAttribute("src", iframe.getAttribute("data-src"));
+          }
+        } else {
+          if (guardCard) guardCard.style.display = "block";
+          if (protectedContent) protectedContent.style.display = "none";
+          if (iframe) iframe.removeAttribute("src");
+        }
+      }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", checkScheduleAccess);
+      } else {
+        checkScheduleAccess();
+      }
+      window.addEventListener("storage", function(e) {
+        if (e.key === "veg_is_staff" || e.key === "veg_staff_code") {
+          checkScheduleAccess();
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>

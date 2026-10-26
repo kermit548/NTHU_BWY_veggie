@@ -13,6 +13,16 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       desc: "正在與 Google 試算表同步任務資料..."
     }));
 
+    // HTML 實體跳脫輔助函式（防範 XSS 注入）
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
     // 安全脫敏函式：強制過濾掉任何 code 屬性，防範 DevTools 讀取或舊快取殘留
     function sanitizeTasks(tasks) {
       if (!Array.isArray(tasks)) return DEFAULT_TASKS;
@@ -116,8 +126,10 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
       applyTheme(initTheme, false);
 
-      if (localStorage.getItem("veg_is_staff") === "1") {
+      const savedStaffCode = localStorage.getItem("veg_staff_code") || "";
+      if (localStorage.getItem("veg_is_staff") === "1" && savedStaffCode) {
         isStaffMode = true;
+        sessionStaffCode = savedStaffCode;
         const staffInd = document.getElementById("staffIndicator");
         if (staffInd) staffInd.style.display = "inline-block";
         const btn = document.getElementById("btnStaffToggle");
@@ -125,6 +137,10 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
           btn.innerText = "切換回一般人員模式";
           btn.classList.add("btn-staff-active");
         }
+      } else {
+        localStorage.setItem("veg_is_staff", "0");
+        localStorage.removeItem("veg_staff_code");
+        if (window.syncStaffModeDOM) window.syncStaffModeDOM();
       }
       
       if (gasApiUrl) {
@@ -181,30 +197,47 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
           return;
         }
 
+        if (!gasApiUrl) {
+          alert("系統尚未設定 Google 試算表連線，無法驗證工作人員身份！");
+          return;
+        }
+
         if (btn) btn.innerText = "驗證中...";
         showToast("正在驗證工作人員認證代碼...");
 
-        if (gasApiUrl) {
-          try {
-            const checkUrl = `${gasApiUrl}?action=stamp&serial=__AUTH_CHECK__&gridIndex=0&isStaffOverride=true&staffPasscode=${encodeURIComponent(cleanInput)}&t=${Date.now()}`;
-            const resp = await fetch(checkUrl);
-            const res = await resp.json();
-            const msg = res.message || res.error || "";
-            if (msg.indexOf("工作人員認證代碼錯誤") !== -1) {
-              if (btn) btn.innerText = "切換為工作人員身份";
-              alert("【認證失敗】工作人員認證代碼錯誤，無法開啟綠色通道！");
-              return;
-            }
-          } catch (err) {
-            console.warn("工作人員代碼連線驗證失敗", err);
+        try {
+          const resp = await fetch(gasApiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "stamp",
+              payload: {
+                serial: "__AUTH_CHECK__",
+                gridIndex: 0,
+                isStaffOverride: true,
+                staffPasscode: cleanInput
+              }
+            })
+          });
+          const res = await resp.json();
+          const msg = String(res.message || res.error || "");
+          // 白名單正向判定：支援 V13 staffVerified 標記或舊版後端通過密碼檢查後進入 __AUTH_CHECK__ 查找訊息
+          const isVerified = (res && res.staffVerified === true) || (msg.indexOf("__AUTH_CHECK__") !== -1);
+          if (!isVerified) {
             if (btn) btn.innerText = "切換為工作人員身份";
-            alert(`連線 Google 試算表驗證時發生錯誤：\n${err.message}\n請檢查網路連線。`);
+            alert("【認證失敗】工作人員認證代碼錯誤，無法開啟綠色通道！");
             return;
           }
+        } catch (err) {
+          console.warn("工作人員代碼連線驗證失敗", err);
+          if (btn) btn.innerText = "切換為工作人員身份";
+          alert(`連線 Google 試算表驗證時發生錯誤：\n${err.message}\n請檢查網路連線。`);
+          return;
         }
 
         sessionStaffCode = cleanInput;
         isStaffMode = true;
+        localStorage.setItem("veg_staff_code", cleanInput);
         localStorage.setItem("veg_is_staff", "1");
         if (window.syncStaffModeDOM) window.syncStaffModeDOM();
         document.getElementById("staffIndicator").style.display = "inline-block";
@@ -216,6 +249,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       } else {
         isStaffMode = false;
         sessionStaffCode = "";
+        localStorage.removeItem("veg_staff_code");
         localStorage.setItem("veg_is_staff", "0");
         if (window.syncStaffModeDOM) window.syncStaffModeDOM();
         document.getElementById("staffIndicator").style.display = "none";
@@ -307,16 +341,16 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         if (res.success) {
           box.style.background = "#e8f5e9";
           box.style.color = "#2e7d32";
-          box.innerHTML = `<strong>連線成功！</strong><br>${res.message || "API 運作正常"}<br>工作表：${res.sheetName || "總表"}（共 ${res.totalRows || 0} 列資料）<br>九宮格任務數：${res.tasksCount || 0} 格<br>工作人員綠色通道代碼：${res.staffCode ? "已讀取成功" : "未設定（使用預設）"}`;
+          box.innerHTML = `<strong>連線成功！</strong><br>${escapeHtml(res.message || "API 運作正常")}<br>工作表：${escapeHtml(res.sheetName || "總表")}（共 ${Number(res.totalRows) || 0} 列資料）<br>九宮格任務數：${Number(res.tasksCount) || 0} 格<br>工作人員綠色通道代碼：${escapeHtml(res.staffConfigured || (res.staffCode ? "已讀取成功" : "已由後端保護"))}`;
         } else {
           box.style.background = "#fff3e0";
           box.style.color = "#e65100";
-          box.innerHTML = `<strong>後端回傳錯誤：</strong>${res.error || res.message}`;
+          box.innerHTML = `<strong>後端回傳錯誤：</strong>${escapeHtml(res.error || res.message)}`;
         }
       } catch (netErr) {
         box.style.background = "#ffebee";
         box.style.color = "#c62828";
-        box.innerHTML = `<strong>連線失敗：</strong>${netErr.message}<br>若使用本機 file:// 開啟，瀏覽器可能阻擋跨域重定向。請確認 Web App 部署權限設為「所有人 (Anyone)」。`;
+        box.innerHTML = `<strong>連線失敗：</strong>${escapeHtml(netErr.message)}<br>若使用本機 file:// 開啟，瀏覽器可能阻擋跨域重定向。請確認 Web App 部署權限設為「所有人 (Anyone)」。`;
       }
     }
 
@@ -353,18 +387,26 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
       if (gasApiUrl) {
         try {
-          await fetch(gasApiUrl, {
+          const resp = await fetch(gasApiUrl, {
             method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
               action: "register",
               payload: newUser
             })
           });
-          showToast("已同步登記至 Google 試算表！");
+          const res = await resp.json();
+          if (res && res.success) {
+            if (res.serial) {
+              newUser.serial = String(res.serial).trim();
+            }
+            showToast("已同步登記至 Google 試算表！");
+          } else {
+            throw new Error((res && (res.message || res.error)) || "試算表寫入失敗");
+          }
         } catch (err) {
           console.warn("GAS 串接未成功，切換為本機儲存模式", err);
+          alert(`連線試算表時發生異常（${err.message}），已先建立本機暫存卡片。`);
         }
       }
 
@@ -376,7 +418,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       submitBtn.innerText = "完成報名並取得賓果卡";
 
       renderBingoCard();
-      showToast(`報名成功！您的流水號為：${serial}`);
+      showToast(`報名成功！您的流水號為：${newUser.serial}`);
     }
 
     // 標準化聯絡方式（精準比對手機開頭 0 移除問題、連字號、空格等）
@@ -527,8 +569,8 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         cell.innerHTML = `
           <div class="cell-number">#${idx + 1} ${isCenter ? "★ 核心任務" : ""}</div>
           ${isRegistered && !isStamped ? '<span class="cell-reg-tag">已預約登記</span>' : ''}
-          <div class="cell-title">${task.title}</div>
-          <div class="cell-desc">${task.desc}</div>
+          <div class="cell-title">${escapeHtml(task.title)}</div>
+          <div class="cell-desc">${escapeHtml(task.desc)}</div>
           <div class="cell-status-hint" ${isRegistered && !isStamped ? 'style="color: #e65100; font-weight: bold;"' : ''}>${statusHint}</div>
           <img class="stamp-mark" src="./img/抱抱地球2.png" alt="已蓋章">
         `;
@@ -641,9 +683,8 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
           }
         } catch (err) {
           console.error("更新活動報名失敗", err);
-          alert(`連線 Google 試算表時發生錯誤：
-${err.message}
-已先行於本機暫存記錄。`);
+          alert(`連線 Google 試算表時發生錯誤：\n${err.message}\n請確認網路連線後再試一次。`);
+          return;
         }
       }
 
@@ -697,23 +738,40 @@ ${err.message}
       if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = "代碼驗證中..."; }
       showToast("正在連線 Google 試算表進行密碼核驗與蓋章...");
 
+      const resetStampBtns = (delayMs = 0) => {
+        setTimeout(() => {
+          if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "工作人員綠色通道蓋章"; }
+          if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
+        }, delayMs);
+      };
+
       if (gasApiUrl) {
         try {
-          const stampUrl = `${gasApiUrl}?action=stamp&serial=${encodeURIComponent(currentUser.serial)}&gridIndex=${idx}&isStaffOverride=${isBypass}&staffPasscode=${encodeURIComponent(isBypass ? sessionStaffCode : "")}&verifyCode=${encodeURIComponent(userVerifyCode)}&t=${Date.now()}`;
-          const resp = await fetch(stampUrl);
+          const resp = await fetch(gasApiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "stamp",
+              payload: {
+                serial: currentUser.serial,
+                gridIndex: idx,
+                isStaffOverride: isBypass,
+                staffPasscode: isBypass ? sessionStaffCode : "",
+                verifyCode: userVerifyCode
+              }
+            })
+          });
           const res = await resp.json();
           
           if (!res.success) {
             alert(`【核銷失敗】${res.message || res.error || "通關代碼錯誤"}`);
-            if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "工作人員綠色通道蓋章"; }
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
+            resetStampBtns(2000);
             return;
           }
         } catch (err) {
           console.error("GAS 蓋章請求失敗", err);
           alert(`向 Google 試算表連線時發生錯誤：\n${err.message}\n\n請檢查網路連線或請現場工作人員以綠色通道為您核銷。`);
-          if (btnStaff) { btnStaff.disabled = false; btnStaff.innerText = "工作人員綠色通道蓋章"; }
-          if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "驗證並蓋章"; }
+          resetStampBtns(1000);
           return;
         }
       } else {
