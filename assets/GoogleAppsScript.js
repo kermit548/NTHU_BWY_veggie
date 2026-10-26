@@ -546,19 +546,19 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
     const PHYSICAL_EVENTS = [
       {
         gridIndex: 3, // #4
-        date: "11/11 (二)",
+        date: "11/11 (三)",
         name: "蔬食玩家養成記",
         loc: "📍 運動會擺攤（闖關送胡椒餅）"
       },
       {
         gridIndex: 7, // #8
-        date: "11/18 (二)",
+        date: "11/18 (三)",
         name: "一口愛地球・料理實作",
         loc: "📍 風雲樓 3F 國際青年活動中心"
       },
       {
         gridIndex: 8, // #9
-        date: "11/25 (二)",
+        date: "11/25 (三)",
         name: "吃「蔬」地球的微笑",
         loc: "📍 實體社課（現場抽獎頒獎）"
       }

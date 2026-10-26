@@ -564,19 +564,19 @@ function renderBingoCard() {
   const PHYSICAL_EVENTS_EN = [
     {
       gridIndex: 3, // #4
-      date: "11/11 (Tue)",
+      date: "11/11 (Wed)",
       name: "Sports Day Booth",
       loc: "📍 Sports Day Booth (Challenges & Pepper Buns)"
     },
     {
       gridIndex: 7, // #8
-      date: "11/18 (Tue)",
+      date: "11/18 (Wed)",
       name: "Veggie Cooking Workshop",
       loc: "📍 Feng-Yun Bldg 3F International Youth Activity Center"
     },
     {
       gridIndex: 8, // #9
-      date: "11/25 (Tue)",
+      date: "11/25 (Wed)",
       name: "Smile with Veggies for the Earth",
       loc: "📍 Wrap-up Class & Lucky Draw Awarding"
     }
