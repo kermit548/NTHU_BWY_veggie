@@ -325,7 +325,7 @@ export function buildShopIslandScene(group, { island, registerAnim, registerCrit
       dishPedestal.add(soupBowl.group);
 
       group.add(createPatioSet({ pos: [-1.12, 0.04, 1.15], umbrellaColor: '#b84a39' }));
-      critterKind = 'broccoli';
+      critterKind = 'panda';
       critterSpeech = '過馬路四分鐘就到妙觀音！全素紅燒麵配酸辣湯超滿足！';
       break;
     }
@@ -398,7 +398,7 @@ export function buildShopIslandScene(group, { island, registerAnim, registerCrit
       const noodle = createCeramicBowl({ r: 0.22, brothColor: '#6e3f24', rimColor: '#568c47', withChopsticks: false, pos: [0.33, 0.47, 0.02] });
       dishPedestal.add(noodle.group);
 
-      critterKind = 'broccoli';
+      critterKind = 'panda';
       critterSpeech = '建新路棗子樹的招牌蛋煎粄條外酥內軟，老饕最愛！';
       break;
     }
@@ -468,7 +468,7 @@ export function buildShopIslandScene(group, { island, registerAnim, registerCrit
       dishPedestal.add(makeBox([0.17, 0.05, 0.28], '#63a84e', { r: 0.015, pos: [0.37, 0.56, 0.02] }));
 
       group.add(createPatioSet({ pos: [-1.1, 0.04, 1.15], umbrellaColor: '#ea7a2e' }));
-      critterKind = 'broccoli';
+      critterKind = 'panda';
       critterSpeech = '金城一路滿素圓！平日限定的抄手、酸辣湯與家常便當超暖心！';
       break;
     }
@@ -552,7 +552,7 @@ export function buildShopIslandScene(group, { island, registerAnim, registerCrit
       }
 
       group.add(createPatioSet({ pos: [-1.1, 0.04, 1.15], tableColor: '#c9533b' }));
-      critterKind = 'broccoli';
+      critterKind = 'panda';
       critterSpeech = '馬偕對面的游媽媽下午不休息！古早味素油飯跟水餃銅板價超佛心！';
       break;
     }
@@ -638,13 +638,13 @@ export function buildShopIslandScene(group, { island, registerAnim, registerCrit
       dishPedestal.add(makeSphere(0.16, '#693b5e', { seg: 10, scale: [1, 0.45, 1], pos: [0.34, 0.69, 0] }));
 
       group.add(createPatioSet({ pos: [-1.15, 0.04, 1.18], umbrellaColor: '#4a8584' }));
-      critterKind = 'broccoli';
+      critterKind = 'panda';
       critterSpeech = '穿過清交小徑就到交大二餐素怡園！紫米十穀飯配滿滿好菜任你夾！';
       break;
     }
   }
 
-  // 每座餐廳浮島配置一位動態饕客或主廚小人 + 一隻可點擊對話尋寶彩蛋（松鼠 / 青花菜小精靈）
+  // 每座餐廳浮島配置一位動態饕客或主廚小人 + 一隻可點擊對話尋寶彩蛋（松鼠 / 清華胖達）
   group.add(
     createMiniPerson({
       shirt: island.ring === 'inner' ? '#ffffff' : '#ffe6c7',
@@ -666,8 +666,8 @@ export function buildShopIslandScene(group, { island, registerAnim, registerCrit
       id: `critter-${island.id}`,
       kind: critterKind,
       speech: critterSpeech,
-      pos: [1.95, 0.04, 0.45],
-      rotY: -0.5,
+      pos: critterKind === 'panda' ? [2.18, 0.04, 1.48] : [1.95, 0.04, 0.45],
+      rotY: critterKind === 'panda' ? -0.32 : -0.5,
       registerAnim,
       registerCritter
     })

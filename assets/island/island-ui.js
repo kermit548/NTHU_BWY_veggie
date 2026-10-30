@@ -19,20 +19,20 @@ import { buildShopIslandScene, buildSkyDecorScene } from './island-shops.js';
 const CRITTER_STORAGE_KEY = 'nthu_bwy_veggie_island_critters_2026';
 const TOTAL_CRITTERS = 12;
 
-// 12 隻真正計入尋寶任務之浮島小夥伴（排除攤位小人、攤位本體、肌肉奶蛙與紅綠燈）
+// 12 隻真正計入尋寶任務之浮島小夥伴：6 隻清華松鼠 + 6 隻清華胖達（排除攤位小人、攤位本體、肌肉奶蛙與紅綠燈）
 const COMPANION_CRITTER_IDS = new Set([
-  'critter-nthu-squirrel-1',
-  'critter-nthu-squirrel-2',
-  'critter-yasucai-squirrel',
-  'critter-miaoguanyin-squirrel',
-  'critter-amusi-sprout',
-  'critter-zaozishu-squirrel',
-  'critter-dingsheng-sprout',
-  'critter-mansuyuan-squirrel',
-  'critter-yixiansu-squirrel',
-  'critter-youmama-sprout',
-  'critter-caigenxiang-squirrel',
-  'critter-suyiyuan-sprout'
+  'critter-hub-squirrel',
+  'critter-hub-panda',
+  'critter-yasuzhai',
+  'critter-miaoguanyin',
+  'critter-amushi',
+  'critter-zaozishu',
+  'critter-dingsheng',
+  'critter-mansuyuan',
+  'critter-yixiansu',
+  'critter-youmama',
+  'critter-caigenxiang',
+  'critter-suyiyuan'
 ]);
 const TIME_MODES = [
   { key: 'auto', label: '自動' },
@@ -130,7 +130,10 @@ async function bootstrap() {
   try {
     const saved = JSON.parse(localStorage.getItem(CRITTER_STORAGE_KEY) || '[]');
     if (Array.isArray(saved)) {
-      saved.filter(id => COMPANION_CRITTER_IDS.has(id)).forEach(id => uiState.foundCritters.add(id));
+      saved
+        .map(id => (id === 'critter-hub-broccoli' ? 'critter-hub-panda' : id))
+        .filter(id => COMPANION_CRITTER_IDS.has(id))
+        .forEach(id => uiState.foundCritters.add(id));
     }
   } catch {
     // shortcut: 瀏覽器無痕模式阻擋 localStorage 時僅維持記憶體內計數
@@ -247,7 +250,7 @@ async function bootstrap() {
         }
         updateCritterCounter();
         if (uiState.foundCritters.size >= TOTAL_CRITTERS) {
-          showToast('恭喜集滿全島 12 隻清華松鼠與青花菜精靈！', 3600);
+          showToast('恭喜集滿全島 12 隻清華松鼠與清華胖達！', 3600);
         } else {
           showToast(`尋獲浮島小夥伴！（目前已找到 ${uiState.foundCritters.size} / ${TOTAL_CRITTERS}）`, 2200);
         }
@@ -740,7 +743,7 @@ async function bootstrap() {
       const isNightLike = curTime.key === 'night' || (curTime.key === 'auto' && (new Date().getHours() < 6 || new Date().getHours() >= 18));
       elTopTimeBtn.textContent = isNightLike ? '☀️ 白天模式' : '🌙 夜晚模式';
       elTopTimeBtn.title = isNightLike
-        ? '目前為夜間光影，點擊強制切換為清晰白天（方便尋找松鼠與精靈）'
+        ? '目前為夜間光影，點擊強制切換為清晰白天（方便尋找松鼠與清華胖達）'
         : '目前為白天光影，點擊切換為浪漫星夜';
     }
 
@@ -768,7 +771,7 @@ async function bootstrap() {
       if (targetIdx >= 0) {
         uiState.timeIdx = targetIdx;
         world.setTimeMode(targetKey);
-        showToast(targetKey === 'day' ? '已切換為清晰晴晝（全島松鼠與精靈清晰可見！）' : '已切換為浪漫星夜光影');
+        showToast(targetKey === 'day' ? '已切換為清晰晴晝（全島松鼠與清華胖達清晰可見！）' : '已切換為浪漫星夜光影');
         syncToggleButtons();
       }
     });
