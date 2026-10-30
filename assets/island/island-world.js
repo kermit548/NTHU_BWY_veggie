@@ -17,6 +17,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const geoCache = new Map();
 const matCache = new Map();
 const signTexCache = new Map();
+const glowSignMaterials = [];
 
 function keyNums(arr) {
   return arr.map(n => Math.round(n * 1000)).join(',');
@@ -162,14 +163,15 @@ export function makeGableRoof(w = 1.8, h = 0.55, d = 1.4, color = '#c8553d', opt
 }
 
 /**
- * Canvas 招牌貼圖產生器（供建築店招使用，同樣支援靜態幾何合併）
+ * Canvas 招牌貼圖產生器（供建築店招與 LED 發光路牌使用，支援夜間發光與靜態幾何合併）
  */
-export function makeSignBoard(text, bgColor = '#2c4a47', fgColor = '#fffaf2', h = 0.28, pos = [0, 0, 0], rot = [0, 0, 0]) {
-  const cacheKey = `${text}|${bgColor}|${fgColor}`;
+export function makeSignBoard(text, bgColor = '#2c4a47', fgColor = '#fffaf2', h = 0.28, pos = [0, 0, 0], rot = [0, 0, 0], opts = {}) {
+  const { isLed = false, frameColor = null } = opts;
+  const cacheKey = `${text}|${bgColor}|${fgColor}|${isLed}`;
   let entry = signTexCache.get(cacheKey);
   if (!entry) {
-    const pxH = 96;
-    const pxW = Math.max(180, Math.round(pxH * (text.length * 0.9 + 0.8)));
+    const pxH = 104;
+    const pxW = Math.max(190, Math.round(pxH * (text.length * 0.95 + (isLed ? 1.0 : 0.8))));
     const canvas = document.createElement('canvas');
     canvas.width = pxW;
     canvas.height = pxH;
@@ -179,15 +181,30 @@ export function makeSignBoard(text, bgColor = '#2c4a47', fgColor = '#fffaf2', h 
 
     const draw = () => {
       const ctx = canvas.getContext('2d');
+      // 底色（若為 LED 路牌，使用圖 1 正統台灣翡翠綠路牌底色）
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, pxW, pxH);
+
+      // 邊框：LED 路牌具備鮮明白色內嵌發光框
       ctx.strokeStyle = fgColor;
-      ctx.globalAlpha = 0.42;
-      ctx.lineWidth = 4;
-      ctx.strokeRect(7, 7, pxW - 14, pxH - 14);
+      ctx.globalAlpha = isLed ? 0.95 : 0.45;
+      ctx.lineWidth = isLed ? 6 : 4;
+      const pad = isLed ? 8 : 7;
+      ctx.strokeRect(pad, pad, pxW - pad * 2, pxH - pad * 2);
+
+      // 若為 LED 路牌，加上四角微縮固定鉚釘細節
+      if (isLed) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        for (const [cx, cy] of [[pad + 7, pad + 7], [pxW - pad - 7, pad + 7], [pad + 7, pxH - pad - 7], [pxW - pad - 7, pxH - pad - 7]]) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
       ctx.globalAlpha = 1;
       ctx.fillStyle = fgColor;
-      ctx.font = '900 54px "Noto Sans TC", "Microsoft JhengHei", sans-serif';
+      ctx.font = '900 52px "Noto Sans TC", "Microsoft JhengHei", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(text, pxW / 2, pxH / 2 + 2);
@@ -195,8 +212,19 @@ export function makeSignBoard(text, bgColor = '#2c4a47', fgColor = '#fffaf2', h 
     };
     draw();
     document.fonts?.load?.('900 48px "Noto Sans TC"', text).then(draw, () => {});
+
+    const material = new THREE.MeshStandardMaterial({
+      map: tex,
+      emissiveMap: tex,
+      emissive: new THREE.Color('#ffffff'),
+      emissiveIntensity: 0.05,
+      roughness: 0.35,
+      metalness: 0.05
+    });
+    glowSignMaterials.push({ material, isLed });
+
     entry = {
-      material: new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55 }),
+      material,
       aspect: pxW / pxH
     };
     signTexCache.set(cacheKey, entry);
@@ -207,7 +235,9 @@ export function makeSignBoard(text, bgColor = '#2c4a47', fgColor = '#fffaf2', h 
   g.position.set(pos[0], pos[1], pos[2]);
   if (rot[0] || rot[1] || rot[2]) g.rotation.set(rot[0], rot[1], rot[2]);
 
-  g.add(makeBox([w + 0.06, h + 0.06, 0.04], bgColor, { r: 0.015, pos: [0, 0, -0.021] }));
+  // 外框（LED 路牌搭配深墨綠金屬背盒）
+  const boxBackCol = frameColor || (isLed ? '#082118' : bgColor);
+  g.add(makeBox([w + 0.05, h + 0.05, 0.04], boxBackCol, { r: 0.015, pos: [0, 0, -0.021] }));
   const faceGeo = getCachedGeo(`pl:${keyNums([w, h])}`, () => new THREE.PlaneGeometry(w, h));
   const face = new THREE.Mesh(faceGeo, entry.material);
   face.position.set(0, 0, 0.002);
@@ -1172,6 +1202,9 @@ export function createIslandWorld({
     hemiLight.intensity = curColors.hemiI;
     glowWindowMat.emissiveIntensity = curColors.glow;
     glowJadeMat.emissiveIntensity = 0.42 + Math.sin(elapsed * 2.2) * 0.18 + curColors.glow * 0.25;
+    for (const item of glowSignMaterials) {
+      item.material.emissiveIntensity = item.isLed ? Math.min(2.5, curColors.glow * 1.15) : curColors.glow * 0.75;
+    }
     cloudMat.color.set(phase === 'night' ? '#5e7c8c' : phase === 'dusk' ? '#ffe0c8' : isRainy ? '#cfd8dc' : '#ffffff');
 
     // 2. 11 座天空之城浮島：進場升起 + 懸浮呼吸 + Hover/Select 平滑抬升

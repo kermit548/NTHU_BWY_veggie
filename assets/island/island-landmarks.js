@@ -570,7 +570,21 @@ export function buildCentralNthuHubScene(group, { registerAnim, registerCritter 
       })
     );
   }
-  booth.add(makeSignBoard('福青蔬食月', '#2c4a47', '#fffaf2', 0.26, [0, 1.84, 0.42]));
+  // 依據圖 1 改為夜間翡翠綠高辨識度 LED 發光路牌效果
+  booth.add(makeSignBoard('福青蔬食月', '#0e7b4b', '#ffffff', 0.30, [0, 1.85, 0.42], [0, 0, 0], { isLed: true, frameColor: '#072418' }));
+
+  // LED 燈牌夜間投射綠光光源（呼應圖 1 LED 路牌夜間高辨識度照明效果）
+  const ledGlowLight = new THREE.PointLight('#5df2a8', 0, 3.6, 1.8);
+  ledGlowLight.position.set(0, 1.84, 0.52);
+  ledGlowLight.userData = { dyn: true, noMerge: true };
+  booth.add(ledGlowLight);
+  if (registerAnim) {
+    registerAnim(() => {
+      ledGlowLight.intensity = (glowWindowMat.emissiveIntensity > 0.4)
+        ? Math.min(1.4, (glowWindowMat.emissiveIntensity - 0.3) * 0.75)
+        : 0;
+    });
+  }
   // 攤位桌面蔬食餐盒與環保杯
   booth.add(makeBox([0.34, 0.08, 0.26], '#79b865', { r: 0.02, pos: [-0.42, 0.77, 0.08] }));
   booth.add(makeCyl(0.06, 0.048, 0.16, '#f4a259', { seg: 8, pos: [0.08, 0.81, 0.1] }));
