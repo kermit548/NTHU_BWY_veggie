@@ -188,15 +188,17 @@ a {
 .bubble {
   pointer-events: none;
   position: relative;
-  max-width: 260px;
-  padding: 7px 12px;
+  max-width: 340px;
+  padding: 8px 14px;
   border-radius: 13px;
   background: #ffffff;
   border: 1.5px solid var(--teal);
   color: var(--ink);
   font-size: 13px;
-  font-weight: 700;
-  line-height: 1.45;
+  font-weight: 600;
+  line-height: 1.48;
+  white-space: pre-line;
+  word-break: break-word;
   box-shadow: var(--shadow);
   animation: popBubble 0.2s ease-out;
 }

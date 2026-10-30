@@ -18,6 +18,22 @@ import { buildShopIslandScene, buildSkyDecorScene } from './island-shops.js';
 
 const CRITTER_STORAGE_KEY = 'nthu_bwy_veggie_island_critters_2026';
 const TOTAL_CRITTERS = 12;
+
+// 12 隻真正計入尋寶任務之浮島小夥伴（排除攤位小人、攤位本體、肌肉奶蛙與紅綠燈）
+const COMPANION_CRITTER_IDS = new Set([
+  'critter-nthu-squirrel-1',
+  'critter-nthu-squirrel-2',
+  'critter-yasucai-squirrel',
+  'critter-miaoguanyin-squirrel',
+  'critter-amusi-sprout',
+  'critter-zaozishu-squirrel',
+  'critter-dingsheng-sprout',
+  'critter-mansuyuan-squirrel',
+  'critter-yixiansu-squirrel',
+  'critter-youmama-sprout',
+  'critter-caigenxiang-squirrel',
+  'critter-suyiyuan-sprout'
+]);
 const TIME_MODES = [
   { key: 'auto', label: '自動' },
   { key: 'day', label: '晴晝' },
@@ -113,7 +129,9 @@ async function bootstrap() {
 
   try {
     const saved = JSON.parse(localStorage.getItem(CRITTER_STORAGE_KEY) || '[]');
-    if (Array.isArray(saved)) saved.forEach(id => uiState.foundCritters.add(id));
+    if (Array.isArray(saved)) {
+      saved.filter(id => COMPANION_CRITTER_IDS.has(id)).forEach(id => uiState.foundCritters.add(id));
+    }
   } catch {
     // shortcut: 瀏覽器無痕模式阻擋 localStorage 時僅維持記憶體內計數
   }
@@ -215,6 +233,10 @@ async function bootstrap() {
     },
     onClickCritter(meta) {
       if (!meta?.id) return;
+      // 僅 12 隻小夥伴計入尋寶小遊戲進度（排除攤位小人、攤位、奶蛙、紅綠燈等彩蛋）
+      if (!COMPANION_CRITTER_IDS.has(meta.id)) {
+        return;
+      }
       const isNew = !uiState.foundCritters.has(meta.id);
       if (isNew) {
         uiState.foundCritters.add(meta.id);
@@ -224,7 +246,7 @@ async function bootstrap() {
           // ignore storage quota errors
         }
         updateCritterCounter();
-        if (uiState.foundCritters.size === TOTAL_CRITTERS) {
+        if (uiState.foundCritters.size >= TOTAL_CRITTERS) {
           showToast('恭喜集滿全島 12 隻清華松鼠與青花菜精靈！', 3600);
         } else {
           showToast(`尋獲浮島小夥伴！（目前已找到 ${uiState.foundCritters.size} / ${TOTAL_CRITTERS}）`, 2200);
@@ -340,8 +362,12 @@ async function bootstrap() {
 
   function updateCritterCounter() {
     const el = document.getElementById('critterCountText');
-    if (el) {
-      el.innerHTML = `已尋獲 <strong>${uiState.foundCritters.size} / ${TOTAL_CRITTERS}</strong> 隻浮島小夥伴`;
+    if (!el) return;
+    const count = Math.min(uiState.foundCritters.size, TOTAL_CRITTERS);
+    if (count >= TOTAL_CRITTERS) {
+      el.innerHTML = `<strong>好眼力，已尋獲全部小夥伴</strong>`;
+    } else {
+      el.innerHTML = `已尋獲 <strong>${count} / ${TOTAL_CRITTERS}</strong> 隻浮島小夥伴`;
     }
   }
   updateCritterCounter();

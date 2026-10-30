@@ -217,6 +217,20 @@ export function createWoodenBench(pos = [0, 0, 0], rotY = 0) {
 const SKIN_TONES = ['#f4cba2', '#ecc096', '#f7d6b5', '#dfb188'];
 const HAIR_TONES = ['#28201a', '#3b2b20', '#1d1916', '#4c3626'];
 
+// 福智青年社蔬食宣傳專屬隨機對話庫（中英雙語對照）
+export const BOOTH_SPEECHES = [
+  '福智青年社邀請您來場蔬食冒險吧！一起闖關拿好禮，吃蔬食，健康自己也打造健康的地球\nThe Bliss and Wisdom Youth Club invites you to a plant-based adventure! Join our games, win great prizes, and embrace delicious plant-based meals for your health and our planet.',
+  '🌟 11/1 - 11/7 菜不是配角 (靜態理念展覽) 📍校本部：旺宏館 1F 穿堂\n"Veggies Take Center Stage" (Static Exhibition) 📍Main Campus: Learning Resources Center (Macronix Building) 1F Hallway',
+  '🌟 11/11 10:00～16:00 蔬食玩家養成記 (小遊戲闖關) 📍校本部：運動會擺攤（位置另行公布於粉專、IG）\n"Veggie Player Level-Up" (Mini-Games & Challenges) 📍Main Campus: Sports Day Booth (Exact location announced on FB & IG)',
+  '🌟 11/18 19:00~20:30 一口愛地球 (料理實作) 📍校本部：風雲樓三樓國際青年活動中心\n"A Bite to Love the Earth" (Hands-on Cooking Workshop) 📍Main Campus: Feng-Yun Building 3F, International Youth Activity Center',
+  '🌟 11/25 19:00~20:30 吃「蔬」地球的微笑 (活動總結， 現場依據「賓果卡」完成度進行抽獎)  📍校本部：風雲樓三樓國際青年活動中心\n"Smile with Veggies for the Earth" (Lucky draw held on-site based on your Bingo Card completion) 📍Main Campus: Feng-Yun Building 3F, International Youth Activity Center',
+  '改變，從選擇開始，把握每日用餐的機會，以蔬食疼惜生命、守護地球。\nChange begins with choice. Cherish life and protect the planet with plant-based meals every day.'
+];
+
+export function getRandomBoothSpeech() {
+  return BOOTH_SPEECHES[Math.floor(Math.random() * BOOTH_SPEECHES.length)];
+}
+
 export function createMiniPerson({
   shirt = '#ffffff',
   pants = '#314259',
@@ -229,7 +243,12 @@ export function createMiniPerson({
   rotY = 0,
   route = null,
   speed = 0.42,
-  registerAnim
+  registerAnim,
+  isPolo = false,
+  badgeColor = null,
+  hairStyle = 'short',
+  registerCritter = null,
+  critterMeta = null
 }) {
   const root = new THREE.Group();
   root.userData.dyn = true;
@@ -258,18 +277,43 @@ export function createMiniPerson({
 
   // 軀幹與頭部
   body.add(makeBox([0.26, 0.3, 0.17], shirt, { r: 0.06, pos: [0, 0.39, 0] }));
+  if (isPolo) {
+    // POLO 衫領片立體結構
+    body.add(makeBox([0.16, 0.035, 0.05], shirt, { r: 0.01, pos: [0, 0.54, 0.08], rot: [0.18, 0, 0] }));
+  }
+
   body.add(makeSphere(0.13, skin, { seg: 12, pos: [0, 0.66, 0] }));
   body.add(makeSphere(0.136, hair, { seg: 12, thetaLength: Math.PI * 0.55, pos: [0, 0.69, -0.015] }));
+  if (hairStyle === 'long') {
+    // 圖 4 齊肩微捲髮
+    body.add(makeBox([0.24, 0.22, 0.16], hair, { r: 0.05, pos: [0, 0.62, -0.05] }));
+  }
+
   body.add(makeSphere(0.016, '#222222', { seg: 6, pos: [-0.045, 0.66, 0.12], castShadow: false }));
   body.add(makeSphere(0.016, '#222222', { seg: 6, pos: [0.045, 0.66, 0.12], castShadow: false }));
 
-  // 手臂與手持物（環保杯 / 蔬食碗）
+  // 手臂與手持物（依 isPolo 實現短袖與右袖標，或長袖）
   const armL = new THREE.Group();
   armL.position.set(-0.16, 0.5, 0);
-  armL.add(makeBox([0.07, 0.23, 0.08], shirt, { r: 0.03, pos: [0, -0.11, 0] }));
   const armR = new THREE.Group();
   armR.position.set(0.16, 0.5, 0);
-  armR.add(makeBox([0.07, 0.23, 0.08], shirt, { r: 0.03, pos: [0, -0.11, 0] }));
+
+  if (isPolo) {
+    // 短袖 POLO 衫手臂：上段為短袖，下段為小手臂與手部
+    armL.add(makeBox([0.075, 0.11, 0.085], shirt, { r: 0.02, pos: [0, -0.05, 0] }));
+    armL.add(makeBox([0.06, 0.12, 0.07], skin, { r: 0.02, pos: [0, -0.16, 0] }));
+
+    armR.add(makeBox([0.075, 0.11, 0.085], shirt, { r: 0.02, pos: [0, -0.05, 0] }));
+    armR.add(makeBox([0.06, 0.12, 0.07], skin, { r: 0.02, pos: [0, -0.16, 0] }));
+
+    // 右手臂短袖袖標（圖 3 紅色標 / 圖 4 白色標）
+    if (badgeColor) {
+      armR.add(makeBox([0.015, 0.04, 0.04], badgeColor, { pos: [0.04, -0.05, 0] }));
+    }
+  } else {
+    armL.add(makeBox([0.07, 0.23, 0.08], shirt, { r: 0.03, pos: [0, -0.11, 0] }));
+    armR.add(makeBox([0.07, 0.23, 0.08], shirt, { r: 0.03, pos: [0, -0.11, 0] }));
+  }
 
   if (holding === 'cup') {
     armR.rotation.x = -0.65;
@@ -277,10 +321,41 @@ export function createMiniPerson({
   } else if (holding === 'bowl') {
     armR.rotation.x = -0.7;
     armR.add(makeSphere(0.075, '#d95f43', { seg: 10, thetaStart: Math.PI / 2, thetaLength: Math.PI / 2, pos: [-0.04, -0.23, 0.09] }));
+  } else if (holding === 'mic') {
+    // 圖 3 右手持握麥克風宣傳蔬食
+    armR.rotation.x = -0.75;
+    armR.rotation.y = -0.2;
+    armR.add(makeCyl(0.016, 0.014, 0.13, '#1c1f24', { seg: 8, pos: [0, -0.21, 0.06], rot: [0.3, 0, 0] }));
+    armR.add(makeSphere(0.024, '#c6cbd2', { seg: 8, pos: [0, -0.15, 0.08] }));
   } else if (pose === 'wave') {
     armR.rotation.z = 2.4;
   }
   body.add(armL, armR);
+
+  // 點擊判定球與 Q 彈回饋動畫
+  if (registerCritter && critterMeta) {
+    const hitGeo = getCachedGeo('sphere_hit_mini_person_0.6', () => new THREE.SphereGeometry(0.6, 8, 8));
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false, wireframe: true });
+    const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+    hitMesh.position.set(0, 0.55, 0);
+    root.add(hitMesh);
+
+    critterMeta.onHop = () => {
+      let t = 0;
+      const startY = root.position.y;
+      if (registerAnim) {
+        registerAnim((dt) => {
+          t += dt * 10;
+          root.position.y = startY + Math.sin(t) * 0.12;
+          if (t >= Math.PI) {
+            root.position.y = startY;
+            return false;
+          }
+        });
+      }
+    };
+    registerCritter(hitMesh, critterMeta);
+  }
 
   if (hat === 'chef') {
     body.add(makeCyl(0.11, 0.1, 0.12, '#ffffff', { seg: 10, pos: [0, 0.82, 0] }));
@@ -790,6 +865,68 @@ export function buildCentralNthuHubScene(group, { registerAnim, registerCritter 
   booth.add(makeBox([0.34, 0.08, 0.26], '#79b865', { r: 0.02, pos: [-0.42, 0.77, 0.08] }));
   booth.add(makeCyl(0.06, 0.048, 0.16, '#f4a259', { seg: 8, pos: [0.08, 0.81, 0.1] }));
   booth.add(makeCyl(0.055, 0.045, 0.15, '#68b0ab', { seg: 8, pos: [0.38, 0.8, 0.06] }));
+
+  // 攤位前方志工 1（圖 2 紅框處：鵝黃色短袖 POLO 衫、深藍牛仔褲、手拿麥克風熱情宣傳，完全站於攤位前方零穿模）
+  const staffYellow = createMiniPerson({
+    shirt: '#fae260',
+    pants: '#2c4e70',
+    holding: 'mic',
+    pose: 'stand',
+    seed: 2,
+    pos: [-0.46, 0, 0.82],
+    rotY: 0.08,
+    isPolo: true,
+    badgeColor: '#b52328', // 圖 3 右臂紅色小方標
+    registerAnim,
+    registerCritter,
+    critterMeta: {
+      id: 'booth-staff-yellow',
+      kind: 'staff',
+      isCompanion: false,
+      bubbleDuration: 7000,
+      getSpeech: () => getRandomBoothSpeech()
+    }
+  });
+  booth.add(staffYellow);
+
+  // 攤位前方志工 2（圖 2 橘框處：大紅色短袖 POLO 衫、深藏青長褲、齊肩微捲髮微笑迎賓，完全站於攤位前方零穿模）
+  const staffRed = createMiniPerson({
+    shirt: '#b52328',
+    pants: '#1e2432',
+    seed: 6,
+    pos: [0.22, 0, 0.85],
+    rotY: -0.12,
+    isPolo: true,
+    badgeColor: '#ffffff', // 圖 4 右臂白色小方標
+    hairStyle: 'long',
+    registerAnim,
+    registerCritter,
+    critterMeta: {
+      id: 'booth-staff-red',
+      kind: 'staff',
+      isCompanion: false,
+      bubbleDuration: 7000,
+      getSpeech: () => getRandomBoothSpeech()
+    }
+  });
+  booth.add(staffRed);
+
+  // 攤位本體可點擊碰撞盒（點擊攤位桌面或頂棚隨機播放福青蔬食宣傳對話）
+  if (registerCritter) {
+    const hitGeo = getCachedGeo('box_hit_booth_1.9_1.8_1.2', () => new THREE.BoxGeometry(1.9, 1.8, 1.2));
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false, wireframe: true });
+    const hitBox = new THREE.Mesh(hitGeo, hitMat);
+    hitBox.position.set(0, 0.9, 0.2);
+    booth.add(hitBox);
+    registerCritter(hitBox, {
+      id: 'booth-table',
+      kind: 'booth',
+      isCompanion: false,
+      bubbleDuration: 7000,
+      getSpeech: () => getRandomBoothSpeech()
+    });
+  }
+
   group.add(booth);
 
   // 廣場長椅與夜間暖光路燈
@@ -808,18 +945,7 @@ export function buildCentralNthuHubScene(group, { registerAnim, registerCritter 
     })
   );
 
-  // 6. 動態清大學生與福青社招手社員 (userData.dyn = true)
-  group.add(
-    createMiniPerson({
-      shirt: '#78a95b',
-      pants: '#2c3e50',
-      pose: 'wave',
-      seed: 2,
-      pos: [1.85, 0.04, 1.25],
-      rotY: -0.35,
-      registerAnim
-    })
-  );
+  // 6. 動態清大學生校園漫步 (userData.dyn = true)
   group.add(
     createMiniPerson({
       shirt: '#ffffff',

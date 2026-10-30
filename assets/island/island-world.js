@@ -1131,7 +1131,8 @@ export function createIslandWorld({
       critterHit.object.getWorldPosition(worldPos);
       worldPos.y += 0.85;
       const speechText = typeof meta?.getSpeech === 'function' ? meta.getSpeech() : meta?.speech;
-      state.activeBubble = { worldPos, text: speechText, until: performance.now() + 3200 };
+      const duration = typeof meta?.bubbleDuration === 'number' ? meta.bubbleDuration : 3400;
+      state.activeBubble = { worldPos, text: speechText, until: performance.now() + duration };
       onClickCritter?.(meta);
       return;
     }
