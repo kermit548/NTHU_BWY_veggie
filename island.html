@@ -205,6 +205,65 @@
     </div>
   </div>
 
+  <!-- 右下角《品嚐幸福》YouTube MV 浮動播放器 -->
+  <aside class="yt-music-widget" id="ytMusicWidget" aria-label="品嚐幸福 MV 浮動音樂播放器">
+    <!-- 頂部標題列 -->
+    <div class="yt-music-header">
+      <div class="yt-header-title">
+        <span class="yt-music-note">🎵</span>
+        <span class="yt-title-text">正在播放《品嚐幸福》官方 MV</span>
+      </div>
+      <div class="yt-header-actions">
+        <button type="button" class="yt-btn-icon" id="btnYtToggleSize" title="切換精簡/畫面" aria-label="切換精簡播放列">_</button>
+        <button type="button" class="yt-btn-icon" id="btnYtClose" title="收起播放器" aria-label="收起播放器">✕</button>
+      </div>
+    </div>
+
+    <!-- 影片畫面區（桌機版顯示，手持裝置自動隱藏） -->
+    <div class="yt-video-wrap" id="ytVideoWrap">
+      <div id="ytPlayerContainer"></div>
+    </div>
+
+    <!-- 迷你播放列（手持裝置僅顯示此區塊，亦支援桌機精簡模式） -->
+    <div class="yt-mini-bar" id="ytMiniBar">
+      <!-- 紅色進度條與滑桿點 -->
+      <div class="yt-progress-container" id="ytProgressContainer" title="點擊跳轉進度" aria-label="播放進度條">
+        <div class="yt-progress-bg">
+          <div class="yt-progress-fill" id="ytProgressFill"></div>
+          <div class="yt-progress-dot" id="ytProgressDot"></div>
+        </div>
+      </div>
+
+      <!-- 控制按鈕組與時間標籤 -->
+      <div class="yt-controls-row">
+        <div class="yt-left-controls">
+          <!-- 播放/暫停按鈕 -->
+          <button type="button" class="yt-btn-play" id="btnYtPlayPause" aria-label="播放或暫停">
+            <span id="iconYtPlayPause">▶</span>
+          </button>
+
+          <!-- 膠囊音量控制組 -->
+          <div class="yt-vol-pill" id="ytVolPill">
+            <button type="button" class="yt-btn-vol" id="btnYtMute" aria-label="切換靜音">
+              <span id="iconYtVol">🔊</span>
+            </button>
+            <input type="range" class="yt-vol-slider" id="ytVolSlider" min="0" max="100" value="80" aria-label="音量滑桿">
+            <div class="yt-vol-tooltip" id="ytVolTooltip">靜音 M</div>
+          </div>
+        </div>
+
+        <!-- 時間標籤 0:05 / 3:58 -->
+        <div class="yt-time-pill" id="ytTimeDisplay">0:00 / 3:58</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 收起後常駐右下角的極簡浮動音樂徽章（點擊重新展開） -->
+  <button type="button" class="yt-music-launcher" id="btnYtLauncher" hidden title="開啟《品嚐幸福》MV 播放器" aria-label="開啟品嚐幸福音樂播放器">
+    <span>🎵</span>
+    <small>品嚐幸福</small>
+  </button>
+
   <!-- 輕量提示吐司 -->
   <div class="toast" id="toastMsg" hidden role="status" aria-live="polite"></div>
 

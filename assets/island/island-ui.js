@@ -59,6 +59,203 @@ function interpretWmoCode(code) {
   return { label: '舒適微風', kind: 'clear' };
 }
 
+/**
+ * 右下角《品嚐幸福》YouTube MV 浮動音樂播放器與手持裝置迷你播放列初始化
+ * 參考 encore.taipei/2026 嵌入模式，支援桌機完整畫面與手持裝置純迷你控制列（含自定義紅色進度條、音量膠囊與時間標籤）
+ */
+function initYouTubeMusicPlayer() {
+  const elWidget = document.getElementById('ytMusicWidget');
+  const elLauncher = document.getElementById('btnYtLauncher');
+  const elBtnToggle = document.getElementById('btnYtToggleSize');
+  const elBtnClose = document.getElementById('btnYtClose');
+  const elBtnPlayPause = document.getElementById('btnYtPlayPause');
+  const elIconPlayPause = document.getElementById('iconYtPlayPause');
+  const elProgressContainer = document.getElementById('ytProgressContainer');
+  const elProgressFill = document.getElementById('ytProgressFill');
+  const elProgressDot = document.getElementById('ytProgressDot');
+  const elBtnMute = document.getElementById('btnYtMute');
+  const elIconVol = document.getElementById('iconYtVol');
+  const elVolSlider = document.getElementById('ytVolSlider');
+  const elVolTooltip = document.getElementById('ytVolTooltip');
+  const elTimeDisplay = document.getElementById('ytTimeDisplay');
+
+  if (!elWidget) return;
+
+  const VIDEO_ID = '70FFY2jgGiw'; // 《品嚐幸福》官方 MV
+  let player = null;
+  let isPlaying = false;
+  let isMuted = false;
+  let updateInterval = null;
+
+  function formatTime(sec) {
+    if (!sec || isNaN(sec)) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  function updateProgress() {
+    if (!player || typeof player.getCurrentTime !== 'function') return;
+    try {
+      const cur = player.getCurrentTime() || 0;
+      const dur = player.getDuration() || 238; // 3分58秒
+      const pct = Math.min(100, Math.max(0, (cur / dur) * 100));
+
+      if (elProgressFill) elProgressFill.style.width = pct + '%';
+      if (elProgressDot) elProgressDot.style.left = pct + '%';
+      if (elTimeDisplay) elTimeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+    } catch {
+      // 容錯防禦
+    }
+  }
+
+  function startProgressLoop() {
+    if (updateInterval) clearInterval(updateInterval);
+    updateInterval = setInterval(updateProgress, 250);
+  }
+
+  function stopProgressLoop() {
+    if (updateInterval) {
+      clearInterval(updateInterval);
+      updateInterval = null;
+    }
+    updateProgress();
+  }
+
+  function setupPlayer() {
+    player = new window.YT.Player('ytPlayerContainer', {
+      videoId: VIDEO_ID,
+      playerVars: {
+        autoplay: 0,
+        controls: 1,
+        rel: 0,
+        playsinline: 1,
+        loop: 1,
+        playlist: VIDEO_ID,
+        enablejsapi: 1
+      },
+      events: {
+        onReady(e) {
+          try {
+            player.setVolume(80);
+          } catch {}
+          updateProgress();
+        },
+        onStateChange(e) {
+          if (e.data === window.YT.PlayerState.PLAYING) {
+            isPlaying = true;
+            if (elIconPlayPause) elIconPlayPause.textContent = '❚❚';
+            startProgressLoop();
+          } else {
+            isPlaying = false;
+            if (elIconPlayPause) elIconPlayPause.textContent = '▶';
+            stopProgressLoop();
+          }
+        }
+      }
+    });
+  }
+
+  // 載入 YouTube IFrame API
+  if (window.YT && window.YT.Player) {
+    setupPlayer();
+  } else {
+    const prevReady = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (typeof prevReady === 'function') prevReady();
+      setupPlayer();
+    };
+    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      tag.async = true;
+      document.head.appendChild(tag);
+    }
+  }
+
+  // 1. 播放/暫停按鈕
+  elBtnPlayPause?.addEventListener('click', () => {
+    if (!player || typeof player.playVideo !== 'function') return;
+    if (isPlaying) {
+      player.pauseVideo();
+    } else {
+      player.playVideo();
+    }
+  });
+
+  // 2. 點擊進度條跳轉 (Seek)
+  elProgressContainer?.addEventListener('click', e => {
+    if (!player || typeof player.seekTo !== 'function') return;
+    const rect = elProgressContainer.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    const dur = (typeof player.getDuration === 'function' ? player.getDuration() : 238) || 238;
+    player.seekTo(ratio * dur, true);
+    updateProgress();
+  });
+
+  // 3. 音量滑桿
+  elVolSlider?.addEventListener('input', e => {
+    if (!player || typeof player.setVolume !== 'function') return;
+    const val = Number(e.target.value);
+    player.setVolume(val);
+    if (val === 0) {
+      player.mute();
+      isMuted = true;
+      if (elIconVol) elIconVol.textContent = '🔇';
+      if (elVolTooltip) elVolTooltip.textContent = '開聲音 M';
+    } else if (isMuted) {
+      player.unMute();
+      isMuted = false;
+      if (elIconVol) elIconVol.textContent = '🔊';
+      if (elVolTooltip) elVolTooltip.textContent = '靜音 M';
+    }
+  });
+
+  // 4. 靜音按鈕
+  elBtnMute?.addEventListener('click', () => {
+    if (!player || typeof player.mute !== 'function') return;
+    if (isMuted) {
+      player.unMute();
+      isMuted = false;
+      if (elIconVol) elIconVol.textContent = '🔊';
+      if (elVolTooltip) elVolTooltip.textContent = '靜音 M';
+    } else {
+      player.mute();
+      isMuted = true;
+      if (elIconVol) elIconVol.textContent = '🔇';
+      if (elVolTooltip) elVolTooltip.textContent = '開聲音 M';
+    }
+  });
+
+  // 鍵盤 M 鍵快速切換靜音
+  window.addEventListener('keydown', e => {
+    if (e.target && ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (e.key === 'm' || e.key === 'M') {
+      elBtnMute?.click();
+    }
+  });
+
+  // 5. 切換精簡/畫面模式
+  elBtnToggle?.addEventListener('click', () => {
+    elWidget.classList.toggle('mini');
+    const isMini = elWidget.classList.contains('mini');
+    elBtnToggle.textContent = isMini ? '□' : '_';
+    elBtnToggle.title = isMini ? '展開畫面' : '精簡播放列';
+  });
+
+  // 6. 關閉與重新展開浮動播放器
+  elBtnClose?.addEventListener('click', () => {
+    elWidget.hidden = true;
+    if (elLauncher) elLauncher.hidden = false;
+  });
+
+  elLauncher?.addEventListener('click', () => {
+    elWidget.hidden = false;
+    elLauncher.hidden = true;
+  });
+}
+
 async function bootstrap() {
   const elStage = document.getElementById('stage');
   const elLabelLayer = document.getElementById('labelLayer');
@@ -1033,6 +1230,9 @@ async function bootstrap() {
   if (initShop && dataset.byId[initShop]) {
     window.setTimeout(() => selectIsland(initShop, { fly: true }), 950);
   }
+
+  // 初始化右下角《品嚐幸福》YouTube MV 浮動音樂播放器與手持裝置迷你播放列
+  initYouTubeMusicPlayer();
 
   // 完成載入並優雅退場
   setIntroProgress(100, '天空之城浮島準備就緒，歡迎探索！');

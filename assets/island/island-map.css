@@ -1745,6 +1745,347 @@ a {
   .has-panel .listview {
     padding-right: 10px;
   }
+
+  /* 手持裝置瀏覽：不顯示畫面僅顯示迷你播放列如圖 */
+  .yt-music-widget {
+    bottom: 74px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: 360px;
+    margin-left: auto;
+    border-radius: 12px;
+  }
+
+  .yt-video-wrap {
+    display: none !important; /* 嚴格不顯示影片畫面 */
+  }
+
+  .yt-music-header {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .yt-music-launcher {
+    bottom: 74px;
+    right: 12px;
+  }
+}
+
+/* ==========================================================================
+   8. 右下角《品嚐幸福》YouTube MV 浮動音樂播放器與手持裝置迷你播放列
+   ========================================================================== */
+.yt-music-widget {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 28;
+  width: 300px;
+  background: #141617;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.2, 0.9, 0.3, 1), transform 0.2s ease, opacity 0.2s ease;
+  user-select: none;
+  font-family: inherit;
+}
+
+.yt-music-widget[hidden] {
+  display: none !important;
+}
+
+.yt-music-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: linear-gradient(90deg, #1d2624, #141a18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  font-weight: 700;
+  color: #a8dfc8;
+}
+
+.yt-header-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.yt-music-note {
+  flex: none;
+  font-size: 13px;
+  animation: pulseMusicNote 2s infinite ease-in-out;
+}
+
+@keyframes pulseMusicNote {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.15); opacity: 1; color: #4ade80; }
+}
+
+.yt-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yt-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+.yt-btn-icon {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.yt-btn-icon:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.yt-video-wrap {
+  position: relative;
+  width: 100%;
+  height: 168px;
+  background: #000;
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
+
+.yt-video-wrap iframe,
+.yt-video-wrap #ytPlayerContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.yt-mini-bar {
+  width: 100%;
+  background: #0f1011;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.yt-progress-container {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  touch-action: none;
+}
+
+.yt-progress-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.28);
+  transition: height 0.1s ease;
+}
+
+.yt-progress-container:hover .yt-progress-bg {
+  height: 5px;
+}
+
+.yt-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: #ff0000;
+  pointer-events: none;
+}
+
+.yt-progress-dot {
+  position: absolute;
+  left: 0%;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ff0000;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+
+.yt-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px 8px;
+  gap: 10px;
+}
+
+.yt-left-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yt-btn-play {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.yt-btn-play:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.yt-btn-play:active {
+  transform: scale(0.92);
+}
+
+.yt-vol-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 4px 10px;
+  height: 24px;
+  position: relative;
+}
+
+.yt-btn-vol {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
+
+.yt-vol-slider {
+  width: 48px;
+  height: 3px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.yt-vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.yt-vol-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+
+.yt-vol-tooltip {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.yt-vol-pill:hover .yt-vol-tooltip {
+  opacity: 1;
+}
+
+.yt-time-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.88);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+/* 浮動微型啟動鈕（收起時顯示於右下角） */
+.yt-music-launcher {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 28;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #141617;
+  color: #a8dfc8;
+  font-weight: 800;
+  font-size: 12.5px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.yt-music-launcher:hover {
+  background: #1f2a27;
+  transform: translateY(-2px);
+}
+
+.yt-music-launcher[hidden] {
+  display: none !important;
+}
+
+.yt-music-widget.mini .yt-video-wrap {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
