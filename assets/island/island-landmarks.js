@@ -498,8 +498,8 @@ export function createInteractiveCritter({
 // 3.5 清大校園熱門 75 秒號誌燈（橫式三色箱＋右側讀秒器，綠燈75s/黃燈5s/紅燈75s）
 // ============================================================================
 export function createNthuControversyTrafficLight({
-  pos = [-2.55, 0.04, -1.35],
-  rotY = 0.65,
+  pos = [-3.15, 0.04, -0.15],
+  rotY = 0.08,
   registerAnim,
   registerCritter
 }) {
@@ -579,17 +579,6 @@ export function createNthuControversyTrafficLight({
   greenLens.position.set(0.06, 0, 0.08);
 
   assembly.add(redLens, yellowLens, greenLens);
-
-  // 三個燈頭的半圓弧遮陽罩 (Visors)
-  [-0.42, -0.18, 0.06].forEach(x => {
-    const visor = makeCyl(0.095, 0.095, 0.12, '#141618', {
-      seg: 8,
-      pos: [x, 0.03, 0.14],
-      rot: [Math.PI / 2 + 0.12, 0, 0]
-    });
-    visor.scale.set(1, 1, 0.55);
-    assembly.add(visor);
-  });
 
   // 3. 右側方形 LED 雙位數讀秒箱 (圖 2)
   const timerW = 128;
@@ -809,11 +798,11 @@ export function buildCentralNthuHubScene(group, { registerAnim, registerCritter 
   group.add(createParkLamp([2.35, 0.04, -0.45]));
   group.add(createParkLamp([0.45, 0.04, 3.55]));
 
-  // 5.5 清大校園 75 秒號誌燈（圖 1 橘框：西北側大樹旁空地，橫式三色箱＋右側讀秒）
+  // 5.5 清大校園 75 秒號誌燈（依使用者圖 1 紅線：移至長椅左後方草坪，懸臂橫向往右伸出，零穿模避開西北大樹）
   group.add(
     createNthuControversyTrafficLight({
-      pos: [-2.55, 0.04, -1.35],
-      rotY: 0.65,
+      pos: [-3.15, 0.04, -0.15],
+      rotY: 0.08,
       registerAnim,
       registerCritter
     })
