@@ -891,8 +891,13 @@ function makeSmoothVariableTube(controlNodes, material, tubularSegs = 48, radial
 }
 
 export function createYellowBuffFrog({ dataset, registerAnim, registerCritter }) {
+  const container = new THREE.Group();
+  container.name = 'buff-frog-container';
+
   const root = new THREE.Group();
+  root.name = 'buff-frog-root';
   root.userData.dyn = true;
+  container.add(root);
 
   // 蛙身微縮玩偶尺寸
   const frogModel = new THREE.Group();
@@ -1118,24 +1123,94 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
     });
   }
 
-  // 6. 跨島巡邏航點清單（在主島、各蔬食浮島與雲橋間巡航跳躍）
-  const waypoints = [
-    new THREE.Vector3(0.85, 0.05, 2.35),    // 0: 主島清華大學廣場
-    new THREE.Vector3(-4.2, 0.8, -1.8),     // 1: 主島與雅素齋間雲橋
-    new THREE.Vector3(-7.2, -0.4, -4.5),    // 2: 雅素齋浮島外緣
-    new THREE.Vector3(-10.5, 0.5, -5.8),    // 3: 往滿素圓雲橋
-    new THREE.Vector3(-13.8, -0.8, -6.5),   // 4: 滿素圓浮島
-    new THREE.Vector3(-14.2, 0.2, 0.5),     // 5: 單車外環航道
-    new THREE.Vector3(-13.5, -0.7, 5.8),    // 6: 妙觀音浮島
-    new THREE.Vector3(-9.8, 0.6, 6.2),      // 7: 往安姆士浮橋
-    new THREE.Vector3(-7.6, -0.4, 6.2),     // 8: 安姆士水果奶茶浮島
-    new THREE.Vector3(0, 1.2, 6.8),         // 9: 南方浮雲連通道
-    new THREE.Vector3(6.8, -0.4, 6.8),      // 10: 棗子樹蔬食浮島
-    new THREE.Vector3(12.5, 0.5, 2.5),      // 11: 東南環外單車橋
-    new THREE.Vector3(13.8, -0.8, -4.2),    // 12: 游媽媽與菜根香浮島區
-    new THREE.Vector3(6.5, -0.3, -5.2),     // 13: 鼎盛風雲樓浮島
-    new THREE.Vector3(2.8, 0.6, -2.4)       // 14: 北方回主島雲橋
-  ];
+  // 6. 11 站「浮島導覽」巡航航點與島間空中「落腳小雲朵」動態建構
+  const allIslands = dataset.allIslands || [dataset.hub, ...dataset.shops];
+
+  function getIslandLanding(isl) {
+    if (isl.isHub) {
+      return new THREE.Vector3(0.85, 0.05, 2.35); // 主島廣場南側開闊草坪
+    }
+    // 避開中央建築 [0, 0] 與右側料理台 [1.12, 1.18]，落在店前迎賓庭院草坪開闊處
+    return new THREE.Vector3(isl.x - 0.65, isl.baseY + 0.05, isl.z + 1.25);
+  }
+
+  // 依照 11 站導覽順序計算各島著地點與島間空中中繼航點
+  const waypoints = [];
+  const cloudletPositions = [];
+
+  for (let i = 0; i < allIslands.length; i++) {
+    const islA = allIslands[i];
+    const islB = allIslands[(i + 1) % allIslands.length];
+    const pA = getIslandLanding(islA);
+    const pB = getIslandLanding(islB);
+
+    // 1. 本島著地點（高度嚴格對齊該島草地地面）
+    waypoints.push(pA);
+
+    // 2. 島間空中跳躍中繼點（垂直高度確保遠高於兩側浮島地面，踩雲飛躍）
+    let midX = (pA.x + pB.x) * 0.5;
+    let midZ = (pA.z + pB.z) * 0.5;
+
+    // 外環或大跨距航段沿弧線外側微擴，使航線更加優美
+    if (islA.ring === 'outer' || islB.ring === 'outer') {
+      const midDist = Math.hypot(midX, midZ);
+      if (midDist > 0.001) {
+        const targetR = Math.max(midDist, 25.5);
+        midX = (midX / midDist) * targetR;
+        midZ = (midZ / midDist) * targetR;
+      }
+    } else if (!islA.isHub && !islB.isHub) {
+      const midDist = Math.hypot(midX, midZ);
+      if (midDist > 0.001) {
+        const targetR = Math.max(midDist, 14.5);
+        midX = (midX / midDist) * targetR;
+        midZ = (midZ / midDist) * targetR;
+      }
+    }
+
+    const midY = Math.max(pA.y, pB.y) + 1.35;
+    const midPoint = new THREE.Vector3(midX, midY, midZ);
+    waypoints.push(midPoint);
+    cloudletPositions.push(midPoint);
+  }
+
+  // 在每個島間空中中繼點正下方拼裝一朵小巧精緻的低多邊形白雲（落腳小雲朵）
+  const cloudMat = mat('#ffffff', {
+    roughness: 0.92,
+    transparent: true,
+    opacity: 0.92,
+    flatShading: true
+  });
+
+  const cloudletsGroup = new THREE.Group();
+  cloudletsGroup.name = 'buff-frog-stepping-cloudlets';
+  container.add(cloudletsGroup);
+
+  cloudletPositions.forEach(pos => {
+    const cloudGroup = new THREE.Group();
+    cloudGroup.position.set(pos.x, pos.y - 0.22, pos.z);
+
+    const puffs = [
+      { p: [ 0.00,  0.00,  0.00], r: 0.52, s: [1.25, 0.65, 1.15] },
+      { p: [ 0.36, -0.04,  0.12], r: 0.38, s: [1.10, 0.60, 1.05] },
+      { p: [-0.34, -0.05, -0.10], r: 0.36, s: [1.10, 0.58, 1.05] },
+      { p: [ 0.06,  0.08, -0.22], r: 0.34, s: [1.15, 0.55, 1.10] }
+    ];
+
+    for (const pf of puffs) {
+      cloudGroup.add(
+        makeIco(pf.r, '#ffffff', {
+          detail: 1,
+          material: cloudMat,
+          pos: pf.p,
+          scale: pf.s,
+          castShadow: true,
+          receiveShadow: true
+        })
+      );
+    }
+    cloudletsGroup.add(cloudGroup);
+  });
 
   let currentWpIndex = 0;
   let moveProgress = 0; // 0 ~ 1 在兩個節點間移動
@@ -1176,13 +1251,27 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
 
       root.position.lerpVectors(p1, p2, moveProgress);
 
+      // 動態地面高度防穿模守衛（Elevation Guard）：
+      // 若奶蛙水平位於任一浮島半徑內，垂直高度嚴格禁止低於該島草皮地面 (baseY + 0.05)
+      for (const isl of allIslands) {
+        const dSq = (root.position.x - isl.x) ** 2 + (root.position.z - isl.z) ** 2;
+        const safeR = (isl.islandRadius || 3.8) * 0.95;
+        if (dSq < safeR * safeR) {
+          const minSafeY = isl.baseY + 0.05;
+          if (root.position.y < minSafeY) {
+            root.position.y = minSafeY;
+          }
+          break;
+        }
+      }
+
       const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
       if (dir.lengthSq() > 0.001) {
         const targetRotY = Math.atan2(dir.x, dir.z);
         root.rotation.y += (targetRotY - root.rotation.y) * 0.12;
       }
 
-      // 拋物線肌肉蛙跳
+      // 拋物線肌肉蛙跳（在安全地面/雲層高度之上疊加跳躍拋物線）
       const hopsPerLeg = Math.max(2, Math.round(dist / 3.2));
       const hopPhase = (moveProgress * hopsPerLeg) % 1;
       const hopY = Math.sin(hopPhase * Math.PI) * 0.75;
@@ -1218,7 +1307,7 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
     });
   }
 
-  return root;
+  return container;
 }
 
 export function buildSkyDecorScene(group, { dataset, registerAnim, registerCritter }) {

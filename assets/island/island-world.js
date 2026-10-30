@@ -792,8 +792,10 @@ export function createIslandWorld({
   controls.maxPolarAngle = Math.PI * 0.49;
   controls.minPolarAngle = 0.08;
   controls.target.set(0, 0.8, 1.5);
+  window.THREE = THREE;
   window.__islandCamera = camera;
   window.__islandControls = controls;
+  window.__islandScene = scene;
 
   // Lighting
   const hemiLight = new THREE.HemisphereLight(SKY_PALETTES.day.hemiSky, SKY_PALETTES.day.hemiGround, SKY_PALETTES.day.hemiI);
