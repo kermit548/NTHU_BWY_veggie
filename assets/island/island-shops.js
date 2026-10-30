@@ -1123,56 +1123,97 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
     });
   }
 
-  // 6. 11 站「浮島導覽」巡航航點與島間空中「落腳小雲朵」動態建構
+  // 6. 11 站「浮島導覽」巡航航點、島嶼繞房避障與島間踩雲跳躍
+  // 規範：
+  // 1. 奶蛙每次跳躍均為完整的「單跳大跨越」（hopsPerLeg = 1），在兩點間劃出高挑拋物線，絕不在空中無雲處提前踩空。
+  // 2. 從 A 島到 B 島中間至多落腳兩次，所有空中落腳點腳下正下方均部署低多邊形白雲（落腳小雲朵）。
+  // 3. 在島嶼上若航向可能切過店鋪建築，規劃前庭與開闊側院繞房路徑，徹底避免卡進屋頂或穿模。
   const allIslands = dataset.allIslands || [dataset.hub, ...dataset.shops];
 
-  function getIslandLanding(isl) {
-    if (isl.isHub) {
-      return new THREE.Vector3(0.85, 0.05, 2.35); // 主島廣場南側開闊草坪
-    }
-    // 避開中央建築 [0, 0] 與右側料理台 [1.12, 1.18]，落在店前迎賓庭院草坪開闊處
-    return new THREE.Vector3(isl.x - 0.65, isl.baseY + 0.05, isl.z + 1.25);
-  }
+  const waypointDefs = [
+    // 0. Hub 清華主島
+    { pos: [0.85, 0.05, 2.35], isCloud: false },
 
-  // 依照 11 站導覽順序計算各島著地點與島間空中中繼航點
-  const waypoints = [];
-  const cloudletPositions = [];
+    // Hub -> Yasuzhai (1 朵中繼雲)
+    { pos: [6.50, 1.75, 6.20], isCloud: true },
 
-  for (let i = 0; i < allIslands.length; i++) {
-    const islA = allIslands[i];
-    const islB = allIslands[(i + 1) % allIslands.length];
-    const pA = getIslandLanding(islA);
-    const pB = getIslandLanding(islB);
+    // 1. Yasuzhai 雅素齋：迎賓前庭草坪 -> 東側草坪繞房出發
+    { pos: [12.10, 0.60, 10.78], isCloud: false },
+    { pos: [14.65, 0.60, 9.40], isCloud: false },
 
-    // 1. 本島著地點（高度嚴格對齊該島草地地面）
-    waypoints.push(pA);
+    // Yasuzhai -> Miaoguanyin (1 朵中繼雲)
+    { pos: [15.20, 2.10, 3.80], isCloud: true },
 
-    // 2. 島間空中跳躍中繼點（垂直高度確保遠高於兩側浮島地面，踩雲飛躍）
-    let midX = (pA.x + pB.x) * 0.5;
-    let midZ = (pA.z + pB.z) * 0.5;
+    // 2. Miaoguanyin 妙觀音：迎賓前庭草坪 -> 西側草坪繞房出發
+    { pos: [14.26, 1.00, -2.85], isCloud: false },
+    { pos: [12.15, 1.00, -3.80], isCloud: false },
 
-    // 外環或大跨距航段沿弧線外側微擴，使航線更加優美
-    if (islA.ring === 'outer' || islB.ring === 'outer') {
-      const midDist = Math.hypot(midX, midZ);
-      if (midDist > 0.001) {
-        const targetR = Math.max(midDist, 25.5);
-        midX = (midX / midDist) * targetR;
-        midZ = (midZ / midDist) * targetR;
-      }
-    } else if (!islA.isHub && !islB.isHub) {
-      const midDist = Math.hypot(midX, midZ);
-      if (midDist > 0.001) {
-        const targetR = Math.max(midDist, 14.5);
-        midX = (midX / midDist) * targetR;
-        midZ = (midZ / midDist) * targetR;
-      }
-    }
+    // Miaoguanyin -> Amushi (1 朵中繼雲)
+    { pos: [9.80, 1.95, -9.60], isCloud: true },
 
-    const midY = Math.max(pA.y, pB.y) + 1.35;
-    const midPoint = new THREE.Vector3(midX, midY, midZ);
-    waypoints.push(midPoint);
-    cloudletPositions.push(midPoint);
-  }
+    // 3. Amushi 安姆士：迎賓前庭草坪
+    { pos: [5.98, 0.50, -12.04], isCloud: false },
+
+    // Amushi -> Zaozishu (1 朵中繼雲)
+    { pos: [0.00, 2.05, -11.60], isCloud: true },
+
+    // 4. Zaozishu 棗子樹：迎賓前庭草坪
+    { pos: [-6.62, 0.90, -11.93], isCloud: false },
+
+    // Zaozishu -> Dingsheng (2 朵中繼雲，西側繞房進場)
+    { pos: [-11.50, 2.00, -2.00], isCloud: true },
+    { pos: [-14.20, 1.80, 5.80], isCloud: true },
+
+    // 5. Dingsheng 鼎盛：西側草坪繞房著地 -> 迎賓前庭草坪
+    { pos: [-13.00, 0.40, 10.42], isCloud: false },
+    { pos: [-11.05, 0.40, 11.62], isCloud: false },
+
+    // Dingsheng -> Mansuyuan (2 朵中繼雲，南環大跨距橫渡)
+    { pos: [2.50, 2.25, 16.00], isCloud: true },
+    { pos: [17.50, 2.50, 12.00], isCloud: true },
+
+    // 6. Mansuyuan 滿素圓：迎賓前庭草坪 -> 東側草坪繞房出發
+    { pos: [24.81, 1.80, 6.26], isCloud: false },
+    { pos: [27.20, 1.80, 4.60], isCloud: false },
+
+    // Mansuyuan -> Yixiansu (2 朵中繼雲，東側起跳避開建築)
+    { pos: [27.50, 2.60, -9.50], isCloud: true },
+    { pos: [10.00, 2.80, -19.50], isCloud: true },
+
+    // 7. Yixiansu 一鮮素：迎賓前庭草坪
+    { pos: [-0.20, 2.25, -23.65], isCloud: false },
+
+    // Yixiansu -> Youmama (2 朵中繼雲，西側繞房進場，徹底杜絕屋頂穿模)
+    { pos: [-9.50, 2.60, -23.80], isCloud: true },
+    { pos: [-23.00, 2.20, -18.20], isCloud: true },
+
+    // 8. Youmama 游媽媽：西側草坪繞房著地 -> 迎賓前庭草坪
+    { pos: [-22.63, 1.60, -13.69], isCloud: false },
+    { pos: [-20.68, 1.60, -12.49], isCloud: false },
+
+    // Youmama -> Caigenxiang (1 朵中繼雲)
+    { pos: [-26.20, 2.30, -5.20], isCloud: true },
+
+    // 9. Caigenxiang 菜根香：西側草坪繞房著地 -> 迎賓前庭草坪
+    { pos: [-27.49, 2.10, 2.42], isCloud: false },
+    { pos: [-25.54, 2.10, 3.62], isCloud: false },
+
+    // Caigenxiang -> Suyiyuan (2 朵中繼雲)
+    { pos: [-16.50, 2.40, 17.50], isCloud: true },
+    { pos: [-4.50, 2.30, 26.20], isCloud: true },
+
+    // 10. Suyiyuan 素怡園：西側草坪繞房著地 -> 迎賓前庭草坪 -> 西側草坪繞房出發
+    { pos: [0.48, 1.90, 25.71], isCloud: false },
+    { pos: [2.43, 1.90, 26.91], isCloud: false },
+    { pos: [0.48, 1.90, 25.71], isCloud: false },
+
+    // Suyiyuan -> Hub (2 朵中繼雲，南側開闊草坪著地)
+    { pos: [-0.50, 1.85, 18.00], isCloud: true },
+    { pos: [0.60, 1.35, 9.50], isCloud: true }
+  ];
+
+  const waypoints = waypointDefs.map(d => new THREE.Vector3(d.pos[0], d.pos[1], d.pos[2]));
+  const cloudletPositions = waypointDefs.filter(d => d.isCloud).map(d => new THREE.Vector3(d.pos[0], d.pos[1], d.pos[2]));
 
   // 在每個島間空中中繼點正下方拼裝一朵小巧精緻的低多邊形白雲（落腳小雲朵）
   const cloudMat = mat('#ffffff', {
@@ -1237,11 +1278,14 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
         frogModel.scale.set(0.68, 0.68, 0.68);
       }
 
-      // 常態跨島巡邏航行
+      // 常態跨島與島上繞房巡航跳躍
       const p1 = waypoints[currentWpIndex];
       const p2 = waypoints[(currentWpIndex + 1) % waypoints.length];
       const dist = p1.distanceTo(p2);
-      const hopSpeed = 1.45 / Math.max(2, dist);
+
+      // 動態蛙跳週期時間：島上小步短跳約 0.7~0.8 秒；島間高空大跨越約 1.5~2.2 秒
+      const hopDuration = Math.max(0.68, Math.min(2.35, 0.52 + dist * 0.11));
+      const hopSpeed = 1.0 / hopDuration;
 
       moveProgress += delta * hopSpeed;
       if (moveProgress >= 1) {
@@ -1265,23 +1309,27 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
         }
       }
 
+      // 平滑轉向（朝向跳躍目標點）
       const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
       if (dir.lengthSq() > 0.001) {
         const targetRotY = Math.atan2(dir.x, dir.z);
-        root.rotation.y += (targetRotY - root.rotation.y) * 0.12;
+        let diffRot = (targetRotY - root.rotation.y) % (Math.PI * 2);
+        if (diffRot > Math.PI) diffRot -= Math.PI * 2;
+        if (diffRot < -Math.PI) diffRot += Math.PI * 2;
+        root.rotation.y += diffRot * 0.15;
       }
 
-      // 拋物線肌肉蛙跳（在安全地面/雲層高度之上疊加跳躍拋物線）
-      const hopsPerLeg = Math.max(2, Math.round(dist / 3.2));
-      const hopPhase = (moveProgress * hopsPerLeg) % 1;
-      const hopY = Math.sin(hopPhase * Math.PI) * 0.75;
+      // 單段完整拋物線跳躍（Single hop per segment）：
+      // 每一段移動均為「一次起跳至降落」，最高點高度依跨距動態比例加乘，起跳與落地精準踩在起點與落腳點上！
+      const jumpHeight = Math.max(0.62, Math.min(2.65, 0.42 + dist * 0.13));
+      const hopY = Math.sin(moveProgress * Math.PI) * jumpHeight;
       frogModel.position.y = Math.max(0, hopY);
 
-      // 落地緩衝擠壓 (Squash & Stretch)
-      if (hopPhase < 0.15 || hopPhase > 0.85) {
-        frogModel.scale.set(0.73, 0.61, 0.73);
+      // 落地緩衝擠壓 (Squash & Stretch)：起跳蹲伏、空中伸展、落地擠壓
+      if (moveProgress < 0.12 || moveProgress > 0.88) {
+        frogModel.scale.set(0.74, 0.58, 0.74);
       } else {
-        frogModel.scale.set(0.65, 0.74, 0.65);
+        frogModel.scale.set(0.64, 0.76, 0.64);
       }
     });
   }
