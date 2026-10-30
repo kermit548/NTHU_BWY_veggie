@@ -778,80 +778,136 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
   const eyeGreen = '#88d682';
   const eyeBlack = '#141618';
 
-  // 1. 粗壯圓弧下身與胸腔軀幹
-  const belly = makeSphere(0.48, skinYellow, { seg: 16, scale: [1.12, 1.05, 0.94], pos: [0, 0.52, 0] });
-  frogModel.add(belly);
+  // 1. 水滴梨形圓潤軀幹（依圖 2 柔和下墜式身形，頭身腹自然一體）
+  // 圓滾滾大肚子（飽滿微下墜的大球體）
+  const belly = makeSphere(0.54, skinYellow, {
+    seg: 16,
+    scale: [1.08, 1.15, 1.05],
+    pos: [0, 0.54, 0.04]
+  });
+  // 上胸部與頸部（向上平滑收斂，無突兀斜方肌）
+  const chest = makeSphere(0.44, skinYellow, {
+    seg: 14,
+    scale: [0.94, 1.25, 0.92],
+    pos: [0, 0.96, 0.02]
+  });
+  frogModel.add(belly, chest);
 
-  // 前胸粉嫩圓弧大肚皮
-  const bellyPatch = makeSphere(0.44, bellyPeach, { seg: 14, scale: [0.86, 0.92, 0.34], pos: [0, 0.49, 0.34] });
+  // 前胸至腹部大片粉嫩圓潤肚皮（溫潤貼合於肚子前方，微凸出）
+  const bellyPatch = makeSphere(0.48, bellyPeach, {
+    seg: 16,
+    scale: [0.88, 0.96, 0.42],
+    pos: [0, 0.54, 0.38]
+  });
   frogModel.add(bellyPatch);
 
-  // 2. 巨碩斜方肌（Trapezius）與倒三角爆筋後背
-  const trapL = makeCyl(0.24, 0.34, 0.38, skinYellow, { seg: 10, pos: [-0.22, 0.88, -0.06], rot: [0.1, 0, -0.3] });
-  const trapR = makeCyl(0.24, 0.34, 0.38, skinYellow, { seg: 10, pos: [0.22, 0.88, -0.06], rot: [0.1, 0, 0.3] });
-  frogModel.add(trapL, trapR);
+  // 2. 順滑自然的肩膀與向前環抱的手臂（消除圖 1 的突兀巨球與穿模！）
+  [-0.34, 0.34].forEach((sx, idx) => {
+    const isLeft = idx === 0;
+    // 圓滑小肩頭
+    frogModel.add(
+      makeSphere(0.12, skinYellow, {
+        seg: 10,
+        pos: [sx, 0.88, 0.12]
+      })
+    );
 
-  // 3. 巨球肩膀三角肌（Deltoids）與粗壯上臂
-  const deltL = makeSphere(0.31, skinYellow, { seg: 14, scale: [1.05, 0.96, 0.98], pos: [-0.56, 0.88, 0.05] });
-  const deltR = makeSphere(0.31, skinYellow, { seg: 14, scale: [1.05, 0.96, 0.98], pos: [0.56, 0.88, 0.05] });
-  frogModel.add(deltL, deltR);
+    // 上臂：從肩部順著體側向下微前傾（長度 0.34，半徑 0.08）
+    const armAngleY = isLeft ? 0.35 : -0.35;
+    const armAngleZ = isLeft ? -0.28 : 0.28;
+    frogModel.add(
+      makeCyl(0.08, 0.075, 0.34, skinYellow, {
+        seg: 8,
+        pos: [sx * 1.05, 0.74, 0.22],
+        rot: [0.55, armAngleY, armAngleZ]
+      })
+    );
 
-  // 4. 抱胸交叉手臂（Crossed Arms Pose）與手指
-  // 左上臂延伸至胸前
-  const armL = makeCyl(0.125, 0.115, 0.54, skinYellow, {
-    seg: 10,
-    pos: [-0.18, 0.74, 0.36],
-    rot: [0.35, 0.45, -Math.PI / 2 + 0.12]
+    // 前臂：從肘部朝前、貼著肚皮向前環抱（長度 0.28，半徑 0.07）
+    frogModel.add(
+      makeCyl(0.075, 0.07, 0.28, skinYellow, {
+        seg: 8,
+        pos: [sx * 0.78, 0.60, 0.40],
+        rot: [1.25, isLeft ? 0.45 : -0.45, 0]
+      })
+    );
+
+    // 雙手：奶褐色手掌自然「平放在圓滾滾大肚子的兩側前緣」（如圖 2 摸肚肚！）
+    const handGroup = new THREE.Group();
+    handGroup.position.set(sx * 0.56, 0.56, 0.52);
+    handGroup.rotation.set(-0.25, isLeft ? 0.45 : -0.45, isLeft ? -0.15 : 0.15);
+
+    // 手掌主體（深奶褐色）
+    handGroup.add(
+      makeSphere(0.065, digitTan, {
+        seg: 8,
+        scale: [1, 0.65, 1.2],
+        pos: [0, 0, 0]
+      })
+    );
+
+    // 三根小指爪撫摸在粉肚子上
+    [-0.035, 0, 0.035].forEach((dx, fIdx) => {
+      handGroup.add(
+        makeSphere(0.032, digitTan, {
+          seg: 6,
+          scale: [0.9, 0.5, 1.5],
+          pos: [dx, -0.01, 0.065 + (fIdx === 1 ? 0.02 : 0)]
+        })
+      );
+    });
+
+    frogModel.add(handGroup);
   });
-  // 右上臂在下交疊
-  const armR = makeCyl(0.12, 0.11, 0.52, skinYellow, {
-    seg: 10,
-    pos: [0.18, 0.65, 0.33],
-    rot: [0.35, -0.45, Math.PI / 2 - 0.12]
-  });
-  frogModel.add(armL, armR);
 
-  // 雙手交疊處露出的奶褐色手指（搭在手臂兩側）
-  [-0.04, 0, 0.04].forEach(offset => {
-    frogModel.add(makeSphere(0.038, digitTan, { seg: 6, pos: [0.42 + offset, 0.76, 0.34] }));
-    frogModel.add(makeSphere(0.038, digitTan, { seg: 6, pos: [-0.42 + offset, 0.66, 0.31] }));
+  // 3. 呆萌圓拱水滴頭頂與青蛙面部（還原圖 2 溫馨可愛的神韻）
+  const head = makeSphere(0.38, skinYellow, {
+    seg: 16,
+    scale: [0.92, 1.15, 0.90],
+    pos: [0, 1.28, 0.02]
   });
-
-  // 5. 呆萌流線青蛙大頭
-  const head = makeSphere(0.42, skinYellow, { seg: 16, scale: [0.94, 1.14, 0.9], pos: [0, 1.18, 0.02] });
   frogModel.add(head);
 
-  // 青蛙綠眼球與黑圓瞳孔
-  const eyeL = makeSphere(0.13, eyeGreen, { seg: 12, pos: [-0.21, 1.34, 0.28] });
-  const pupilL = makeSphere(0.065, eyeBlack, { seg: 8, pos: [-0.21, 1.35, 0.39] });
-  const specL = makeSphere(0.02, '#ffffff', { seg: 4, pos: [-0.19, 1.37, 0.44], castShadow: false });
+  // 圓圓大蛙眼（青綠色大虹膜＋深黑瞳孔＋高光小白點）
+  const eyeL = makeSphere(0.125, eyeGreen, { seg: 12, pos: [-0.18, 1.38, 0.26] });
+  const pupilL = makeSphere(0.065, eyeBlack, { seg: 8, pos: [-0.18, 1.39, 0.36] });
+  const specL = makeSphere(0.02, '#ffffff', { seg: 4, pos: [-0.16, 1.41, 0.41], castShadow: false });
 
-  const eyeR = makeSphere(0.13, eyeGreen, { seg: 12, pos: [0.21, 1.34, 0.28] });
-  const pupilR = makeSphere(0.065, eyeBlack, { seg: 8, pos: [0.21, 1.35, 0.39] });
-  const specR = makeSphere(0.02, '#ffffff', { seg: 4, pos: [0.23, 1.37, 0.44], castShadow: false });
+  const eyeR = makeSphere(0.125, eyeGreen, { seg: 12, pos: [0.18, 1.38, 0.26] });
+  const pupilR = makeSphere(0.065, eyeBlack, { seg: 8, pos: [0.18, 1.39, 0.36] });
+  const specR = makeSphere(0.02, '#ffffff', { seg: 4, pos: [0.20, 1.41, 0.41], castShadow: false });
   frogModel.add(eyeL, pupilL, specL, eyeR, pupilR, specR);
 
-  // 微笑嘴角弧線
-  const mouth = makeBox([0.22, 0.022, 0.03], '#9a6b22', { r: 0.01, pos: [0, 1.18, 0.39], rot: [0.15, 0, 0] });
+  // 憨憨呆萌小嘴角（如圖 2 的微扁內斂嘴型）
+  const mouth = makeBox([0.16, 0.018, 0.02], '#8a5e1e', { r: 0.008, pos: [0, 1.27, 0.36] });
   frogModel.add(mouth);
 
-  // 6. 健美外八大腿、小腿與青蛙三趾腳掌
-  // 左大腿與小腿
-  const thighL = makeSphere(0.24, skinYellow, { seg: 10, scale: [1, 1.25, 0.95], pos: [-0.34, 0.32, 0], rot: [0, 0, -0.35] });
-  const calfL = makeCyl(0.11, 0.09, 0.26, skinYellow, { seg: 8, pos: [-0.38, 0.14, 0.04] });
-  // 右大腿與小腿
-  const thighR = makeSphere(0.24, skinYellow, { seg: 10, scale: [1, 1.25, 0.95], pos: [0.34, 0.32, 0], rot: [0, 0, 0.35] });
-  const calfR = makeCyl(0.11, 0.09, 0.26, skinYellow, { seg: 8, pos: [0.38, 0.14, 0.04] });
-  frogModel.add(thighL, calfL, thighR, calfR);
-
-  // 腳掌三趾球
-  [-0.38, 0.38].forEach(x => {
-    [-0.07, 0, 0.07].forEach((dx, idx) => {
+  // 4. 下肢與青蛙小蹼腳（如圖 2 自然站姿）
+  [-0.26, 0.26].forEach((tx, idx) => {
+    const isLeft = idx === 0;
+    // 大腿
+    frogModel.add(
+      makeSphere(0.20, skinYellow, {
+        seg: 10,
+        scale: [1, 1.2, 1],
+        pos: [tx, 0.28, 0.02],
+        rot: [0, 0, isLeft ? -0.15 : 0.15]
+      })
+    );
+    // 小腿
+    frogModel.add(
+      makeCyl(0.09, 0.075, 0.24, skinYellow, {
+        seg: 8,
+        pos: [tx * 1.05, 0.12, 0.04]
+      })
+    );
+    // 腳掌三趾球（奶褐色小腳蹼）
+    [-0.06, 0, 0.06].forEach((dx, fIdx) => {
       frogModel.add(
-        makeSphere(0.055, digitTan, {
+        makeSphere(0.048, digitTan, {
           seg: 8,
-          scale: [1, 0.65, 1.2],
-          pos: [x + dx, 0.03, 0.18 + (idx === 1 ? 0.04 : 0)]
+          scale: [1, 0.6, 1.3],
+          pos: [tx * 1.05 + dx, 0.025, 0.16 + (fIdx === 1 ? 0.03 : 0)]
         })
       );
     });
@@ -882,28 +938,26 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
   let flexTimer = 0; // 點擊時爆肌動畫計時器
 
   const flexQuotes = [
-    '呱！這身肌肉是吃清大蔬食長大的！高蛋白豆腐萬歲！💪🥦',
-    '75秒紅綠燈算什麼？我在旁邊已經深蹲75下啦呱！⏱️🐸',
-    '誰說吃素沒力氣？來跟本蛙比腕力啊呱！🔥',
-    '巡邏群島中！今天各島嶼的蔬食高纖營養全數驗收合格！✨',
-    '深蹲、推胸、喝安姆士無糖豆漿，呱！這就是猛蛙之道！'
+    '呱！吃完一碗雅素齋藥膳麵，肚肚圓滾滾的好幸福呱～🍲',
+    '摸摸圓圓的大肚子，裡面都是滿滿的高纖植物蛋白質！🥦',
+    '75秒紅綠燈？正好讓本蛙摸摸肚子休息一下呱！⏱️',
+    '誰說吃素會瘦弱？看看我這顆健康結實的黃金大肚肚！✨',
+    '巡邏群島中！今天各島嶼的蔬食美味，本蛙的大肚子全部通過驗收呱！'
   ];
 
   if (registerAnim) {
     registerAnim((elapsed, delta = 0.016) => {
-      // 點擊激動爆肌動畫
+      // 點擊摸肚肚開懷彈跳動畫
       if (flexTimer > 0) {
         flexTimer -= delta;
-        // 快速震動與雙手擴張健美動作
-        const shake = Math.sin(flexTimer * 35) * 0.08;
-        frogModel.position.y = 0.25 + Math.sin(flexTimer * 12) * 0.35;
-        frogModel.scale.set(0.72 + shake, 0.64 - shake, 0.72 + shake);
-        deltL.scale.set(1.25, 1.15, 1.15);
-        deltR.scale.set(1.25, 1.15, 1.15);
+        // 開心上下彈跳與肚子 Q 彈晃動
+        const bounce = Math.sin(flexTimer * 14) * 0.28;
+        frogModel.position.y = 0.15 + Math.max(0, bounce);
+        const bellyStretch = Math.sin(flexTimer * 20) * 0.05;
+        frogModel.scale.set(0.68 + bellyStretch, 0.68 - bellyStretch, 0.68 + bellyStretch);
         return;
       } else {
-        deltL.scale.set(1.05, 0.96, 0.98);
-        deltR.scale.set(1.05, 0.96, 0.98);
+        frogModel.scale.set(0.68, 0.68, 0.68);
       }
 
       // 常態跨島巡邏航行
