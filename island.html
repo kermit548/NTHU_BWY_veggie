@@ -40,7 +40,11 @@
           <span class="brand-links">
             <a href="./index.html" title="返回 2026 蔬食月九宮格賓果挑戰">賓果首頁</a>
             <a href="./map.html" title="切換至完整新竹 Google 蔬食地圖">完整地圖</a>
-            <button type="button" class="btn-top-time" id="btnTopTimeToggle" title="點擊強制切換白天/夜晚（方便尋找全島松鼠與清華胖達）">☀️ 白天模式</button>
+            <button type="button" class="btn-top-time" id="btnTopTimeToggle" title="點擊強制切換白天/黑夜（方便尋找全島松鼠與清華胖達）">☀️ 白天</button>
+            <button type="button" class="yt-music-launcher" id="btnYtLauncher" hidden title="開啟《品嚐幸福》MV 播放器" aria-label="開啟品嚐幸福音樂播放器">
+              <span>🎵</span>
+              <small>品嚐幸福</small>
+            </button>
           </span>
         </div>
       </div>
@@ -247,7 +251,7 @@
             <button type="button" class="yt-btn-vol" id="btnYtMute" aria-label="切換靜音">
               <span id="iconYtVol">🔊</span>
             </button>
-            <input type="range" class="yt-vol-slider" id="ytVolSlider" min="0" max="100" value="80" aria-label="音量滑桿">
+            <input type="range" class="yt-vol-slider" id="ytVolSlider" min="0" max="100" value="25" aria-label="音量滑桿">
             <div class="yt-vol-tooltip" id="ytVolTooltip">靜音 M</div>
           </div>
         </div>
@@ -257,12 +261,6 @@
       </div>
     </div>
   </aside>
-
-  <!-- 收起後常駐右下角的極簡浮動音樂徽章（點擊重新展開） -->
-  <button type="button" class="yt-music-launcher" id="btnYtLauncher" hidden title="開啟《品嚐幸福》MV 播放器" aria-label="開啟品嚐幸福音樂播放器">
-    <span>🎵</span>
-    <small>品嚐幸福</small>
-  </button>
 
   <!-- 輕量提示吐司 -->
   <div class="toast" id="toastMsg" hidden role="status" aria-live="polite"></div>

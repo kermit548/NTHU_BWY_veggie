@@ -126,7 +126,7 @@ function initYouTubeMusicPlayer() {
     player = new window.YT.Player('ytPlayerContainer', {
       videoId: VIDEO_ID,
       playerVars: {
-        autoplay: 0,
+        autoplay: 1,
         controls: 1,
         rel: 0,
         playsinline: 1,
@@ -137,7 +137,9 @@ function initYouTubeMusicPlayer() {
       events: {
         onReady(e) {
           try {
-            player.setVolume(80);
+            player.setVolume(25);
+            if (elVolSlider) elVolSlider.value = 25;
+            player.playVideo();
           } catch {}
           updateProgress();
         },
@@ -172,6 +174,22 @@ function initYouTubeMusicPlayer() {
       document.head.appendChild(tag);
     }
   }
+
+  // 瀏覽器 Autoplay 策略相容保護：若初次載入遭瀏覽器限制，於使用者首次點擊或觸控頁面時立即啟動
+  const unlockAutoplay = () => {
+    if (player && typeof player.getPlayerState === 'function') {
+      const state = player.getPlayerState();
+      if (state !== window.YT.PlayerState.PLAYING && state !== window.YT.PlayerState.BUFFERING) {
+        try {
+          player.playVideo();
+        } catch {}
+      }
+    }
+    window.removeEventListener('click', unlockAutoplay);
+    window.removeEventListener('touchstart', unlockAutoplay);
+  };
+  window.addEventListener('click', unlockAutoplay, { once: true });
+  window.addEventListener('touchstart', unlockAutoplay, { once: true });
 
   // 1. 播放/暫停按鈕
   elBtnPlayPause?.addEventListener('click', () => {
@@ -241,7 +259,7 @@ function initYouTubeMusicPlayer() {
     elWidget.classList.toggle('mini');
     const isMini = elWidget.classList.contains('mini');
     elBtnToggle.textContent = isMini ? '□' : '_';
-    elBtnToggle.title = isMini ? '展開畫面' : '精簡播放列';
+    elBtnToggle.title = isMini ? '展開畫面' : '最小化收合';
   });
 
   // 6. 關閉與重新展開浮動播放器
@@ -938,7 +956,7 @@ async function bootstrap() {
 
     if (elTopTimeBtn) {
       const isNightLike = curTime.key === 'night' || (curTime.key === 'auto' && (new Date().getHours() < 6 || new Date().getHours() >= 18));
-      elTopTimeBtn.textContent = isNightLike ? '☀️ 白天模式' : '🌙 夜晚模式';
+      elTopTimeBtn.textContent = isNightLike ? '☀️ 白天' : '🌙 黑夜';
       elTopTimeBtn.title = isNightLike
         ? '目前為夜間光影，點擊強制切換為清晰白天（方便尋找松鼠與清華胖達）'
         : '目前為白天光影，點擊切換為浪漫星夜';

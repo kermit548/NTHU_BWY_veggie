@@ -1745,31 +1745,6 @@ a {
   .has-panel .listview {
     padding-right: 10px;
   }
-
-  /* 手持裝置瀏覽：不顯示畫面僅顯示迷你播放列如圖 */
-  .yt-music-widget {
-    bottom: 74px;
-    right: 12px;
-    left: 12px;
-    width: auto;
-    max-width: 360px;
-    margin-left: auto;
-    border-radius: 12px;
-  }
-
-  .yt-video-wrap {
-    display: none !important; /* 嚴格不顯示影片畫面 */
-  }
-
-  .yt-music-header {
-    padding: 4px 10px;
-    font-size: 11px;
-  }
-
-  .yt-music-launcher {
-    bottom: 74px;
-    right: 12px;
-  }
 }
 
 /* ==========================================================================
@@ -2053,39 +2028,87 @@ a {
   font-weight: 500;
 }
 
-/* 浮動微型啟動鈕（收起時顯示於右下角） */
+/* 常駐微型啟動鈕（收起時顯示於頂端列 brand-links 右側） */
+.brand-links .yt-music-launcher,
 .yt-music-launcher {
-  position: fixed;
-  bottom: 18px;
-  right: 18px;
-  z-index: 28;
-  height: 36px;
-  padding: 0 14px;
+  position: static;
+  height: auto;
+  padding: 1px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: #141617;
-  color: #a8dfc8;
-  font-weight: 800;
-  font-size: 12.5px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-  display: flex;
+  border: 1px solid rgba(22, 101, 88, 0.35);
+  background: rgba(22, 101, 88, 0.08);
+  color: var(--teal);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  box-shadow: none;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
   cursor: pointer;
-  transition: transform 0.15s, background 0.15s;
+  white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
+.brand-links .yt-music-launcher:hover,
 .yt-music-launcher:hover {
-  background: #1f2a27;
-  transform: translateY(-2px);
+  background: var(--teal);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(22, 101, 88, 0.25);
+  transform: translateY(-1px);
 }
 
 .yt-music-launcher[hidden] {
   display: none !important;
 }
 
+/* 桌機版預設呈現 MV 畫面時：隱藏自訂迷你播放列（避免與 YouTube 內建控制重疊造成雙重控制） */
+.yt-music-widget:not(.mini) .yt-mini-bar {
+  display: none !important;
+}
+
+/* 桌機版點擊「_ 最小化收合」(.mini) 時：隱藏影片畫面，顯示自訂迷你播放列 */
 .yt-music-widget.mini .yt-video-wrap {
   display: none !important;
+}
+
+.yt-music-widget.mini .yt-mini-bar {
+  display: flex !important;
+}
+
+/* 手持裝置瀏覽響應式規範（<= 760px）：
+   1. 上移至 bottom: 84px，避開底部導航工具列（今天吃啥/導覽/全景）
+   2. 嚴格不顯示影片畫面，恆常顯示自訂迷你播放列
+   3. 移除「_ 最小化收合」按鈕，僅保留「✕」關閉按鈕
+*/
+@media (max-width: 760px) {
+  .yt-music-widget {
+    bottom: 84px !important;
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-width: 360px !important;
+    margin-left: auto !important;
+    border-radius: 12px !important;
+  }
+
+  .yt-music-widget .yt-video-wrap {
+    display: none !important;
+  }
+
+  .yt-music-widget .yt-mini-bar,
+  .yt-music-widget:not(.mini) .yt-mini-bar {
+    display: flex !important;
+  }
+
+  .yt-music-widget #btnYtToggleSize {
+    display: none !important;
+  }
+
+  .yt-music-header {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
