@@ -1330,10 +1330,6 @@ export function createIslandWorld({
   window.addEventListener('resize', onResize);
 
   return {
-    camera,
-    controls,
-    camFlight,
-    scene,
     metrics,
     flyToIsland,
     setViewMode(mode) {

@@ -265,8 +265,6 @@ async function bootstrap() {
     }
   });
 
-  window.__world = world;
-
   // 同步移軸特效按鈕初始狀態（桌機預設 ON，手機自動 OFF 省電）
   syncToggleButtons();
 
