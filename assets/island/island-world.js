@@ -1128,7 +1128,8 @@ export function createIslandWorld({
       const worldPos = new THREE.Vector3();
       critterHit.object.getWorldPosition(worldPos);
       worldPos.y += 0.85;
-      state.activeBubble = { worldPos, text: meta.speech, until: performance.now() + 2200 };
+      const speechText = typeof meta?.getSpeech === 'function' ? meta.getSpeech() : meta?.speech;
+      state.activeBubble = { worldPos, text: speechText, until: performance.now() + 3200 };
       onClickCritter?.(meta);
       return;
     }

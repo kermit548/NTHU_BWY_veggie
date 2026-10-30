@@ -495,6 +495,272 @@ export function createInteractiveCritter({
 }
 
 // ============================================================================
+// 3.5 清大校園熱門爭議紅綠燈（綠燈75秒、黃燈5秒、紅燈75秒）與舉牌抗議學生
+// ============================================================================
+export function createNthuControversyTrafficLight({
+  pos = [-1.35, 0.04, 1.65],
+  rotY = -0.25,
+  registerAnim,
+  registerCritter
+}) {
+  const root = new THREE.Group();
+  root.position.set(pos[0], pos[1], pos[2]);
+  root.rotation.y = rotY;
+  root.userData.dyn = true;
+
+  // 1. 金屬燈桿基座與立柱
+  const steelDark = '#2c3238';
+  const steelMid = '#4a535c';
+  root.add(makeCyl(0.16, 0.18, 0.12, steelDark, { seg: 8, pos: [0, 0.06, 0] }));
+  root.add(makeCyl(0.048, 0.048, 2.7, steelMid, { seg: 8, pos: [0, 1.45, 0] }));
+  
+  // 橫向懸臂與支撐角鋼
+  root.add(makeCyl(0.038, 0.038, 0.85, steelMid, { seg: 8, pos: [0.38, 2.68, 0], rot: [0, 0, Math.PI / 2] }));
+  root.add(makeCyl(0.024, 0.024, 0.42, steelMid, { seg: 6, pos: [0.18, 2.52, 0], rot: [0, 0, Math.PI / 4] }));
+
+  // 2. 直立式三色號誌燈箱本體 (Housing)
+  const housingGroup = new THREE.Group();
+  housingGroup.position.set(0.72, 2.68, 0);
+  
+  // 黃黑邊背板 (Backplate) 增加辨識度
+  housingGroup.add(makeBox([0.34, 0.88, 0.04], '#e5a912', { r: 0.02, pos: [0, 0, -0.1] }));
+  housingGroup.add(makeBox([0.3, 0.84, 0.05], '#151719', { r: 0.02, pos: [0, 0, -0.09] }));
+  // 號誌黑箱
+  housingGroup.add(makeBox([0.22, 0.74, 0.18], '#1c2024', { r: 0.02, pos: [0, 0, 0] }));
+
+  // 三顆獨立鏡面材質
+  const redMat = new THREE.MeshStandardMaterial({
+    color: 0x440808,
+    emissive: 0xff1100,
+    emissiveIntensity: 0.15,
+    roughness: 0.25,
+    metalness: 0.1
+  });
+  const yellowMat = new THREE.MeshStandardMaterial({
+    color: 0x443008,
+    emissive: 0xffaa00,
+    emissiveIntensity: 0.15,
+    roughness: 0.25,
+    metalness: 0.1
+  });
+  const greenMat = new THREE.MeshStandardMaterial({
+    color: 0x083315,
+    emissive: 0x00ff66,
+    emissiveIntensity: 2.6,
+    roughness: 0.25,
+    metalness: 0.1
+  });
+
+  const lensGeo = getCachedGeo('sphere_0.075_12_8', () => new THREE.SphereGeometry(0.075, 12, 8));
+  const redLens = new THREE.Mesh(lensGeo, redMat);
+  redLens.scale.set(1, 1, 0.45);
+  redLens.position.set(0, 0.24, 0.09);
+
+  const yellowLens = new THREE.Mesh(lensGeo, yellowMat);
+  yellowLens.scale.set(1, 1, 0.45);
+  yellowLens.position.set(0, 0, 0.09);
+
+  const greenLens = new THREE.Mesh(lensGeo, greenMat);
+  greenLens.scale.set(1, 1, 0.45);
+  greenLens.position.set(0, -0.24, 0.09);
+
+  housingGroup.add(redLens, yellowLens, greenLens);
+
+  // 三個燈頭的半圓弧遮陽罩 (Visor)
+  [-0.24, 0, 0.24].forEach(y => {
+    const visor = makeCyl(0.095, 0.095, 0.11, '#15181b', {
+      seg: 8,
+      pos: [0, y + 0.02, 0.14],
+      rot: [Math.PI / 2, 0, 0]
+    });
+    visor.scale.set(1, 1, 0.55);
+    housingGroup.add(visor);
+  });
+
+  root.add(housingGroup);
+
+  // 3. 雙位數動態 LED 倒數秒數計時看板 (附掛於號誌旁)
+  const timerW = 128;
+  const timerH = 128;
+  const timerCanvas = document.createElement('canvas');
+  timerCanvas.width = timerW;
+  timerCanvas.height = timerH;
+  const timerCtx = timerCanvas.getContext('2d');
+  const timerTex = new THREE.CanvasTexture(timerCanvas);
+  timerTex.colorSpace = THREE.SRGBColorSpace;
+
+  const timerMat = new THREE.MeshBasicMaterial({
+    map: timerTex,
+    transparent: false
+  });
+  const timerBox = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.38, 0.08), timerMat);
+  timerBox.position.set(0.72, 3.24, 0);
+  root.add(timerBox);
+
+  // 頂部金屬遮罩與支撐框
+  root.add(makeBox([0.42, 0.03, 0.12], steelMid, { pos: [0.72, 3.44, 0] }));
+  root.add(makeCyl(0.02, 0.02, 0.16, steelMid, { pos: [0.72, 3.06, 0] }));
+
+  // 4. 站在立柱旁的清大學生與「我在記錄紅綠燈如何浪費大家的時間」抗議看板
+  const student = new THREE.Group();
+  student.position.set(-0.38, 0, 0.12);
+  student.rotation.y = 0.25;
+
+  // 雙腿與球鞋
+  student.add(makeBox([0.075, 0.44, 0.09], '#2c3e50', { r: 0.015, pos: [-0.07, 0.22, 0] }));
+  student.add(makeBox([0.075, 0.44, 0.09], '#2c3e50', { r: 0.015, pos: [0.07, 0.22, 0] }));
+  student.add(makeBox([0.08, 0.06, 0.13], '#f0f3f6', { r: 0.02, pos: [-0.07, 0.03, 0.02] }));
+  student.add(makeBox([0.08, 0.06, 0.13], '#f0f3f6', { r: 0.02, pos: [0.07, 0.03, 0.02] }));
+
+  // 身體（穿著清華紫連帽衫）
+  student.add(makeBox([0.24, 0.36, 0.16], '#59296e', { r: 0.035, pos: [0, 0.58, 0] }));
+  // 頭部與黑髮
+  student.add(makeSphere(0.11, '#fad7b0', { seg: 10, pos: [0, 0.86, 0] }));
+  student.add(makeSphere(0.118, '#1e1c1b', { seg: 10, scale: [1, 0.65, 1], pos: [0, 0.91, -0.01] }));
+
+  // 右手拿碼表計時器、左手高舉白色抗議板
+  student.add(makeCyl(0.03, 0.03, 0.3, '#59296e', { seg: 6, pos: [-0.16, 0.62, 0.1], rot: [0.6, 0, 0.2] }));
+  student.add(makeBox([0.05, 0.07, 0.03], '#222222', { r: 0.01, pos: [-0.18, 0.72, 0.22] })); // 碼表
+  student.add(makeCyl(0.03, 0.03, 0.38, '#59296e', { seg: 6, pos: [0.18, 0.78, 0.12], rot: [-0.4, 0, -0.3] }));
+
+  // 白色瓦楞紙看板（正面繪製抗議標語）
+  const signW = 256;
+  const signH = 160;
+  const signCanvas = document.createElement('canvas');
+  signCanvas.width = signW;
+  signCanvas.height = signH;
+  const sCtx = signCanvas.getContext('2d');
+  sCtx.fillStyle = '#f8f9fa';
+  sCtx.fillRect(0, 0, signW, signH);
+  // 紅色邊框
+  sCtx.strokeStyle = '#e63946';
+  sCtx.lineWidth = 10;
+  sCtx.strokeRect(5, 5, signW - 10, signH - 10);
+
+  sCtx.fillStyle = '#1d3557';
+  sCtx.textAlign = 'center';
+  sCtx.textBaseline = 'middle';
+  sCtx.font = '900 24px "Noto Sans TC", "Microsoft JhengHei", sans-serif';
+  sCtx.fillText('我在記錄紅綠燈', signW / 2, 45);
+  sCtx.fillStyle = '#e63946';
+  sCtx.fillText('如何浪費大家時間', signW / 2, 85);
+
+  sCtx.fillStyle = '#457b9d';
+  sCtx.font = 'bold 16px "Noto Sans TC", "Microsoft JhengHei", sans-serif';
+  sCtx.fillText('⏱️ 清大 75s 傳奇號誌', signW / 2, 126);
+
+  const signTex = new THREE.CanvasTexture(signCanvas);
+  signTex.colorSpace = THREE.SRGBColorSpace;
+  const signBoardMat = new THREE.MeshBasicMaterial({ map: signTex });
+
+  const signMesh = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.38, 0.02), signBoardMat);
+  signMesh.position.set(0.24, 0.98, 0.24);
+  signMesh.rotation.set(-0.15, -0.2, 0.1);
+  student.add(signMesh);
+
+  // 木手柄
+  student.add(makeCyl(0.015, 0.015, 0.55, '#c79a5b', { pos: [0.22, 0.76, 0.22], rot: [-0.15, 0, 0.1] }));
+
+  root.add(student);
+
+  // 5. 倒數邏輯與號誌切換狀態機（綠燈 75 秒、黃燈 5 秒、紅燈 75 秒，全週期 155 秒）
+  let lastSecond = -1;
+  let currentPhase = ''; // 'green' | 'yellow' | 'red'
+
+  const updateDisplay = (secondsLeft, phase) => {
+    timerCtx.fillStyle = '#0a0d10';
+    timerCtx.fillRect(0, 0, timerW, timerH);
+
+    timerCtx.strokeStyle = phase === 'green' ? '#00bb44' : phase === 'yellow' ? '#dd9900' : '#dd2211';
+    timerCtx.lineWidth = 6;
+    timerCtx.strokeRect(4, 4, timerW - 8, timerH - 8);
+
+    timerCtx.fillStyle = phase === 'green' ? '#00ff66' : phase === 'yellow' ? '#ffcc00' : '#ff3322';
+    timerCtx.font = '900 66px "Courier New", monospace, sans-serif';
+    timerCtx.textAlign = 'center';
+    timerCtx.textBaseline = 'middle';
+    const text = String(secondsLeft).padStart(2, '0');
+    timerCtx.fillText(text, timerW / 2, timerH / 2 + 3);
+    timerTex.needsUpdate = true;
+  };
+
+  if (registerAnim) {
+    registerAnim(elapsed => {
+      // 週期 155 秒
+      const cycleTime = elapsed % 155;
+      let phase = 'green';
+      let secLeft = 0;
+
+      if (cycleTime < 75) {
+        // 綠燈 75 秒 (0 ~ 75)
+        phase = 'green';
+        secLeft = Math.ceil(75 - cycleTime);
+      } else if (cycleTime < 80) {
+        // 黃燈 5 秒 (75 ~ 80)
+        phase = 'yellow';
+        secLeft = Math.ceil(80 - cycleTime);
+      } else {
+        // 紅燈 75 秒 (80 ~ 155)
+        phase = 'red';
+        secLeft = Math.ceil(155 - cycleTime);
+      }
+
+      // 更新鏡面發光強度
+      if (phase !== currentPhase) {
+        currentPhase = phase;
+        if (phase === 'green') {
+          greenMat.emissiveIntensity = 2.8;
+          yellowMat.emissiveIntensity = 0.08;
+          redMat.emissiveIntensity = 0.08;
+        } else if (phase === 'yellow') {
+          greenMat.emissiveIntensity = 0.08;
+          yellowMat.emissiveIntensity = 2.8;
+          redMat.emissiveIntensity = 0.08;
+        } else {
+          greenMat.emissiveIntensity = 0.08;
+          yellowMat.emissiveIntensity = 0.08;
+          redMat.emissiveIntensity = 2.8;
+        }
+      }
+
+      // 秒數變動時重繪 LED Canvas
+      if (secLeft !== lastSecond) {
+        lastSecond = secLeft;
+        updateDisplay(secLeft, phase);
+      }
+
+      // 舉牌學生微幅呼吸抗議晃動
+      student.position.y = Math.sin(elapsed * 2.2) * 0.015;
+      signMesh.rotation.z = 0.1 + Math.sin(elapsed * 2.8) * 0.035;
+    });
+  }
+
+  // 初始繪製一次倒數面板
+  updateDisplay(75, 'green');
+
+  // 6. 註冊為可點擊彩蛋
+  if (registerCritter) {
+    const hitGeo = getCachedGeo('sphere_hit_traffic_0.7', () => new THREE.SphereGeometry(0.7, 8, 8));
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false, wireframe: true });
+    const hitSphere = new THREE.Mesh(hitGeo, hitMat);
+    hitSphere.position.set(0.18, 1.2, 0.15);
+    root.add(hitSphere);
+
+    registerCritter(hitSphere, {
+      id: 'critter-nthu-traffic-light',
+      kind: 'traffic_protest',
+      speech: '清大傳奇紅綠燈：綠燈75秒、黃燈5秒、紅燈75秒！我在記錄紅綠燈如何浪費大家的時間 🚦⏱️',
+      onHop() {
+        // 點擊激動抗議跳躍
+        student.position.y = 0.35;
+      }
+    });
+  }
+
+  return root;
+}
+
+// ============================================================================
 // 4. 組裝中央主島場景：清華簡冊立柱校門 + 石板廣場 + 環形綠籬榕樹 + 成功湖 + 福青攤位
 // ============================================================================
 export function buildCentralNthuHubScene(group, { registerAnim, registerCritter }) {
@@ -596,6 +862,16 @@ export function buildCentralNthuHubScene(group, { registerAnim, registerCritter 
   group.add(createParkLamp([-1.55, 0.04, -2.55]));
   group.add(createParkLamp([2.35, 0.04, -0.45]));
   group.add(createParkLamp([0.45, 0.04, 3.55]));
+
+  // 5.5 清大校園熱門爭議紅綠燈（綠燈75秒、黃燈5秒、紅燈75秒）與舉牌抗議學生
+  group.add(
+    createNthuControversyTrafficLight({
+      pos: [-1.65, 0.04, 1.95],
+      rotY: -0.28,
+      registerAnim,
+      registerCritter
+    })
+  );
 
   // 6. 動態清大學生與福青社招手社員 (userData.dyn = true)
   group.add(

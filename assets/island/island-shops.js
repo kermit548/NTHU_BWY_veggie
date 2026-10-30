@@ -3,6 +3,7 @@
 
 import * as THREE from 'three';
 import {
+  getCachedGeo,
   glowWindowMat,
   makeBox,
   makeCyl,
@@ -759,7 +760,219 @@ function createSkyBird(seed, registerAnim) {
   return root;
 }
 
-export function buildSkyDecorScene(group, { dataset, registerAnim }) {
+// ============================================================================
+// 3. 黃色肌肉奶蛙（Swole Yellow Milk Frog）純幾何建模與跨島巡航跳躍
+// ============================================================================
+export function createYellowBuffFrog({ dataset, registerAnim, registerCritter }) {
+  const root = new THREE.Group();
+  root.userData.dyn = true;
+
+  // 蛙身模型縮放為精巧但視覺強烈的微縮玩偶尺寸
+  const frogModel = new THREE.Group();
+  frogModel.scale.set(0.68, 0.68, 0.68);
+  root.add(frogModel);
+
+  const skinYellow = '#fab81c';
+  const bellyPeach = '#fce2d0';
+  const digitTan = '#ba8b51';
+  const eyeGreen = '#88d682';
+  const eyeBlack = '#141618';
+
+  // 1. 粗壯圓弧下身與胸腔軀幹
+  const belly = makeSphere(0.48, skinYellow, { seg: 16, scale: [1.12, 1.05, 0.94], pos: [0, 0.52, 0] });
+  frogModel.add(belly);
+
+  // 前胸粉嫩圓弧大肚皮
+  const bellyPatch = makeSphere(0.44, bellyPeach, { seg: 14, scale: [0.86, 0.92, 0.34], pos: [0, 0.49, 0.34] });
+  frogModel.add(bellyPatch);
+
+  // 2. 巨碩斜方肌（Trapezius）與倒三角爆筋後背
+  const trapL = makeCyl(0.24, 0.34, 0.38, skinYellow, { seg: 10, pos: [-0.22, 0.88, -0.06], rot: [0.1, 0, -0.3] });
+  const trapR = makeCyl(0.24, 0.34, 0.38, skinYellow, { seg: 10, pos: [0.22, 0.88, -0.06], rot: [0.1, 0, 0.3] });
+  frogModel.add(trapL, trapR);
+
+  // 3. 巨球肩膀三角肌（Deltoids）與粗壯上臂
+  const deltL = makeSphere(0.31, skinYellow, { seg: 14, scale: [1.05, 0.96, 0.98], pos: [-0.56, 0.88, 0.05] });
+  const deltR = makeSphere(0.31, skinYellow, { seg: 14, scale: [1.05, 0.96, 0.98], pos: [0.56, 0.88, 0.05] });
+  frogModel.add(deltL, deltR);
+
+  // 4. 抱胸交叉手臂（Crossed Arms Pose）與手指
+  // 左上臂延伸至胸前
+  const armL = makeCyl(0.125, 0.115, 0.54, skinYellow, {
+    seg: 10,
+    pos: [-0.18, 0.74, 0.36],
+    rot: [0.35, 0.45, -Math.PI / 2 + 0.12]
+  });
+  // 右上臂在下交疊
+  const armR = makeCyl(0.12, 0.11, 0.52, skinYellow, {
+    seg: 10,
+    pos: [0.18, 0.65, 0.33],
+    rot: [0.35, -0.45, Math.PI / 2 - 0.12]
+  });
+  frogModel.add(armL, armR);
+
+  // 雙手交疊處露出的奶褐色手指（搭在手臂兩側）
+  [-0.04, 0, 0.04].forEach(offset => {
+    frogModel.add(makeSphere(0.038, digitTan, { seg: 6, pos: [0.42 + offset, 0.76, 0.34] }));
+    frogModel.add(makeSphere(0.038, digitTan, { seg: 6, pos: [-0.42 + offset, 0.66, 0.31] }));
+  });
+
+  // 5. 呆萌流線青蛙大頭
+  const head = makeSphere(0.42, skinYellow, { seg: 16, scale: [0.94, 1.14, 0.9], pos: [0, 1.18, 0.02] });
+  frogModel.add(head);
+
+  // 青蛙綠眼球與黑圓瞳孔
+  const eyeL = makeSphere(0.13, eyeGreen, { seg: 12, pos: [-0.21, 1.34, 0.28] });
+  const pupilL = makeSphere(0.065, eyeBlack, { seg: 8, pos: [-0.21, 1.35, 0.39] });
+  const specL = makeSphere(0.02, '#ffffff', { seg: 4, pos: [-0.19, 1.37, 0.44], castShadow: false });
+
+  const eyeR = makeSphere(0.13, eyeGreen, { seg: 12, pos: [0.21, 1.34, 0.28] });
+  const pupilR = makeSphere(0.065, eyeBlack, { seg: 8, pos: [0.21, 1.35, 0.39] });
+  const specR = makeSphere(0.02, '#ffffff', { seg: 4, pos: [0.23, 1.37, 0.44], castShadow: false });
+  frogModel.add(eyeL, pupilL, specL, eyeR, pupilR, specR);
+
+  // 微笑嘴角弧線
+  const mouth = makeBox([0.22, 0.022, 0.03], '#9a6b22', { r: 0.01, pos: [0, 1.18, 0.39], rot: [0.15, 0, 0] });
+  frogModel.add(mouth);
+
+  // 6. 健美外八大腿、小腿與青蛙三趾腳掌
+  // 左大腿與小腿
+  const thighL = makeSphere(0.24, skinYellow, { seg: 10, scale: [1, 1.25, 0.95], pos: [-0.34, 0.32, 0], rot: [0, 0, -0.35] });
+  const calfL = makeCyl(0.11, 0.09, 0.26, skinYellow, { seg: 8, pos: [-0.38, 0.14, 0.04] });
+  // 右大腿與小腿
+  const thighR = makeSphere(0.24, skinYellow, { seg: 10, scale: [1, 1.25, 0.95], pos: [0.34, 0.32, 0], rot: [0, 0, 0.35] });
+  const calfR = makeCyl(0.11, 0.09, 0.26, skinYellow, { seg: 8, pos: [0.38, 0.14, 0.04] });
+  frogModel.add(thighL, calfL, thighR, calfR);
+
+  // 腳掌三趾球
+  [-0.38, 0.38].forEach(x => {
+    [-0.07, 0, 0.07].forEach((dx, idx) => {
+      frogModel.add(
+        makeSphere(0.055, digitTan, {
+          seg: 8,
+          scale: [1, 0.65, 1.2],
+          pos: [x + dx, 0.03, 0.18 + (idx === 1 ? 0.04 : 0)]
+        })
+      );
+    });
+  });
+
+  // 7. 跨島巡邏航點清單（在主島、各蔬食浮島與雲橋間巡航跳躍）
+  const waypoints = [
+    new THREE.Vector3(0.85, 0.05, 2.35),    // 0: 主島清華大學廣場
+    new THREE.Vector3(-4.2, 0.8, -1.8),     // 1: 主島與雅素齋間雲橋
+    new THREE.Vector3(-7.2, -0.4, -4.5),    // 2: 雅素齋浮島外緣
+    new THREE.Vector3(-10.5, 0.5, -5.8),    // 3: 往滿素圓雲橋
+    new THREE.Vector3(-13.8, -0.8, -6.5),   // 4: 滿素圓浮島
+    new THREE.Vector3(-14.2, 0.2, 0.5),     // 5: 單車外環航道
+    new THREE.Vector3(-13.5, -0.7, 5.8),    // 6: 妙觀音浮島
+    new THREE.Vector3(-9.8, 0.6, 6.2),      // 7: 往安姆士浮橋
+    new THREE.Vector3(-7.6, -0.4, 6.2),     // 8: 安姆士水果奶茶浮島
+    new THREE.Vector3(0, 1.2, 6.8),         // 9: 南方浮雲連通道
+    new THREE.Vector3(6.8, -0.4, 6.8),      // 10: 棗子樹蔬食浮島
+    new THREE.Vector3(12.5, 0.5, 2.5),      // 11: 東南環外單車橋
+    new THREE.Vector3(13.8, -0.8, -4.2),    // 12: 游媽媽與菜根香浮島區
+    new THREE.Vector3(6.5, -0.3, -5.2),     // 13: 鼎盛風雲樓浮島
+    new THREE.Vector3(2.8, 0.6, -2.4)       // 14: 北方回主島雲橋
+  ];
+
+  let currentWpIndex = 0;
+  let moveProgress = 0; // 0 ~ 1 在兩個節點間移動
+  let hopTimer = 0;
+  let flexTimer = 0; // 點擊時爆肌動畫計時器
+
+  const flexQuotes = [
+    '呱！這身肌肉是吃清大蔬食長大的！高蛋白豆腐萬歲！💪🥦',
+    '75秒紅綠燈算什麼？我在旁邊已經深蹲75下啦呱！⏱️🐸',
+    '誰說吃素沒力氣？來跟本蛙比腕力啊呱！🔥',
+    '巡邏群島中！今天各島嶼的蔬食高纖營養全數驗收合格！✨',
+    '深蹲、推胸、喝安姆士無糖豆漿，呱！這就是猛蛙之道！'
+  ];
+
+  if (registerAnim) {
+    registerAnim((elapsed, delta = 0.016) => {
+      // 點擊激動爆肌動畫
+      if (flexTimer > 0) {
+        flexTimer -= delta;
+        // 快速震動與雙手擴張健美動作
+        const shake = Math.sin(flexTimer * 35) * 0.08;
+        frogModel.position.y = 0.25 + Math.sin(flexTimer * 12) * 0.35;
+        frogModel.scale.set(0.72 + shake, 0.64 - shake, 0.72 + shake);
+        deltL.scale.set(1.25, 1.15, 1.15);
+        deltR.scale.set(1.25, 1.15, 1.15);
+        return;
+      } else {
+        deltL.scale.set(1.05, 0.96, 0.98);
+        deltR.scale.set(1.05, 0.96, 0.98);
+      }
+
+      // 常態跨島巡邏航行
+      const p1 = waypoints[currentWpIndex];
+      const p2 = waypoints[(currentWpIndex + 1) % waypoints.length];
+      const dist = p1.distanceTo(p2);
+      const hopSpeed = 1.45 / Math.max(2, dist); // 依航段距離自適應速度
+
+      moveProgress += delta * hopSpeed;
+      if (moveProgress >= 1) {
+        moveProgress = 0;
+        currentWpIndex = (currentWpIndex + 1) % waypoints.length;
+      }
+
+      // 沿兩點直線插值位置
+      root.position.lerpVectors(p1, p2, moveProgress);
+
+      // 面向前進方向
+      const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+      if (dir.lengthSq() > 0.001) {
+        const targetRotY = Math.atan2(dir.x, dir.z);
+        // 平滑旋轉
+        root.rotation.y += (targetRotY - root.rotation.y) * 0.12;
+      }
+
+      // 拋物線肌肉蛙跳（大跳躍弧線）
+      // 每個路段跳 2 ~ 3 下
+      const hopsPerLeg = Math.max(2, Math.round(dist / 3.2));
+      const hopPhase = (moveProgress * hopsPerLeg) % 1;
+      const hopY = Math.sin(hopPhase * Math.PI) * 0.75;
+      frogModel.position.y = Math.max(0, hopY);
+
+      // 落地緩衝擠壓 (Squash & Stretch)
+      if (hopPhase < 0.15 || hopPhase > 0.85) {
+        // 落地壓扁
+        frogModel.scale.set(0.74, 0.58, 0.74);
+      } else {
+        // 空中拉長
+        frogModel.scale.set(0.64, 0.76, 0.64);
+      }
+    });
+  }
+
+  // 8. 註冊為可點擊彩蛋角色
+  if (registerCritter) {
+    const hitGeo = getCachedGeo('sphere_hit_buff_frog_0.8', () => new THREE.SphereGeometry(0.8, 8, 8));
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false, wireframe: true });
+    const hitSphere = new THREE.Mesh(hitGeo, hitMat);
+    hitSphere.position.set(0, 0.65, 0);
+    root.add(hitSphere);
+
+    registerCritter(hitSphere, {
+      id: 'critter-buff-frog',
+      kind: 'buff_frog',
+      speech: flexQuotes[0],
+      getSpeech() {
+        return flexQuotes[Math.floor(Math.random() * flexQuotes.length)];
+      },
+      onHop() {
+        // 觸發爆肌特寫動畫
+        flexTimer = 1.4;
+      }
+    });
+  }
+
+  return root;
+}
+
+export function buildSkyDecorScene(group, { dataset, registerAnim, registerCritter }) {
   // 1. 雲朵單車航道上的紅色腳踏車與橘色小機車騎士
   const bikeTargets = ['mansuyuan', 'yixiansu', 'youmama', 'suyiyuan'];
   bikeTargets.forEach((id, idx) => {
@@ -780,4 +993,7 @@ export function buildSkyDecorScene(group, { dataset, registerAnim }) {
   for (let i = 0; i < 5; i++) {
     group.add(createSkyBird(i + 1, registerAnim));
   }
+
+  // 3. 在群島各島嶼間移動的「黃色肌肉奶蛙」特別彩蛋角色！
+  group.add(createYellowBuffFrog({ dataset, registerAnim, registerCritter }));
 }

@@ -180,7 +180,15 @@ async function bootstrap() {
     container: elStage,
     dataset,
     skyLinks: SKY_LINKS,
-    buildHubScene: buildCentralNthuHubScene,
+    buildHubScene: (group, ctx) => {
+      buildCentralNthuHubScene(group, {
+        ...ctx,
+        registerCritter: (hitObj, meta) => {
+          if (uiState.foundCritters.has(meta.id)) meta.markFound?.();
+          ctx.registerCritter(hitObj, meta);
+        }
+      });
+    },
     buildShopScene: (group, ctx) => {
       buildShopIslandScene(group, {
         ...ctx,
@@ -190,7 +198,15 @@ async function bootstrap() {
         }
       });
     },
-    buildSkyDecor: buildSkyDecorScene,
+    buildSkyDecor: (group, ctx) => {
+      buildSkyDecorScene(group, {
+        ...ctx,
+        registerCritter: (hitObj, meta) => {
+          if (uiState.foundCritters.has(meta.id)) meta.markFound?.();
+          ctx.registerCritter(hitObj, meta);
+        }
+      });
+    },
     onSelectIsland(islandId) {
       selectIsland(islandId, { fly: false });
     },
