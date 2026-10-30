@@ -495,11 +495,11 @@ export function createInteractiveCritter({
 }
 
 // ============================================================================
-// 3.5 清大校園熱門爭議紅綠燈（綠燈75秒、黃燈5秒、紅燈75秒）與舉牌抗議學生
+// 3.5 清大校園熱門 75 秒號誌燈（橫式三色箱＋右側讀秒器，綠燈75s/黃燈5s/紅燈75s）
 // ============================================================================
 export function createNthuControversyTrafficLight({
-  pos = [-1.35, 0.04, 1.65],
-  rotY = -0.25,
+  pos = [-2.55, 0.04, -1.35],
+  rotY = 0.65,
   registerAnim,
   registerCritter
 }) {
@@ -508,27 +508,37 @@ export function createNthuControversyTrafficLight({
   root.rotation.y = rotY;
   root.userData.dyn = true;
 
-  // 1. 金屬燈桿基座與立柱
-  const steelDark = '#2c3238';
+  // 1. 金屬燈桿基座與曲臂挑桿立柱（還原圖 2 頂部弧度延伸之彎管鋼柱）
   const steelMid = '#4a535c';
-  root.add(makeCyl(0.16, 0.18, 0.12, steelDark, { seg: 8, pos: [0, 0.06, 0] }));
-  root.add(makeCyl(0.048, 0.048, 2.7, steelMid, { seg: 8, pos: [0, 1.45, 0] }));
-  
-  // 橫向懸臂與支撐角鋼
-  root.add(makeCyl(0.038, 0.038, 0.85, steelMid, { seg: 8, pos: [0.38, 2.68, 0], rot: [0, 0, Math.PI / 2] }));
-  root.add(makeCyl(0.024, 0.024, 0.42, steelMid, { seg: 6, pos: [0.18, 2.52, 0], rot: [0, 0, Math.PI / 4] }));
+  const steelDark = '#25292e';
 
-  // 2. 直立式三色號誌燈箱本體 (Housing)
-  const housingGroup = new THREE.Group();
-  housingGroup.position.set(0.72, 2.68, 0);
-  
-  // 黃黑邊背板 (Backplate) 增加辨識度
-  housingGroup.add(makeBox([0.34, 0.88, 0.04], '#e5a912', { r: 0.02, pos: [0, 0, -0.1] }));
-  housingGroup.add(makeBox([0.3, 0.84, 0.05], '#151719', { r: 0.02, pos: [0, 0, -0.09] }));
-  // 號誌黑箱
-  housingGroup.add(makeBox([0.22, 0.74, 0.18], '#1c2024', { r: 0.02, pos: [0, 0, 0] }));
+  // 地面法蘭基座
+  root.add(makeCyl(0.15, 0.17, 0.12, steelDark, { seg: 8, pos: [0, 0.06, 0] }));
 
-  // 三顆獨立鏡面材質
+  // 主垂直鋼管（高約 2.5m）
+  root.add(makeCyl(0.045, 0.045, 2.3, steelMid, { seg: 8, pos: [0, 1.25, 0] }));
+
+  // 頂部弧形彎管挑臂（向路中前伸）
+  const armSegments = [
+    { p: [0.03, 2.45, 0], r: [0, 0, -0.25], l: 0.28 },
+    { p: [0.15, 2.62, 0], r: [0, 0, -0.65], l: 0.32 },
+    { p: [0.36, 2.76, 0], r: [0, 0, -1.15], l: 0.35 },
+    { p: [0.65, 2.82, 0], r: [0, 0, -Math.PI / 2], l: 0.42 }
+  ];
+  armSegments.forEach(s => {
+    root.add(makeCyl(0.038, 0.038, s.l, steelMid, { seg: 6, pos: s.p, rot: s.r }));
+  });
+
+  // 2. 橫式號誌總成 (依圖 2：左側橫向三色燈箱 + 右側方形 LED 讀秒箱)
+  const assembly = new THREE.Group();
+  assembly.position.set(0.95, 2.82, 0);
+
+  // 橫向三色燈箱外殼（寬 0.76, 高 0.28, 厚 0.16）
+  assembly.add(makeBox([0.76, 0.28, 0.16], '#1b1e22', { r: 0.02, pos: [-0.18, 0, 0] }));
+  // 黃黑邊背板增加辨識度
+  assembly.add(makeBox([0.84, 0.34, 0.03], '#14171a', { r: 0.02, pos: [-0.18, 0, -0.09] }));
+
+  // 三顆獨立鏡面材質（左至右：紅燈、黃燈、綠燈）
   const redMat = new THREE.MeshStandardMaterial({
     color: 0x440808,
     emissive: 0xff1100,
@@ -552,34 +562,36 @@ export function createNthuControversyTrafficLight({
   });
 
   const lensGeo = getCachedGeo('sphere_0.075_12_8', () => new THREE.SphereGeometry(0.075, 12, 8));
+
+  // 左燈：紅燈（Red，最左邊）
   const redLens = new THREE.Mesh(lensGeo, redMat);
   redLens.scale.set(1, 1, 0.45);
-  redLens.position.set(0, 0.24, 0.09);
+  redLens.position.set(-0.42, 0, 0.08);
 
+  // 中燈：黃燈（Yellow，中間）
   const yellowLens = new THREE.Mesh(lensGeo, yellowMat);
   yellowLens.scale.set(1, 1, 0.45);
-  yellowLens.position.set(0, 0, 0.09);
+  yellowLens.position.set(-0.18, 0, 0.08);
 
+  // 右燈：綠燈（Green，最右邊靠讀秒箱）
   const greenLens = new THREE.Mesh(lensGeo, greenMat);
   greenLens.scale.set(1, 1, 0.45);
-  greenLens.position.set(0, -0.24, 0.09);
+  greenLens.position.set(0.06, 0, 0.08);
 
-  housingGroup.add(redLens, yellowLens, greenLens);
+  assembly.add(redLens, yellowLens, greenLens);
 
-  // 三個燈頭的半圓弧遮陽罩 (Visor)
-  [-0.24, 0, 0.24].forEach(y => {
-    const visor = makeCyl(0.095, 0.095, 0.11, '#15181b', {
+  // 三個燈頭的半圓弧遮陽罩 (Visors)
+  [-0.42, -0.18, 0.06].forEach(x => {
+    const visor = makeCyl(0.095, 0.095, 0.12, '#141618', {
       seg: 8,
-      pos: [0, y + 0.02, 0.14],
-      rot: [Math.PI / 2, 0, 0]
+      pos: [x, 0.03, 0.14],
+      rot: [Math.PI / 2 + 0.12, 0, 0]
     });
     visor.scale.set(1, 1, 0.55);
-    housingGroup.add(visor);
+    assembly.add(visor);
   });
 
-  root.add(housingGroup);
-
-  // 3. 雙位數動態 LED 倒數秒數計時看板 (附掛於號誌旁)
+  // 3. 右側方形 LED 雙位數讀秒箱 (圖 2)
   const timerW = 128;
   const timerH = 128;
   const timerCanvas = document.createElement('canvas');
@@ -589,81 +601,18 @@ export function createNthuControversyTrafficLight({
   const timerTex = new THREE.CanvasTexture(timerCanvas);
   timerTex.colorSpace = THREE.SRGBColorSpace;
 
-  const timerMat = new THREE.MeshBasicMaterial({
-    map: timerTex,
-    transparent: false
-  });
-  const timerBox = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.38, 0.08), timerMat);
-  timerBox.position.set(0.72, 3.24, 0);
-  root.add(timerBox);
+  const timerMat = new THREE.MeshBasicMaterial({ map: timerTex });
+  const timerBox = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.14), timerMat);
+  timerBox.position.set(0.38, 0, 0);
+  assembly.add(timerBox);
 
-  // 頂部金屬遮罩與支撐框
-  root.add(makeBox([0.42, 0.03, 0.12], steelMid, { pos: [0.72, 3.44, 0] }));
-  root.add(makeCyl(0.02, 0.02, 0.16, steelMid, { pos: [0.72, 3.06, 0] }));
+  // 讀秒箱遮罩與邊框
+  assembly.add(makeBox([0.38, 0.04, 0.18], steelDark, { pos: [0.38, 0.18, 0.02] }));
+  assembly.add(makeBox([0.38, 0.38, 0.02], '#14171a', { pos: [0.38, 0, -0.08] }));
 
-  // 4. 站在立柱旁的清大學生與「我在記錄紅綠燈如何浪費大家的時間」抗議看板
-  const student = new THREE.Group();
-  student.position.set(-0.38, 0, 0.12);
-  student.rotation.y = 0.25;
+  root.add(assembly);
 
-  // 雙腿與球鞋
-  student.add(makeBox([0.075, 0.44, 0.09], '#2c3e50', { r: 0.015, pos: [-0.07, 0.22, 0] }));
-  student.add(makeBox([0.075, 0.44, 0.09], '#2c3e50', { r: 0.015, pos: [0.07, 0.22, 0] }));
-  student.add(makeBox([0.08, 0.06, 0.13], '#f0f3f6', { r: 0.02, pos: [-0.07, 0.03, 0.02] }));
-  student.add(makeBox([0.08, 0.06, 0.13], '#f0f3f6', { r: 0.02, pos: [0.07, 0.03, 0.02] }));
-
-  // 身體（穿著清華紫連帽衫）
-  student.add(makeBox([0.24, 0.36, 0.16], '#59296e', { r: 0.035, pos: [0, 0.58, 0] }));
-  // 頭部與黑髮
-  student.add(makeSphere(0.11, '#fad7b0', { seg: 10, pos: [0, 0.86, 0] }));
-  student.add(makeSphere(0.118, '#1e1c1b', { seg: 10, scale: [1, 0.65, 1], pos: [0, 0.91, -0.01] }));
-
-  // 右手拿碼表計時器、左手高舉白色抗議板
-  student.add(makeCyl(0.03, 0.03, 0.3, '#59296e', { seg: 6, pos: [-0.16, 0.62, 0.1], rot: [0.6, 0, 0.2] }));
-  student.add(makeBox([0.05, 0.07, 0.03], '#222222', { r: 0.01, pos: [-0.18, 0.72, 0.22] })); // 碼表
-  student.add(makeCyl(0.03, 0.03, 0.38, '#59296e', { seg: 6, pos: [0.18, 0.78, 0.12], rot: [-0.4, 0, -0.3] }));
-
-  // 白色瓦楞紙看板（正面繪製抗議標語）
-  const signW = 256;
-  const signH = 160;
-  const signCanvas = document.createElement('canvas');
-  signCanvas.width = signW;
-  signCanvas.height = signH;
-  const sCtx = signCanvas.getContext('2d');
-  sCtx.fillStyle = '#f8f9fa';
-  sCtx.fillRect(0, 0, signW, signH);
-  // 紅色邊框
-  sCtx.strokeStyle = '#e63946';
-  sCtx.lineWidth = 10;
-  sCtx.strokeRect(5, 5, signW - 10, signH - 10);
-
-  sCtx.fillStyle = '#1d3557';
-  sCtx.textAlign = 'center';
-  sCtx.textBaseline = 'middle';
-  sCtx.font = '900 24px "Noto Sans TC", "Microsoft JhengHei", sans-serif';
-  sCtx.fillText('我在記錄紅綠燈', signW / 2, 45);
-  sCtx.fillStyle = '#e63946';
-  sCtx.fillText('如何浪費大家時間', signW / 2, 85);
-
-  sCtx.fillStyle = '#457b9d';
-  sCtx.font = 'bold 16px "Noto Sans TC", "Microsoft JhengHei", sans-serif';
-  sCtx.fillText('⏱️ 清大 75s 傳奇號誌', signW / 2, 126);
-
-  const signTex = new THREE.CanvasTexture(signCanvas);
-  signTex.colorSpace = THREE.SRGBColorSpace;
-  const signBoardMat = new THREE.MeshBasicMaterial({ map: signTex });
-
-  const signMesh = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.38, 0.02), signBoardMat);
-  signMesh.position.set(0.24, 0.98, 0.24);
-  signMesh.rotation.set(-0.15, -0.2, 0.1);
-  student.add(signMesh);
-
-  // 木手柄
-  student.add(makeCyl(0.015, 0.015, 0.55, '#c79a5b', { pos: [0.22, 0.76, 0.22], rot: [-0.15, 0, 0.1] }));
-
-  root.add(student);
-
-  // 5. 倒數邏輯與號誌切換狀態機（綠燈 75 秒、黃燈 5 秒、紅燈 75 秒，全週期 155 秒）
+  // 4. 倒數邏輯與號誌切換狀態機（綠燈 75 秒、黃燈 5 秒、紅燈 75 秒，全週期 155 秒）
   let lastSecond = -1;
   let currentPhase = ''; // 'green' | 'yellow' | 'red'
 
@@ -728,31 +677,28 @@ export function createNthuControversyTrafficLight({
         lastSecond = secLeft;
         updateDisplay(secLeft, phase);
       }
-
-      // 舉牌學生微幅呼吸抗議晃動
-      student.position.y = Math.sin(elapsed * 2.2) * 0.015;
-      signMesh.rotation.z = 0.1 + Math.sin(elapsed * 2.8) * 0.035;
     });
   }
 
   // 初始繪製一次倒數面板
   updateDisplay(75, 'green');
 
-  // 6. 註冊為可點擊彩蛋
+  // 5. 註冊為可點擊彩蛋
   if (registerCritter) {
-    const hitGeo = getCachedGeo('sphere_hit_traffic_0.7', () => new THREE.SphereGeometry(0.7, 8, 8));
+    const hitGeo = getCachedGeo('sphere_hit_traffic_0.8', () => new THREE.SphereGeometry(0.8, 8, 8));
     const hitMat = new THREE.MeshBasicMaterial({ visible: false, wireframe: true });
     const hitSphere = new THREE.Mesh(hitGeo, hitMat);
-    hitSphere.position.set(0.18, 1.2, 0.15);
+    hitSphere.position.set(0.75, 2.8, 0);
     root.add(hitSphere);
 
     registerCritter(hitSphere, {
       id: 'critter-nthu-traffic-light',
-      kind: 'traffic_protest',
-      speech: '清大傳奇紅綠燈：綠燈75秒、黃燈5秒、紅燈75秒！我在記錄紅綠燈如何浪費大家的時間 🚦⏱️',
+      kind: 'traffic_light',
+      speech: '清大 75 秒號誌燈：綠燈75秒、黃燈5秒、紅燈75秒！請遵守交通安全，減速慢行 🚦',
       onHop() {
-        // 點擊激動抗議跳躍
-        student.position.y = 0.35;
+        // 點選微幅輕晃
+        assembly.rotation.z = 0.08;
+        setTimeout(() => { assembly.rotation.z = 0; }, 360);
       }
     });
   }
@@ -863,11 +809,11 @@ export function buildCentralNthuHubScene(group, { registerAnim, registerCritter 
   group.add(createParkLamp([2.35, 0.04, -0.45]));
   group.add(createParkLamp([0.45, 0.04, 3.55]));
 
-  // 5.5 清大校園熱門爭議紅綠燈（綠燈75秒、黃燈5秒、紅燈75秒）與舉牌抗議學生
+  // 5.5 清大校園 75 秒號誌燈（圖 1 橘框：西北側大樹旁空地，橫式三色箱＋右側讀秒）
   group.add(
     createNthuControversyTrafficLight({
-      pos: [-1.65, 0.04, 1.95],
-      rotY: -0.28,
+      pos: [-2.55, 0.04, -1.35],
+      rotY: 0.65,
       registerAnim,
       registerCritter
     })

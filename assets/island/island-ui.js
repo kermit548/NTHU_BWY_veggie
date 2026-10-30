@@ -708,6 +708,16 @@ async function bootstrap() {
   function syncToggleButtons() {
     const fxOn = world.getFx();
     const curTime = TIME_MODES[uiState.timeIdx];
+    const elTopTimeBtn = document.getElementById('btnTopTimeToggle');
+
+    if (elTopTimeBtn) {
+      const isNightLike = curTime.key === 'night' || (curTime.key === 'auto' && (new Date().getHours() < 6 || new Date().getHours() >= 18));
+      elTopTimeBtn.textContent = isNightLike ? '☀️ 白天模式' : '🌙 夜晚模式';
+      elTopTimeBtn.title = isNightLike
+        ? '目前為夜間光影，點擊強制切換為清晰白天（方便尋找松鼠與精靈）'
+        : '目前為白天光影，點擊切換為浪漫星夜';
+    }
+
     document.querySelectorAll('[data-toggle]').forEach(btn => {
       const kind = btn.dataset.toggle;
       const inMobileMenu = Boolean(btn.closest('#mobileMoreMenu'));
@@ -718,6 +728,22 @@ async function bootstrap() {
       else if (kind === 'time') {
         btn.classList.toggle('on', curTime.key !== 'auto');
         btn.textContent = inMobileMenu ? `日夜:${curTime.label}` : `日夜：${curTime.label}`;
+      }
+    });
+  }
+
+  const elTopTimeBtn = document.getElementById('btnTopTimeToggle');
+  if (elTopTimeBtn) {
+    elTopTimeBtn.addEventListener('click', () => {
+      const curTime = TIME_MODES[uiState.timeIdx];
+      // 如果目前是白天（或非夜晚），切換到夜晚；否則一鍵切換至白天
+      const targetKey = curTime.key === 'day' ? 'night' : 'day';
+      const targetIdx = TIME_MODES.findIndex(m => m.key === targetKey);
+      if (targetIdx >= 0) {
+        uiState.timeIdx = targetIdx;
+        world.setTimeMode(targetKey);
+        showToast(targetKey === 'day' ? '已切換為清晰晴晝（全島松鼠與精靈清晰可見！）' : '已切換為浪漫星夜光影');
+        syncToggleButtons();
       }
     });
   }
