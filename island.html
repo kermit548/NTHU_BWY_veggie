@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>2026 清大福青社蔬食地圖｜天空之城浮島 3D 互動探索</title>
+  <meta name="description" content="2026 清大福青社蔬食月「天空之城浮島」3D 互動蔬食地圖：從清華大學簡冊立柱校門主島出發，探索精選 TOP 10 蔬食推薦餐廳浮島、即時營業狀態與尋味適性測驗。">
+  <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/island/island-map.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- 3D 天空之城浮島渲染畫布 -->
+  <div id="stage" class="stage" aria-label="2026 清大福青社蔬食地圖 3D 浮島場景"></div>
+
+  <!-- 2D 螢幕投影名牌、航線膠囊與松鼠對話氣泡層 -->
+  <div id="labelLayer" class="label-layer"></div>
+
+  <!-- 頂部資訊列：品牌、福青蔬食語錄、新竹清大即時天氣與目前營業統計 -->
+  <header class="topbar">
+    <div class="brand-card">
+      <img class="brand-logo" src="./img/抱抱地球2.png" alt="清大福青蔬食月標誌">
+      <div class="brand-text">
+        <div class="brand-title-row">
+          <h1>2026 清大福青社蔬食地圖</h1>
+          <span class="sky-pill">天空之城 3D</span>
+        </div>
+        <div class="brand-sub">
+          <span>清華簡冊立柱主島 × TOP 10 推薦餐廳浮島</span>
+          <span class="brand-links">
+            <a href="./index.html" title="返回 2026 蔬食月九宮格賓果挑戰">賓果首頁</a>
+            <a href="./map.html" title="切換至完整新竹 Google 蔬食地圖">完整地圖</a>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-card" id="quoteCard">
+      <span class="quote-tag" id="quoteTag">清大蔬食散步地圖</span>
+      <p class="quote-body">
+        <span id="quoteText">邀請你出一張嘴，吃蔬食改變世界！</span>
+        <span class="quote-by" id="quoteBy">2026 清大福青社</span>
+      </p>
+      <button type="button" class="icon-circle-btn" id="btnNextQuote" title="下一則蔬食小語" aria-label="下一則蔬食小語">↻</button>
+    </div>
+
+    <div class="weather-card" id="weatherCard">
+      <div class="wx-col">
+        <b id="twDateStr">台灣時間載入中</b>
+        <span class="open-count-pill" id="openCountPill">營業狀態計算中</span>
+      </div>
+      <div class="wx-divider" aria-hidden="true"></div>
+      <div class="wx-col">
+        <b id="wxSummary">新竹東區・清華大學</b>
+        <span id="wxSub">即時氣象連線中...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 左側 VEG_MAP 圖例與即時營業雷達 -->
+  <aside class="radar-card" id="radarCard" aria-label="即時營業雷達與浮島圖例">
+    <div class="radar-head">
+      <h3>TOP 10 即時覓食雷達</h3>
+      <button type="button" class="icon-circle-btn" id="btnToggleRadar" title="收合雷達清單" aria-label="收合雷達清單">−</button>
+    </div>
+    <div id="radarContent">
+      <div class="legend-strip">
+        <div class="legend-row">
+          <i class="legend-swatch" style="background:#2c4a47"></i>
+          <span>黑標 1-5：清大周邊與校內必吃</span>
+        </div>
+        <div class="legend-row">
+          <i class="legend-swatch" style="background:#ea7a2e"></i>
+          <span>橘標 1-5：單車 10 分鐘生活圈</span>
+        </div>
+      </div>
+      <ul class="radar-list" id="radarList"></ul>
+    </div>
+  </aside>
+
+  <!-- 左下角清大松鼠與蔬食小精靈尋寶計數器 -->
+  <div class="guide-card" id="guideCard">
+    <div class="guide-icon" aria-hidden="true">尋寶</div>
+    <div class="guide-text">
+      <b>清華松鼠與青花菜精靈</b>
+      <span id="critterCountText">已尋獲 <strong>0 / 12</strong> 隻浮島小夥伴</span>
+      <small>拖曳旋轉・滾輪縮放・點擊浮島或松鼠對話</small>
+    </div>
+  </div>
+
+  <!-- 底部懸浮互動膠囊工具列 -->
+  <nav class="toolbar" id="toolbar" aria-label="3D 浮島場景控制列">
+    <button type="button" class="cta-pill quiz-pill" id="btnOpenQuiz">尋味測驗</button>
+    <button type="button" class="cta-pill tour-pill" id="btnToggleTour">浮島導覽</button>
+
+    <div class="seg" role="group" aria-label="視角模式">
+      <button type="button" class="tb on" data-view="panorama" id="btnViewPanorama">全景</button>
+      <button type="button" class="tb" data-view="bird" id="btnViewBird">鳥瞰</button>
+      <button type="button" class="tb" data-view="list" id="btnViewList">清單</button>
+    </div>
+
+    <div class="seg desktop-toggles" role="group" aria-label="顯示與光影設定">
+      <button type="button" class="tb on" data-toggle="labels">店名</button>
+      <button type="button" class="tb" data-toggle="links">覓食航線</button>
+      <button type="button" class="tb" data-toggle="time">日夜：自動</button>
+      <button type="button" class="tb on" data-toggle="fx">移軸微縮</button>
+      <button type="button" class="tb on" data-toggle="anim">動態</button>
+    </div>
+
+    <div class="more-wrap">
+      <button type="button" class="more-btn" id="btnMobileMore" aria-label="更多場景設定">⋯</button>
+      <div class="more-menu" id="mobileMoreMenu" hidden>
+        <button type="button" class="tb on" data-toggle="labels">店名</button>
+        <button type="button" class="tb" data-toggle="links">航線</button>
+        <button type="button" class="tb" data-toggle="time">日夜</button>
+        <button type="button" class="tb" data-toggle="fx">移軸</button>
+        <button type="button" class="tb on" data-toggle="anim">動態</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 右側滑入詳情面板（行動裝置自動切換為兩段式 Bottom Sheet） -->
+  <section class="panel sheet-peek" id="detailPanel" hidden aria-label="浮島詳細資訊">
+    <button type="button" class="sheet-handle" id="btnSheetHandle" aria-label="展開或收合詳情抽屜">
+      <i></i>
+      <span id="sheetHandleHint">點此展開完整餐廳資訊</span>
+    </button>
+    <div class="panel-head" id="panelHead">
+      <div class="panel-nav">
+        <button type="button" class="nav-arrow" id="btnPrevIsland" title="上一座浮島" aria-label="上一座浮島">‹</button>
+        <button type="button" class="nav-arrow" id="btnNextIsland" title="下一座浮島" aria-label="下一座浮島">›</button>
+        <span class="panel-kind" id="panelKind">推薦浮島</span>
+        <button type="button" class="close-btn" id="btnClosePanel" title="關閉面板並返回全景" aria-label="關閉面板">×</button>
+      </div>
+      <div class="panel-title-row">
+        <h2 id="panelTitle">國立清華大學</h2>
+        <span class="status-pill open" id="panelStatusPill">核心主島</span>
+      </div>
+      <p class="panel-sub" id="panelSub"></p>
+      <div class="tabs" id="panelTabs" role="tablist"></div>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </section>
+
+  <!-- 浮島自動巡航導覽卡 -->
+  <section class="tour-card" id="tourCard" hidden aria-label="浮島自動導覽">
+    <div class="tour-progress"><i id="tourProgressFill"></i></div>
+    <div class="tour-body">
+      <div class="tour-info">
+        <div class="tour-meta">
+          <strong id="tourStepLabel">1 / 11</strong>
+          <span class="tour-badge" id="tourBadge">核心主島</span>
+          <span id="tourStateHint">自動巡航中</span>
+        </div>
+        <h3 id="tourTitle">清華大學</h3>
+        <p id="tourDesc"></p>
+      </div>
+      <div class="tour-ctrls">
+        <button type="button" id="btnTourPrev" title="上一站" aria-label="上一站">‹</button>
+        <button type="button" id="btnTourPause" title="暫停或繼續導覽" aria-label="暫停或繼續">❚❚</button>
+        <button type="button" id="btnTourNext" title="下一站" aria-label="下一站">›</button>
+        <button type="button" id="btnTourStop" title="結束導覽" aria-label="結束導覽">✕</button>
+        <button type="button" class="tour-detail-btn" id="btnTourOpenDetail">查看詳情</button>
+      </div>
+    </div>
+    <div class="tour-dots" id="tourDots"></div>
+  </section>
+
+  <!-- 文字卡片篩選清單總覽 -->
+  <section class="listview" id="listView" hidden aria-label="TOP 10 蔬食餐廳清單總覽">
+    <div class="list-inner">
+      <div class="list-header">
+        <h2>2026 清大福青蔬食推薦餐廳 TOP 10 總覽</h2>
+        <div class="filter-pills" id="listFilterPills">
+          <button type="button" class="tb on" data-filter="all">全部 (10)</button>
+          <button type="button" class="tb" data-filter="inner">黑標推薦前五 (5)</button>
+          <button type="button" class="tb" data-filter="outer">橘標單車 10 分鐘 (5)</button>
+          <button type="button" class="tb" data-filter="vegan">純全素店</button>
+          <button type="button" class="tb" data-filter="open">目前營業中</button>
+          <button type="button" class="tb" id="btnCloseListView">返回 3D 浮島 ✕</button>
+        </div>
+      </div>
+      <div class="cards-grid" id="listCardsGrid"></div>
+    </div>
+  </section>
+
+  <!-- 4 題互動「今天吃什麼？」尋味適性測驗 -->
+  <div class="quiz-wrap" id="quizModal" hidden role="dialog" aria-modal="true" aria-label="今天吃什麼尋味測驗">
+    <div class="quiz-box">
+      <button type="button" class="close-btn quiz-close" id="btnCloseQuiz" aria-label="關閉測驗">×</button>
+      <p class="quiz-eyebrow">VEGGIE ISLAND FINDER</p>
+      <div class="quiz-steps" id="quizSteps"></div>
+      <div id="quizBody"></div>
+    </div>
+  </div>
+
+  <!-- 輕量提示吐司 -->
+  <div class="toast" id="toastMsg" hidden role="status" aria-live="polite"></div>
+
+  <!-- 開場雲端升島載入遮罩 -->
+  <div class="intro" id="introOverlay">
+    <div class="intro-card">
+      <p class="intro-eyebrow">NTHU BWY VEGGIE MAP 2026</p>
+      <img class="intro-logo" src="./img/抱抱地球2.png" alt="抱抱地球">
+      <h2>2026 清大福青社蔬食地圖</h2>
+      <p>天空之城浮島・清華簡冊立柱主島 × TOP 10 推薦餐廳</p>
+      <div class="intro-bar"><i id="introProgressFill"></i></div>
+      <div class="intro-step" id="introStepText">正在載入 TOP 10 蔬食餐廳資料與積木幾何...</div>
+      <button type="button" class="intro-skip" id="btnIntroSkip">略過開場直接進入</button>
+    </div>
+  </div>
+
+  <script type="module" src="./assets/island/island-ui.js"></script>
+</body>
+</html>

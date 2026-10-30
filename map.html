@@ -45,6 +45,62 @@
       border: none;
       display: block;
     }
+    .island-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #e7f3f1 0%, #fffaf2 58%, #fbead8 100%);
+      border: 1.5px solid #9ec5c1;
+      box-shadow: 0 6px 20px rgba(44, 74, 71, 0.1);
+    }
+    .island-banner-info h2 {
+      margin: 0 0 4px;
+      font-size: 1.12rem;
+      color: #223331;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .island-badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: #2c4a47;
+      color: #fffaf2;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .island-banner-info p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #4a615e;
+      line-height: 1.5;
+    }
+    .island-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #3d7d78, #2c4a47);
+      color: #fffaf2 !important;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 0.94rem;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(44, 74, 71, 0.22);
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .island-cta-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.07);
+    }
     @media (max-width: 600px) {
       .map-frame-card iframe {
         height: 400px;
@@ -54,6 +110,13 @@
       }
       .map-hero h1 {
         font-size: 1.25rem;
+      }
+      .island-banner {
+        padding: 14px 15px;
+      }
+      .island-cta-btn {
+        width: 100%;
+        justify-content: center;
       }
     }
   </style>
@@ -111,6 +174,14 @@
   </div>
 
   <div class="map-wrap">
+    <div class="island-banner">
+      <div class="island-banner-info">
+        <h2>2026 清大福青社蔬食地圖：天空之城浮島 <span class="island-badge">3D 互動新上線</span></h2>
+        <p>從清華大學「簡冊立柱」校門主島出發，3D 微縮探索精選 TOP 10 推薦蔬食餐廳、即時營業狀態與尋味測驗。</p>
+      </div>
+      <a class="island-cta-btn" href="./island.html">進入 3D 浮島地圖 →</a>
+    </div>
+
     <div class="map-frame-card">
       <iframe
         src="https://www.google.com/maps/d/u/1/embed?mid=1pRX1QdNBgRvGR4L5ckNvlSUIIl2OQDX0&ehbc=2E312F&z=14&ll=24.800807827244682%2C120.98678398824364"
