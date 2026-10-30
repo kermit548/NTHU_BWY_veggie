@@ -1,4 +1,4 @@
-// 2026 清大福青社蔬食地圖 — HUD 互動介面控制器、新竹即時氣象串接、尋味測驗與浮島自動導覽
+// 2026 清大福青社蔬食地圖 — HUD 互動介面控制器、新竹即時氣象串接、「今天吃啥」測驗與浮島自動導覽
 // 連接 island-data.js、island-world.js、island-landmarks.js 與 island-shops.js
 
 import {
