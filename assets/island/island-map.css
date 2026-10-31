@@ -319,6 +319,15 @@ a {
   color: #fffaf2;
 }
 
+.brand-links .desktop-devlog-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mobile-devlog-btn {
+  display: none;
+}
+
 .brand-links .btn-top-time {
   background: rgba(22, 101, 88, 0.08);
   border: 1px solid rgba(22, 101, 88, 0.35);
@@ -1639,6 +1648,37 @@ a {
     flex: 1;
     padding: 7px 11px;
     border-radius: 14px;
+    position: relative;
+  }
+
+  .desktop-devlog-link {
+    display: none !important;
+  }
+
+  .mobile-devlog-btn {
+    position: absolute;
+    top: 9px;
+    right: 11px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--teal);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    transition: all 0.15s ease;
+    z-index: 2;
+  }
+
+  .mobile-devlog-btn:hover,
+  .mobile-devlog-btn:active {
+    background: var(--teal);
+    color: #fffaf2;
+    transform: scale(1.05);
   }
 
   .brand-logo {
