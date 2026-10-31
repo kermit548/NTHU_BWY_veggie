@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>關於本站：2026 清大福青社蔬食地圖（天空之城 3D 浮島）開發日誌</title>
+  <link rel="icon" href="../img/抱抱地球2.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #ebe7df;
+      --bg-card: #faf8f4;
+      --bg-callout: #f3f1ea;
+      --accent-callout: #244b48;
+      --accent-teal: #4a8584;
+      --accent-orange: #ea7a2e;
+      --text-main: #2d3748;
+      --text-dark: #1a202c;
+      --text-muted: #64748b;
+      --border-soft: #e2ded5;
+      --border-card: rgba(0, 0, 0, 0.08);
+      --shadow-card: 0 16px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-weight: 400;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.75;
+      font-size: 15px;
+      padding: 24px 16px 60px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .modal-container {
+      width: 100%;
+      max-width: 740px;
+      background: var(--bg-card);
+      border-radius: 20px;
+      border: 1px solid var(--border-card);
+      box-shadow: var(--shadow-card);
+      padding: 32px 36px 40px;
+      position: relative;
+    }
+
+    /* 頂部列與關閉按鈕 */
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+    }
+
+    .modal-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-title-icon {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .modal-close-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.05);
+      border: none;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(220, 53, 69, 0.12);
+      color: #dc3545;
+      transform: rotate(90deg);
+    }
+
+    /* 置頂藍灰重點說明方框（對齊參考樣式） */
+    .callout-box {
+      background: var(--bg-callout);
+      border-left: 4.5px solid var(--accent-callout);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      font-size: 14.5px;
+      color: var(--text-main);
+    }
+
+    .callout-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .callout-box p {
+      margin-bottom: 10px;
+    }
+
+    .callout-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 粗體免責警語列 */
+    .disclaimer-lead {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 22px;
+      line-height: 1.65;
+    }
+
+    /* 章節標題 */
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-top: 26px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: var(--accent-teal);
+      border-radius: 2px;
+    }
+
+    /* 條列清單 */
+    ul.dev-list {
+      list-style-type: disc;
+      padding-left: 24px;
+      margin-bottom: 20px;
+    }
+
+    ul.dev-list li {
+      margin-bottom: 10px;
+      color: var(--text-main);
+    }
+
+    ul.dev-list li strong {
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    /* 巢狀子清單 */
+    ul.dev-list ul {
+      list-style-type: circle;
+      padding-left: 20px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+
+    /* 連結樣式 */
+    a {
+      color: var(--accent-callout);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.15s;
+    }
+
+    a:hover {
+      color: var(--accent-teal);
+    }
+
+    /* 標籤小徽章 */
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 4px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .badge-core { background: #e2eceb; color: #1e3a39; }
+    .badge-egg { background: #fee8d6; color: #a3480b; }
+    .badge-tech { background: #edf2f7; color: #2d3748; }
+
+    /* 表格樣式 */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      background: #ffffff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      text-align: left;
+    }
+
+    th {
+      background: #f4f1ea;
+      color: var(--text-dark);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-soft);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* 底部操作與導航按鈕列 */
+    .footer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 36px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent-callout);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(36, 75, 72, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: #1b3836;
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(36, 75, 72, 0.35);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--text-main);
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: var(--text-dark);
+    }
+
+    .copyright-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 12px 8px 40px;
+      }
+      .modal-container {
+        padding: 24px 18px 30px;
+        border-radius: 16px;
+      }
+      .modal-title {
+        font-size: 19px;
+      }
+      .footer-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+      .btn-action {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="modal-container" role="main">
+    
+    <!-- 頂部標題與關閉按鈕 -->
+    <header class="modal-header">
+      <div class="modal-title-wrap">
+        <img class="modal-title-icon" src="../img/抱抱地球2.png" alt="抱抱地球 Logo">
+        <h1 class="modal-title">關於本站：天空之城 3D 浮島開發日誌</h1>
+      </div>
+      <a href="../island.html" class="modal-close-btn" title="關閉並返回 3D 浮島" aria-label="關閉">✕</a>
+    </header>
+
+    <!-- 置頂聲明與更新框 -->
+    <aside class="callout-box">
+      <div class="callout-title">2026/10/31 專案聲明、技術傳承與致敬</div>
+      <p>
+        本站的 3D 微縮群島互動導覽形式（浮島地圖、校園地標、主題編號、動態漫遊路人與巡航視角）參考了
+        <a href="https://tntcshisland.vercel.app/" target="_blank" rel="noopener noreferrer">南大附中探索群島</a>（2026 上線）之網站設計概念與原作者分享的四項關鍵心法，謝謝南大附中團隊先做出這麼精采的示範。
+      </p>
+      <p>
+        本站程式由作者在 <strong>Google AntiGravity (Gemini 2.5)</strong> 輔助下協作撰寫，
+        全場 11 座浮島建築、清華簡冊立柱與料理模型 <strong>100% 以 Three.js 程式碼原生積木幾何構建（零外部 GLTF / OBJ 模型）</strong>，
+        視覺風格則深度融合清大福青蔬食月散步手繪地圖之粉彩青瓷暖米色調。
+      </p>
+      <p>
+        程式碼完全獨立全新開發，未沿用南大附中之原始程式碼；清大周邊與校內 TOP 10 蔬食餐廳資料、地標模型、校園爭議紅綠燈與彩蛋皆由作者親自整理、建模與查證，完整修改紀錄可在
+        <a href="https://github.com/kermit548/NTHU_BWY_veggie" target="_blank" rel="noopener noreferrer">GitHub 儲存庫</a> 查閱。
+      </p>
+    </aside>
+
+    <div class="disclaimer-lead">
+      這是一個由清大福智青年社推廣「2026 蔬食月・出一張嘴改變世界」的社團專題互動專案，非清華大學官方系統。所有推薦店家均來自公開資訊、社團實地走訪與學生口碑推薦，無任何商業置入或營利行為。
+    </div>
+
+    <!-- 一、 核心架構與四項關鍵技術心法 -->
+    <h2 class="section-title">四大核心技術架構（效能與美學平衡）</h2>
+    <ul class="dev-list">
+      <li>
+        <strong>1. 純程式積木幾何建模（Zero External 3D Models）</strong>：<br>
+        全場 11 座浮島、清華簡冊立柱、10 間店鋪與招牌料理（藥膳麵、漸層水果奶茶、紅燒素排、紅油抄手、素油飯），100% 由程式碼圓角方塊（<code>RoundedBoxGeometry</code>）、圓柱、球體等基礎幾何參數化拼裝。全站靜態資源僅數十 KB，杜絕數十 MB 的肥大模型下載，達成秒開秒載入。
+      </li>
+      <li>
+        <strong>2. 同材質靜態幾何合併（BufferGeometry Merging）</strong>：<br>
+        全場零件數超過 1,400 個。於核心渲染管線引入 <code>BufferGeometryUtils.mergeGeometries</code> 實作烘焙合併機制，將各島靜態物件（岩石底座、簡冊立柱、屋瓦、草地）依相同材質批次合併，<strong>全場靜態網格縮減率達 94.44%（Draw Calls 從上千次降至 78 次）</strong>，無論在桌機或中低階手機皆能保證流暢 60 FPS。
+      </li>
+      <li>
+        <strong>3. 移軸微縮後製特效（Tilt-Shift Miniature Postprocessing）</strong>：<br>
+        透過 Three.js <code>EffectComposer</code> 結合自訂 GLSL 著色器，於畫面上下兩端施加柔和景深模糊、強化色彩飽和度與微暗角，營造「擺在木桌上的微縮玩具模型」精緻錯覺；內建<strong>行動裝置自動降級守衛</strong>，手機瀏覽時預設自動關閉後製以省電抗發熱。
+      </li>
+      <li>
+        <strong>4. UTF-8 BOM 解碼防線與即時營業判定</strong>：<br>
+        嚴格採用 <code>TextDecoder('utf-8')</code> 剝除 Windows 匯出 TSV 時常伴隨的隱形 BOM（<code>\uFEFF</code>）防範欄位亂碼；內建即時時鐘引擎，自動換算台灣時區、解析雙時段營業與公休日，即時在 3D 浮島名牌標記綠色「營業中」與灰色「公休」。
+      </li>
+    </ul>
+
+    <!-- 二、 浮島空間佈局與主題規劃 -->
+    <h2 class="section-title">浮島空間佈局與十大人氣蔬食地標</h2>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>分區規劃</th>
+            <th>編號</th>
+            <th>地標 / 餐廳名稱</th>
+            <th>相對方位</th>
+            <th>專屬純程式碼微縮模型</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>中央主島</strong></td>
+            <td>主島</td>
+            <td>國立清華大學（校門立柱）</td>
+            <td>中央原點</td>
+            <td>展開三簡冊立柱（透空隙縫、階梯柱頂、避雷針、書法題字）、拼花石板廣場、微縮成功湖、榕樹群與蔬食月攤位</td>
+          </tr>
+          <tr>
+            <td><strong>內環：精選推薦</strong></td>
+            <td>1</td>
+            <td>雅素齋自然人文蔬食館</td>
+            <td>東南方</td>
+            <td>人文木質茶屋、藥膳湯麵大碗與冰鎮滷味拼盤</td>
+          </tr>
+          <tr>
+            <td><strong>內環：精選推薦</strong></td>
+            <td>2</td>
+            <td>妙觀音素食</td>
+            <td>東北東</td>
+            <td>暖紅招牌麵館、動態蒸氣紅燒湯麵碗與高掛燈籠</td>
+          </tr>
+          <tr>
+            <td><strong>內環：精選推薦</strong></td>
+            <td>3</td>
+            <td>安姆士</td>
+            <td>北北東</td>
+            <td>清新輕食吧台、漸層水果奶茶圓柱杯與養生拌飯</td>
+          </tr>
+          <tr>
+            <td><strong>內環：精選推薦</strong></td>
+            <td>4</td>
+            <td>棗子樹</td>
+            <td>北北西</td>
+            <td>綠意庭院小館、蛋煎粄條鐵板台與低多邊形紅棗樹</td>
+          </tr>
+          <tr>
+            <td><strong>內環：校內必吃</strong></td>
+            <td>5</td>
+            <td>鼎盛蔬食便當（清大風二）</td>
+            <td>西南方</td>
+            <td>風雲樓二樓圓弧意象、多格手作蔬食便當盒模型</td>
+          </tr>
+          <tr>
+            <td><strong>外環：單車生活圈</strong></td>
+            <td>1</td>
+            <td>滿素圓</td>
+            <td>東南東</td>
+            <td>溫馨家常麵館、紅油抄手瓷碗與木盒便當模型</td>
+          </tr>
+          <tr>
+            <td><strong>外環：單車生活圈</strong></td>
+            <td>2</td>
+            <td>一鮮素素食小館</td>
+            <td>正北方</td>
+            <td>熱炒小館、滋滋冒煙黑色鐵板素排與砂鍋臭豆腐煲</td>
+          </tr>
+          <tr>
+            <td><strong>外環：單車生活圈</strong></td>
+            <td>3</td>
+            <td>游媽媽素食小吃</td>
+            <td>西北方</td>
+            <td>古早味小吃攤車、竹蒸籠素油飯與半月形飽滿水餃</td>
+          </tr>
+          <tr>
+            <td><strong>外環：單車生活圈</strong></td>
+            <td>4</td>
+            <td>菜根香素食</td>
+            <td>正西方</td>
+            <td>中華快炒小館、半球形大火翻炒鐵鍋與水餃盤</td>
+          </tr>
+          <tr>
+            <td><strong>外環：單車生活圈</strong></td>
+            <td>5</td>
+            <td>素怡園（交大二餐）</td>
+            <td>正南方</td>
+            <td>現代雙層綠建築、紫米十穀飯木桶與自助餐檯</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 三、 開發歷程與彩蛋演進清單 -->
+    <h2 class="section-title">版本演進與校園趣味彩蛋（專案里程碑）</h2>
+    <ul class="dev-list">
+      <li>
+        <span class="badge badge-core">Stage 1~6</span><strong>基礎架構建置</strong>：<br>
+        完成參考站架構拆解、TSV 資料安全讀取、3D 積木渲染引擎、簡冊立柱與 10 座店鋪拼裝，以及整合新竹即時天氣、營業雷達、自動尋味測驗與多視角導覽 HUD。
+      </li>
+      <li>
+        <span class="badge badge-egg">校園彩蛋</span><strong>清大校園爭議紅綠燈（【彩蛋】紅綠燈-1 ~ 3）</strong>：<br>
+        還原近期清大校內討論度極高之「綠燈 75 秒 / 黃燈 5 秒 / 紅燈 75 秒」長週期號誌。採用曲管懸臂立柱與橫式三色燈箱，配置 LED 雙位數即時倒數讀秒；移除遮光罩以利俯視觀察，並避開校園大樹穿模。
+      </li>
+      <li>
+        <span class="badge badge-egg">校園彩蛋</span><strong>群島巡航筋肉奶蛙（【彩蛋】奶蛙-1 ~ 4）</strong>：<br>
+        具備黃色倒三角爆筋體軀、粉膚色圓肚與交叉抱胸姿態；部署「單段拋物線大跨越」、「島間至多兩次落腳小雲朵」與「島嶼地面高度防穿模守衛（Elevation Guard）」，杜絕穿入屋頂或潛入地底，提供點擊 Q 彈縮放與趣味台詞。
+      </li>
+      <li>
+        <span class="badge badge-egg">校園彩蛋</span><strong>清華胖達與攤位志工（【彩蛋】小夥伴-1 ~ 2）</strong>：<br>
+        以清大吉祥物紫色連帽衫熊貓「清華胖達」全面替換尋寶目標；主島攤位前配置鵝黃色與紅色 POLO 衫志工，支援 6 段中英雙語宣傳語音輪播，尋獲滿員自動切換「好眼力，已尋獲全部小夥伴」祝賀文案。
+      </li>
+      <li>
+        <span class="badge badge-tech">介面追加</span><strong>《品嚐幸福》YouTube MV 浮動音樂播放器（【追加】介面-1 ~ 3）</strong>：<br>
+        整合台北安可大舞台技術概念，桌機版呈現精緻影片浮動卡（單控模式防止雙重控制干擾）；手持裝置自動折疊為頂部常駐徽章與底部無遮擋迷你控制列（預設音量 25% 防爆音），支援自動播放與日夜快速切換。
+      </li>
+      <li>
+        <span class="badge badge-tech">系統追加</span><strong>全島漫步路人與木橋巡迴講師（【追加】漫步NPC-1 ~ 2）</strong>：<br>
+        全新獨立腳本 <code>assets/island/island-dynmic_npc.js</code>，桌機配置 33 位路人（每島 2~3 人 + 3 位長袍巡迴講師）、手機版自動分級為 12 人。嚴格依循木橋拋物線行走絕不踩空；常駐路人全面掛載於浮島根節點本地座標系，完美同步懸浮呼吸起伏與 Hover 抬升；無縫連動底部「動態」開關實現即時凍結暫停。
+      </li>
+      <li>
+        <span class="badge badge-tech">功能追加</span><strong>一鍵美照拍貼機（【追加】一鍵拍貼）</strong>：<br>
+        全新開發 <code>assets/island-camera.js</code>，快門按鈕相容桌機與手持裝置置中佈局；強制調用 WebGLRenderer 繪製純淨 3D 浮島無 DOM 雜訊底圖；支援「↖ 左上、↗ 右上、↙ 左下、↘ 右下」4 角抱抱地球吉祥物與「2026 清大福青蔬食月」抗反光毛玻璃浮水印即時重繪，並支援高解析 PNG 下載。
+      </li>
+    </ul>
+
+    <!-- 四、 隱私與開源協議 -->
+    <h2 class="section-title">隱私防線與開源協議</h2>
+    <ul class="dev-list">
+      <li><strong>零私人個資原則</strong>：本專案嚴格遵守資料隔離防線，全站無使用者登入追蹤 Cookie，未收集任何姓名、學號或聯絡方式。</li>
+      <li><strong>開源授權</strong>：專案程式碼依 MIT License 規範開放供校園與非營利教育推廣交流學習。</li>
+    </ul>
+
+    <!-- 底部按鈕區 -->
+    <footer class="footer-actions">
+      <a href="../island.html" class="btn-action btn-primary">
+        <span>☁️</span> 返回天空之城 3D 浮島
+      </a>
+      <a href="../index.html" class="btn-action btn-outline">
+        <span>🃏</span> 2026 蔬食月賓果挑戰
+      </a>
+      <a href="https://github.com/kermit548/NTHU_BWY_veggie" target="_blank" rel="noopener noreferrer" class="btn-action btn-outline">
+        <span>💻</span> GitHub 專案紀錄
+      </a>
+    </footer>
+
+    <p class="copyright-note">
+      © 2026 國立清華大學福智青年社 (NTHU Bliss & Wisdom Youth)・出一張嘴改變世界
+    </p>
+
+  </main>
+
+</body>
+</html>
