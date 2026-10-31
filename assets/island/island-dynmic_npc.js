@@ -220,8 +220,8 @@
     for (let i = 0; i <= count; i++) {
       const t = forward ? (i / count) : (1 - i / count);
       const r = startR + t * span;
-      // 腳掌穩健貼合木橋板面（橋面基準 + 踏板厚度 + 0.04）
-      const y = hub.baseY * (1 - t) + shop.baseY * t + 0.03 + Math.sin(t * Math.PI) * archH + 0.04;
+      // 腳掌穩健貼合木橋板面（木橋表面 + 踏板厚度 + 0.045 安全淨空）
+      const y = hub.baseY * (1 - t) + shop.baseY * t + 0.06 + Math.sin(t * Math.PI) * archH + 0.045;
       const x = hub.x + Math.cos(angle) * r;
       const z = hub.z + Math.sin(angle) * r;
       pts.push([x, y, z]);
@@ -231,64 +231,61 @@
 
   /**
    * 產生常駐路人在島嶼綠地廣場的安全巡迴路徑
+   * 座標統一為島嶼本地 (Local) 座標系，依附於各自的 islandRoot，草坪基準面為 y = 0.045
    */
   function buildIslandWanderRoutes(island, isHub = false) {
     const routes = [];
     if (isHub) {
       // 清華主島（半徑 5.5，圍繞簡冊立柱與林蔭散步道）
       routes.push([
-        [1.8, 0.04, 1.4],
-        [2.6, 0.04, -0.6],
-        [1.2, 0.04, -2.4],
-        [-1.6, 0.04, -2.1],
-        [-2.5, 0.04, 0.2],
-        [-1.4, 0.04, 2.2],
-        [0.4, 0.04, 2.5]
+        [1.8, 0.045, 1.4],
+        [2.6, 0.045, -0.6],
+        [1.2, 0.045, -2.4],
+        [-1.6, 0.045, -2.1],
+        [-2.5, 0.045, 0.2],
+        [-1.4, 0.045, 2.2],
+        [0.4, 0.045, 2.5]
       ]);
       routes.push([
-        [-1.8, 0.04, 1.2],
-        [-2.6, 0.04, -1.2],
-        [-0.8, 0.04, -2.6],
-        [1.5, 0.04, -1.8],
-        [2.4, 0.04, 0.4],
-        [1.2, 0.04, 2.2],
-        [-0.4, 0.04, 2.4]
+        [-1.8, 0.045, 1.2],
+        [-2.6, 0.045, -1.2],
+        [-0.8, 0.045, -2.6],
+        [1.5, 0.045, -1.8],
+        [2.4, 0.045, 0.4],
+        [1.2, 0.045, 2.2],
+        [-0.4, 0.045, 2.4]
       ]);
       routes.push([
-        [0.0, 0.04, 2.2],
-        [1.4, 0.04, 1.6],
-        [1.9, 0.04, 0.2],
-        [0.8, 0.04, -1.2],
-        [-1.0, 0.04, -1.2],
-        [-1.8, 0.04, 0.4],
-        [-1.2, 0.04, 1.8]
+        [0.0, 0.045, 2.2],
+        [1.4, 0.045, 1.6],
+        [1.9, 0.045, 0.2],
+        [0.8, 0.045, -1.2],
+        [-1.0, 0.045, -1.2],
+        [-1.8, 0.045, 0.4],
+        [-1.2, 0.045, 1.8]
       ]);
     } else {
-      // 10 座餐廳島（避開後方建築建物，於前半部前庭、露天花園、景觀台漫步）
-      const ix = island.x;
-      const iy = island.baseY + 0.04;
-      const iz = island.z;
-
+      // 10 座餐廳島（避開後方建築建物，於前半部前庭、露天花園、景觀台漫步，本地座標系）
       routes.push([
-        [ix - 1.2, iy, iz + 1.1],
-        [ix - 0.4, iy, iz + 1.9],
-        [ix + 0.9, iy, iz + 1.7],
-        [ix + 1.4, iy, iz + 0.9],
-        [ix + 0.3, iy, iz + 0.6]
+        [-1.1, 0.045, 1.1],
+        [-0.3, 0.045, 1.8],
+        [0.8, 0.045, 1.6],
+        [1.3, 0.045, 0.9],
+        [0.2, 0.045, 0.7]
       ]);
       routes.push([
-        [ix + 1.3, iy, iz + 1.2],
-        [ix + 0.5, iy, iz + 2.1],
-        [ix - 0.9, iy, iz + 1.8],
-        [ix - 1.4, iy, iz + 0.7],
-        [ix - 0.2, iy, iz + 0.8]
+        [1.2, 0.045, 1.2],
+        [0.4, 0.045, 2.0],
+        [-0.8, 0.045, 1.7],
+        [-1.3, 0.045, 0.9],
+        [-0.2, 0.045, 0.8]
       ]);
       routes.push([
-        [ix - 0.8, iy, iz + 2.0],
-        [ix + 0.6, iy, iz + 1.9],
-        [ix + 1.5, iy, iz + 1.1],
-        [ix + 0.7, iy, iz + 1.2],
-        [ix - 0.5, iy, iz + 1.4]
+        [-0.7, 0.045, 1.9],
+        [0.5, 0.045, 1.8],
+        [1.2, 0.045, 1.1],
+        [0.6, 0.045, 1.3],
+        [-0.4, 0.045, 1.5]
       ]);
     }
     return routes;
@@ -301,7 +298,7 @@
     const fullPath = [];
 
     // 主島中心集合點
-    const hubCenter = [hub.x, hub.baseY + 0.04, hub.z];
+    const hubCenter = [hub.x, hub.baseY + 0.045, hub.z];
 
     for (let sIdx = 0; sIdx < shopSequence.length; sIdx++) {
       const shop = innerShops[shopSequence[sIdx]];
@@ -314,7 +311,7 @@
       const hubBridgeHead = bridgeOut[0];
       fullPath.push([
         hubCenter[0] * 0.4 + hubBridgeHead[0] * 0.6,
-        hub.baseY + 0.04,
+        hub.baseY + 0.045,
         hubCenter[2] * 0.4 + hubBridgeHead[2] * 0.6
       ]);
 
@@ -325,7 +322,7 @@
 
       // 3. 踏上餐廳島前庭廣場視察（3 個安全節點）
       const sx = shop.x;
-      const sy = shop.baseY + 0.04;
+      const sy = shop.baseY + 0.045;
       const sz = shop.z;
       fullPath.push([sx + 0.4, sy, sz + 0.9]);
       fullPath.push([sx - 0.5, sy, sz + 1.4]);
@@ -347,10 +344,13 @@
    * 路徑巡航控制實體
    */
   class DynamicWalker {
-    constructor(avatar, path, speed = 0.45, startProgress = 0) {
+    constructor(avatar, path, speed = 0.45, startProgress = 0, opts = {}) {
       this.avatar = avatar;
       this.path = path;
       this.speed = speed;
+      this.islandRoots = opts.islandRoots || null;
+      this.hub = opts.hub || null;
+      this.innerShops = opts.innerShops || null;
       this.totalDist = 0;
       this.segDists = [];
       this.segCumulative = [0];
@@ -390,8 +390,33 @@
 
       // 座標線性插值
       const curX = p0[0] + (p1[0] - p0[0]) * t;
-      const curY = p0[1] + (p1[1] - p0[1]) * t;
+      let curY = p0[1] + (p1[1] - p0[1]) * t;
       const curZ = p0[2] + (p1[2] - p0[2]) * t;
+
+      // 若為跨島講師（世界座標系巡航），於接近島嶼腹地時動態貼合該島即時懸浮起伏 (bob + hoverLift)
+      if (this.avatar.isInstructor && this.islandRoots) {
+        const hubRoot = this.islandRoots.get('nthu-hub');
+        const dHub = Math.hypot(curX - this.hub.x, curZ - this.hub.z);
+        if (dHub < 5.2 && hubRoot) {
+          const hubOffset = hubRoot.position.y - this.hub.baseY;
+          const blend = Math.max(0, Math.min(1, (5.2 - dHub) / 1.5));
+          curY += hubOffset * blend;
+        } else if (this.innerShops) {
+          for (let s = 0; s < this.innerShops.length; s++) {
+            const sh = this.innerShops[s];
+            const dShop = Math.hypot(curX - sh.x, curZ - sh.z);
+            if (dShop < 3.6) {
+              const shopRoot = this.islandRoots.get(sh.id);
+              if (shopRoot) {
+                const shopOffset = shopRoot.position.y - sh.baseY;
+                const blend = Math.max(0, Math.min(1, (3.6 - dShop) / 1.2));
+                curY += shopOffset * blend;
+              }
+              break;
+            }
+          }
+        }
+      }
 
       this.avatar.root.position.set(curX, curY, curZ);
 
@@ -409,27 +434,27 @@
       }
 
       // 雙腿自然交叉擺動
-      const swing = Math.sin(this.walkPhase) * 0.52;
+      const swing = Math.sin(this.walkPhase) * 0.48;
       this.avatar.legL.rotation.x = swing;
       this.avatar.legR.rotation.x = -swing;
 
       // 雙臂自然對角擺動
-      const armSwing = Math.sin(this.walkPhase) * 0.44;
+      const armSwing = Math.sin(this.walkPhase) * 0.42;
       this.avatar.armL.rotation.x = -armSwing;
       if (this.avatar.isInstructor) {
         // 講師手持公文夾微擺
-        this.avatar.armR.rotation.x = -0.38 + armSwing * 0.2;
+        this.avatar.armR.rotation.x = -0.38 + armSwing * 0.18;
       } else {
         this.avatar.armR.rotation.x = armSwing;
       }
 
-      // 身體輕微起伏
-      this.avatar.bodyGroup.position.y = Math.abs(Math.sin(this.walkPhase * 2)) * 0.02;
+      // 身體輕微起伏（步伐跨越時自然上升，最低點恆為 0 確保鞋底不穿模）
+      this.avatar.bodyGroup.position.y = Math.abs(Math.sin(this.walkPhase)) * 0.024;
     }
 
-    destroy(scene) {
-      if (this.avatar && this.avatar.root && scene) {
-        scene.remove(this.avatar.root);
+    destroy() {
+      if (this.avatar && this.avatar.root && this.avatar.root.parent) {
+        this.avatar.root.parent.remove(this.avatar.root);
       }
     }
   }
@@ -445,6 +470,7 @@
       this.isRunning = false;
       this.lastTime = 0;
       this.npcContainer = null;
+      this.islandRoots = new Map();
     }
 
     init({ scene, dataset, THREE }) {
@@ -456,17 +482,45 @@
         return false;
       }
 
+      // 建立全域講師與容器群組
       this.npcContainer = new this.THREE.Group();
       this.npcContainer.name = 'DynamicNPCGroup';
       this.scene.add(this.npcContainer);
 
+      // 遍歷檢索場景中所有浮島根節點 (islandRoots)
+      this.islandRoots.clear();
+      this.scene.traverse(obj => {
+        if (obj.userData && obj.userData.islandId) {
+          this.islandRoots.set(obj.userData.islandId, obj.parent);
+        }
+      });
+
       this.buildNPCs();
 
-      // 啟動專屬輕量動畫循環
+      // 啟動專屬輕量動畫循環（嚴格受全站「動態」開關即時控制）
       this.isRunning = true;
       this.lastTime = performance.now();
+
+      const isAnimActive = () => {
+        if (window.__ISLAND_APP__?.uiState?.animate !== undefined) {
+          return window.__ISLAND_APP__.uiState.animate;
+        }
+        const btn = document.querySelector('[data-toggle="anim"]');
+        if (btn) return btn.classList.contains('on');
+        return true;
+      };
+
       const loop = (now) => {
         if (!this.isRunning) return;
+
+        // 當使用者切換關閉「動態」時，漫遊小人立即暫停動作
+        const isAnim = isAnimActive();
+        if (!isAnim) {
+          this.lastTime = now; // 保持時間基準不跳耀
+          requestAnimationFrame(loop);
+          return;
+        }
+
         const dt = Math.min(0.06, (now - this.lastTime) / 1000);
         this.lastTime = now;
         for (let i = 0; i < this.walkers.length; i++) {
@@ -497,9 +551,7 @@
 
     clearWalkers() {
       for (const w of this.walkers) {
-        if (this.npcContainer && w.avatar && w.avatar.root) {
-          this.npcContainer.remove(w.avatar.root);
-        }
+        w.destroy();
       }
       this.walkers = [];
     }
@@ -520,10 +572,23 @@
 
       // ==========================================
       // 1. 常駐走動路人配置 (Resident Pedestrians)
+      // 依島嶼 islandRoot 本地座標系掛載，徹底杜絕懸浮與沉入土地
       // ==========================================
       allIslands.forEach((island, islIdx) => {
         const isHub = Boolean(island.isHub);
         const routes = buildIslandWanderRoutes(island, isHub);
+        const islandRoot = this.islandRoots?.get(island.id);
+
+        let parentGroup = this.npcContainer;
+        if (islandRoot) {
+          let sub = islandRoot.getObjectByName('DynamicResidentNPCs');
+          if (!sub) {
+            sub = new THREE.Group();
+            sub.name = 'DynamicResidentNPCs';
+            islandRoot.add(sub);
+          }
+          parentGroup = sub;
+        }
 
         // 裝置人數分級：
         // 手持裝置：每島 1 位 (共 11 位)
@@ -542,13 +607,14 @@
           const startProgress = (i * 0.33 + (islIdx * 0.17)) % 1.0;
 
           const walker = new DynamicWalker(avatar, route, speed, startProgress);
-          this.npcContainer.add(avatar.root);
+          parentGroup.add(avatar.root);
           this.walkers.push(walker);
         }
       });
 
       // ==========================================
       // 2. 跨島巡迴講師配置 (Touring Instructors)
+      // 跨越木橋與多島，掛載於場景全域容器，動態貼合橋面與島嶼起伏
       // ==========================================
       if (this.isMobile) {
         // 手持裝置：1 位巡迴講師（走遍內環 5 家餐廳島與主島的木橋網絡）
@@ -557,7 +623,11 @@
         const circuit = buildInstructorCircuit(hub, innerShops, sequence);
 
         const avatar = createAvatarMesh(THREE, { isInstructor: true, instructorCfg, seed: 99 });
-        const walker = new DynamicWalker(avatar, circuit, instructorCfg.speed, 0.0);
+        const walker = new DynamicWalker(avatar, circuit, instructorCfg.speed, 0.0, {
+          islandRoots: this.islandRoots,
+          hub,
+          innerShops
+        });
         this.npcContainer.add(avatar.root);
         this.walkers.push(walker);
       } else {
@@ -571,7 +641,11 @@
         assignments.forEach(({ cfg, seq, start }, idx) => {
           const circuit = buildInstructorCircuit(hub, innerShops, seq);
           const avatar = createAvatarMesh(THREE, { isInstructor: true, instructorCfg: cfg, seed: 100 + idx });
-          const walker = new DynamicWalker(avatar, circuit, cfg.speed, start);
+          const walker = new DynamicWalker(avatar, circuit, cfg.speed, start, {
+            islandRoots: this.islandRoots,
+            hub,
+            innerShops
+          });
           this.npcContainer.add(avatar.root);
           this.walkers.push(walker);
         });
@@ -597,6 +671,12 @@
   // 自主偵測掛載機制（解耦獨立，不侵入修改既有腳本）
   function tryAutoBootstrap() {
     if (window.__islandScene && window.__ISLAND_APP__ && window.__ISLAND_APP__.dataset) {
+      let hasIslands = false;
+      window.__islandScene.traverse(obj => {
+        if (obj.userData && obj.userData.islandId) hasIslands = true;
+      });
+      if (!hasIslands) return false;
+
       dynamicNPCManager.init({
         scene: window.__islandScene,
         dataset: window.__ISLAND_APP__.dataset,
