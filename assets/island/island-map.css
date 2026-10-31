@@ -1650,7 +1650,7 @@ a {
     font-size: 15.5px;
   }
 
-  .brand-sub span:first-child,
+  .brand-sub > span:first-child,
   .weather-card,
   .guide-card {
     display: none;
@@ -2028,34 +2028,56 @@ a {
   font-weight: 500;
 }
 
-/* 常駐微型啟動鈕（收起時顯示於頂端列 brand-links 右側） */
+/* 常駐微型啟動鈕（收起時顯示於頂端列 brand-links 右側，恢復深黑底色與音樂圖示樣式） */
 .brand-links .yt-music-launcher,
 .yt-music-launcher {
   position: static;
   height: auto;
-  padding: 1px 8px;
+  padding: 1.5px 9px 1.5px 7px;
   border-radius: 999px;
-  border: 1px solid rgba(22, 101, 88, 0.35);
-  background: rgba(22, 101, 88, 0.08);
-  color: var(--teal);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: #141617;
+  color: #a8dfc8;
   font-family: inherit;
   font-size: 11.5px;
-  font-weight: 700;
-  box-shadow: none;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
+  line-height: 1.3;
+}
+
+.brand-links .yt-music-launcher span,
+.yt-music-launcher span {
+  display: inline-block !important;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.brand-links .yt-music-launcher small,
+.yt-music-launcher small {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #a8dfc8;
+  letter-spacing: 0.2px;
 }
 
 .brand-links .yt-music-launcher:hover,
 .yt-music-launcher:hover {
-  background: var(--teal);
+  background: #1f2a27;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(22, 101, 88, 0.25);
+  border-color: rgba(168, 223, 200, 0.5);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
   transform: translateY(-1px);
+}
+
+.brand-links .yt-music-launcher:hover small,
+.yt-music-launcher:hover small {
+  color: #ffffff;
 }
 
 .yt-music-launcher[hidden] {
