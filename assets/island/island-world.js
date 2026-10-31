@@ -796,6 +796,7 @@ export function createIslandWorld({
   window.__islandCamera = camera;
   window.__islandControls = controls;
   window.__islandScene = scene;
+  window.__islandRenderer = renderer;
 
   // Lighting
   const hemiLight = new THREE.HemisphereLight(SKY_PALETTES.day.hemiSky, SKY_PALETTES.day.hemiGround, SKY_PALETTES.day.hemiI);

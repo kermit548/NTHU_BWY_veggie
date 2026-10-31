@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>清大吉祥物熊貓 3D 純幾何模型模擬圖（NTHU 紫帽T・坐姿絨毛版）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1600px;
+      height: 1080px;
+      background: #f5efe4;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      color: #1f3330;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fffdf8;
+      border: 1.5px solid #d9cfbe;
+      border-radius: 16px;
+      padding: 14px 22px;
+      box-shadow: 0 4px 14px rgba(31, 51, 48, 0.06);
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #3f3078;
+      letter-spacing: 0.02em;
+    }
+    .header .sub {
+      font-size: 13.5px;
+      color: #556b66;
+      margin-top: 3px;
+    }
+    .badges {
+      display: flex;
+      gap: 10px;
+    }
+    .badge {
+      background: #efeaf9;
+      color: #47368a;
+      border: 1px solid #c9bde8;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .badge.green {
+      background: #e7f3ef;
+      color: #16564b;
+      border-color: #b8dad1;
+    }
+    .badge.warn {
+      background: #fff3e2;
+      color: #b55d19;
+      border-color: #f0cba0;
+    }
+    .grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 16px;
+    }
+    .panel {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1.5px solid #cfd8d5;
+      background: #a5cbc8;
+      box-shadow: 0 6px 18px rgba(24, 48, 44, 0.08);
+    }
+    .panel canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .label-pill {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(255, 252, 245, 0.94);
+      border: 1px solid rgba(71, 54, 138, 0.22);
+      border-radius: 12px;
+      padding: 7px 13px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      pointer-events: none;
+    }
+    .label-pill b {
+      display: block;
+      font-size: 14.5px;
+      color: #3f3078;
+    }
+    .label-pill span {
+      display: block;
+      font-size: 11.5px;
+      color: #5b6e6a;
+      margin-top: 2px;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>清大吉祥物熊貓 3D 純幾何模型模擬圖（NTHU 清華紫連帽衫・坐姿絨毛版）</h1>
+      <div class="sub">使用與正式網站相同之 Three.js r170 核心幾何與浮島綠草地光影參數獨立渲染｜尚未改動正式網站任何檔案</div>
+    </div>
+    <div class="badges">
+      <span class="badge">黑白紫高對比配色（綠草叢極易尋獲）</span>
+      <span class="badge green">曲面貼合黑眼圈＋立體 NTHU 刺繡（零穿模）</span>
+      <span class="badge warn">沙盒模擬預覽（網站零修改）</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel" id="view0">
+      <div class="label-pill">
+        <b>視角 1｜參考圖同角度微俯特寫（Reference Match）</b>
+        <span>八字水滴黑眼圈、琥珀棕邊黑眼珠、立體白吻部與清華紫 NTHU 連帽衫</span>
+      </div>
+    </div>
+    <div class="panel" id="view1">
+      <div class="label-pill">
+        <b>視角 2｜正面全身坐姿標準比例（Front View）</b>
+        <span>圓滾滾大頭耳、立體白色 NTHU 刺繡、羅紋袖口黑圓手與八字坐姿黑腳丫</span>
+      </div>
+    </div>
+    <div class="panel" id="view2">
+      <div class="label-pill">
+        <b>視角 3｜90° 正側面立體輪廓檢驗（Side Profile）</b>
+        <span>立體圓凸吻部、厚實連帽領圈、背後垂掛帽兜與微翹厚腳掌，0% 穿模破面</span>
+      </div>
+    </div>
+    <div class="panel" id="view3">
+      <div class="label-pill">
+        <b>視角 4｜背面連帽帽兜與白圓尾巴（3/4 Rear View）</b>
+        <span>完整立體紫色連帽帽兜（Hood）、羅紋下擺微露白臀與圓滾滾熊貓小尾巴</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    function stdMat(color, opts = {}) {
+      return new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.86,
+        metalness: 0.02,
+        ...opts
+      });
+    }
+
+    // Parallel-Transport (Bishop Frame) 零扭轉變徑圓管（支援開放端半球封口或閉合環 loop）
+    function makeSmoothVariableTube(controlNodes, material, tubularSegs = 44, radialSegs = 22, closed = false) {
+      const pts = controlNodes.map(n => new THREE.Vector3(...n.p));
+      const curve = new THREE.CatmullRomCurve3(pts, closed, 'catmullrom', 0.45);
+
+      const radiusAt = (t) => {
+        if (closed) {
+          const n = controlNodes.length;
+          const scaled = (t % 1) * n;
+          const i0 = Math.floor(scaled) % n;
+          const i1 = (i0 + 1) % n;
+          const f = scaled - Math.floor(scaled);
+          const s = f * f * (3 - 2 * f);
+          return controlNodes[i0].r * (1 - s) + controlNodes[i1].r * s;
+        }
+        const scaled = t * (controlNodes.length - 1);
+        const i0 = Math.min(controlNodes.length - 2, Math.max(0, Math.floor(scaled)));
+        const f = scaled - i0;
+        const s = f * f * (3 - 2 * f);
+        return controlNodes[i0].r * (1 - s) + controlNodes[i0 + 1].r * s;
+      };
+
+      const tangents = [];
+      const normals = [];
+      const binormals = [];
+
+      for (let i = 0; i <= tubularSegs; i++) {
+        tangents.push(curve.getTangentAt(i / tubularSegs).normalize());
+      }
+
+      let ref = new THREE.Vector3(0, 1, 0);
+      if (Math.abs(tangents[0].dot(ref)) > 0.85) ref.set(0, 0, 1);
+      let nPrev = ref.clone().addScaledVector(tangents[0], -ref.dot(tangents[0])).normalize();
+      normals.push(nPrev.clone());
+      binormals.push(new THREE.Vector3().crossVectors(tangents[0], nPrev).normalize());
+
+      for (let i = 1; i <= tubularSegs; i++) {
+        const tPrev = tangents[i - 1];
+        const tCurr = tangents[i];
+        const axis = new THREE.Vector3().crossVectors(tPrev, tCurr);
+        if (axis.lengthSq() > 1e-10) {
+          axis.normalize();
+          const angle = Math.acos(Math.min(1, Math.max(-1, tPrev.dot(tCurr))));
+          nPrev = nPrev.clone().applyAxisAngle(axis, angle);
+        }
+        nPrev.addScaledVector(tCurr, -nPrev.dot(tCurr)).normalize();
+        normals.push(nPrev.clone());
+        binormals.push(new THREE.Vector3().crossVectors(tCurr, nPrev).normalize());
+      }
+
+      // 閉合環相位差均勻補償，消除首尾接縫扭轉
+      if (closed) {
+        const nStart = normals[0];
+        const nEnd = normals[tubularSegs];
+        const bStart = binormals[0];
+        const twistErr = Math.atan2(nEnd.dot(bStart), nEnd.dot(nStart));
+        for (let i = 1; i <= tubularSegs; i++) {
+          const corr = -twistErr * (i / tubularSegs);
+          normals[i].applyAxisAngle(tangents[i], corr).normalize();
+          binormals[i].crossVectors(tangents[i], normals[i]).normalize();
+        }
+      }
+
+      const capRings = 6;
+      const rings = [];
+
+      if (!closed) {
+        const c0 = curve.getPointAt(0);
+        const r0 = radiusAt(0);
+        const T0 = tangents[0];
+        const N0 = normals[0];
+        const B0 = binormals[0];
+        for (let c = capRings; c >= 1; c--) {
+          const phi = (c / capRings) * (Math.PI / 2);
+          const center = c0.clone().addScaledVector(T0, -Math.sin(phi) * r0);
+          const ringR = Math.max(0.0004, Math.cos(phi) * r0);
+          rings.push({ center, N: N0, B: B0, r: ringR });
+        }
+      }
+
+      for (let i = 0; i <= tubularSegs; i++) {
+        const t = i / tubularSegs;
+        rings.push({
+          center: curve.getPointAt(t),
+          N: normals[i],
+          B: binormals[i],
+          r: radiusAt(t)
+        });
+      }
+
+      if (!closed) {
+        const c1 = curve.getPointAt(1);
+        const r1 = radiusAt(1);
+        const T1 = tangents[tubularSegs];
+        const N1 = normals[tubularSegs];
+        const B1 = binormals[tubularSegs];
+        for (let c = 1; c <= capRings; c++) {
+          const phi = (c / capRings) * (Math.PI / 2);
+          const center = c1.clone().addScaledVector(T1, Math.sin(phi) * r1);
+          const ringR = Math.max(0.0004, Math.cos(phi) * r1);
+          rings.push({ center, N: N1, B: B1, r: ringR });
+        }
+      }
+
+      const positions = [];
+      const indices = [];
+
+      for (let i = 0; i < rings.length; i++) {
+        const { center, N, B, r } = rings[i];
+        for (let j = 0; j <= radialSegs; j++) {
+          const theta = (j / radialSegs) * Math.PI * 2;
+          const cos = Math.cos(theta);
+          const sin = Math.sin(theta);
+          positions.push(
+            center.x + r * (cos * N.x + sin * B.x),
+            center.y + r * (cos * N.y + sin * B.y),
+            center.z + r * (cos * N.z + sin * B.z)
+          );
+        }
+      }
+
+      const stride = radialSegs + 1;
+      for (let i = 0; i < rings.length - 1; i++) {
+        for (let j = 0; j < radialSegs; j++) {
+          const a = i * stride + j;
+          const b = (i + 1) * stride + j;
+          const c = (i + 1) * stride + (j + 1);
+          const d = i * stride + (j + 1);
+          indices.push(a, d, b);
+          indices.push(d, c, b);
+        }
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function makeEllipsoid(r, scale, pos, material, seg = 36, rot = [0, 0, 0]) {
+      const m = new THREE.Mesh(
+        new THREE.SphereGeometry(r, seg, Math.round(seg * 0.8)),
+        material
+      );
+      m.scale.set(scale[0], scale[1], scale[2]);
+      m.position.set(pos[0], pos[1], pos[2]);
+      if (rot[0] || rot[1] || rot[2]) m.rotation.set(rot[0], rot[1], rot[2]);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      return m;
+    }
+
+    function buildNthuPandaPlush() {
+      const panda = new THREE.Group();
+
+      // 材質定義（柔霧絨毛與清華紫針織質感）
+      const matWhiteFur  = stdMat('#f6f5f0', { roughness: 0.90, metalness: 0.01 });
+      const matBlackFur  = stdMat('#1c1d21', { roughness: 0.88, metalness: 0.02 });
+      const matHoodie    = stdMat('#5f50a3', { roughness: 0.85, metalness: 0.01 }); // 清華紫連帽衫
+      const matHoodieRib = stdMat('#554696', { roughness: 0.88, metalness: 0.01 }); // 羅紋袖口與下擺微深色階
+      const matLetter    = stdMat('#fcfcfa', { roughness: 0.62, metalness: 0.02 }); // 胸前 NTHU 白色立體刺繡
+      const matIris      = stdMat('#753d18', { roughness: 0.28, metalness: 0.04 }); // 琥珀棕虹膜外圈
+      const matPupil     = stdMat('#0d0e11', { roughness: 0.12, metalness: 0.06 }); // 亮黑玻璃眼珠與鼻頭
+      const matHighlight = stdMat('#ffffff', { roughness: 0.10, emissive: '#ffffff', emissiveIntensity: 0.28 });
+
+      // ------------------------------------------------------------------
+      // 1. 坐姿白色絨毛下腹臀部底座 ＋ 背後圓滾滾白色小尾巴
+      // ------------------------------------------------------------------
+      panda.add(makeEllipsoid(1.0, [0.335, 0.195, 0.305], [0, 0.195, -0.01], matWhiteFur, 44));
+      // 熊貓圓滾滾白色小尾巴（露在帽T下擺後下方）
+      panda.add(makeEllipsoid(0.072, [1.0, 0.95, 1.05], [0, 0.155, -0.305], matWhiteFur, 24));
+
+      // ------------------------------------------------------------------
+      // 2. 坐姿向前外八字伸出的黑色圓胖雙腿與厚實微翹大腳掌
+      // ------------------------------------------------------------------
+      for (const s of [-1, 1]) {
+        const legNodes = [
+          { p: [s * 0.145, 0.135, 0.06 ], r: 0.116 }, // 大腿根部自然包入下腹
+          { p: [s * 0.205, 0.108, 0.21 ], r: 0.112 }, // 短胖黑腿向前外伸
+          { p: [s * 0.255, 0.102, 0.345], r: 0.106 }  // 腳踝無縫銜接腳掌
+        ];
+        panda.add(makeSmoothVariableTube(legNodes, matBlackFur, 28, 22));
+
+        // 厚實圓胖微翹的黑色絨毛大腳掌（參考圖標誌性坐姿黑腳丫）
+        panda.add(
+          makeEllipsoid(
+            0.142,
+            [0.90, 1.16, 0.72],
+            [s * 0.278, 0.142, 0.415],
+            matBlackFur,
+            32,
+            [-0.24, s * 0.40, -s * 0.08]
+          )
+        );
+      }
+
+      // ------------------------------------------------------------------
+      // 3. 清華紫連帽衫主軀幹（LatheGeometry 一體成形，含下擺羅紋束口細節）
+      // points 由下往上 (y 遞增) 確保外法線 100% 朝外
+      // ------------------------------------------------------------------
+      const hoodieProfile = [
+        new THREE.Vector2(0.001, 0.175), // 下擺內底閉合
+        new THREE.Vector2(0.315, 0.182), // 羅紋下擺底緣（下方微露一抹白肚皮）
+        new THREE.Vector2(0.356, 0.208), // 羅紋下擺飽滿外弧
+        new THREE.Vector2(0.345, 0.238), // 羅紋上緣車縫微收溝槽
+        new THREE.Vector2(0.364, 0.315), // 寬鬆圓滾滾下胸腹
+        new THREE.Vector2(0.354, 0.415), // 胸口 NTHU 刺繡區
+        new THREE.Vector2(0.322, 0.515), // 上胸肩部自然收攏
+        new THREE.Vector2(0.262, 0.595), // 領口基座
+        new THREE.Vector2(0.160, 0.640), // 頸內收口
+        new THREE.Vector2(0.001, 0.650)  // 頂部閉合於頭部內
+      ];
+      const hoodiePts = new THREE.SplineCurve(hoodieProfile).getPoints(64);
+      const hScaleX = 1.07;
+      const hScaleZ = 0.94;
+      const hoodieGeo = new THREE.LatheGeometry(hoodiePts, 52);
+      const hoodieMesh = new THREE.Mesh(hoodieGeo, matHoodie);
+      hoodieMesh.scale.set(hScaleX, 1.0, hScaleZ);
+      hoodieMesh.castShadow = true;
+      hoodieMesh.receiveShadow = true;
+      panda.add(hoodieMesh);
+
+      function hoodieRadiusAtY(y) {
+        let best = hoodiePts[0].x;
+        let minDiff = Infinity;
+        for (const p of hoodiePts) {
+          const d = Math.abs(p.y - y);
+          if (d < minDiff) {
+            minDiff = d;
+            best = p.x;
+          }
+        }
+        return best;
+      }
+
+      function hoodieFrontZ(x, y) {
+        const r = hoodieRadiusAtY(y);
+        const rx = r * hScaleX;
+        const rz = r * hScaleZ;
+        const t = 1 - (x / rx) ** 2;
+        return t > 0 ? rz * Math.sqrt(t) : 0;
+      }
+
+      // 下擺羅紋微深色裝飾滾邊環（強化針織衫下擺細節）
+      const hemNodes = [];
+      for (let i = 0; i < 24; i++) {
+        const ang = (i / 24) * Math.PI * 2;
+        const r = 0.350;
+        hemNodes.push({
+          p: [Math.cos(ang) * r * hScaleX, 0.205, Math.sin(ang) * r * hScaleZ],
+          r: 0.022
+        });
+      }
+      panda.add(makeSmoothVariableTube(hemNodes, matHoodieRib, 48, 16, true));
+
+      // ------------------------------------------------------------------
+      // 4. 厚實連帽堆疊領圈（Hoodie Collar）與背後自然垂墜連帽帽兜（Back Hood）
+      // ------------------------------------------------------------------
+      const collarNodes = [
+        { p: [ 0.00, 0.578,  0.268], r: 0.068 }, // 下巴正前方堆疊領口
+        { p: [ 0.19, 0.592,  0.195], r: 0.072 },
+        { p: [ 0.29, 0.615,  0.015], r: 0.076 }, // 右側臉頰下方
+        { p: [ 0.21, 0.640, -0.195], r: 0.080 },
+        { p: [ 0.00, 0.654, -0.262], r: 0.084 }, // 後頸高領無縫銜接帽兜
+        { p: [-0.21, 0.640, -0.195], r: 0.080 },
+        { p: [-0.29, 0.615,  0.015], r: 0.076 }, // 左側臉頰下方
+        { p: [-0.19, 0.592,  0.195], r: 0.072 }
+      ];
+      panda.add(makeSmoothVariableTube(collarNodes, matHoodie, 56, 24, true));
+
+      // 背後自然垂墜的圓潤連帽帽兜（與領圈同色無縫融合，呈現柔軟針織帽兜質感）
+      const hoodCurveNodes = [
+        { p: [-0.18, 0.615, -0.225], r: 0.072 },
+        { p: [-0.13, 0.510, -0.295], r: 0.098 },
+        { p: [ 0.00, 0.455, -0.320], r: 0.118 }, // 帽兜圓潤底部中心
+        { p: [ 0.13, 0.510, -0.295], r: 0.098 },
+        { p: [ 0.18, 0.615, -0.225], r: 0.072 }
+      ];
+      panda.add(makeSmoothVariableTube(hoodCurveNodes, matHoodie, 36, 22));
+      panda.add(makeEllipsoid(1.0, [0.205, 0.135, 0.095], [0, 0.545, -0.268], matHoodie, 32, [0.25, 0, 0]));
+
+      // ------------------------------------------------------------------
+      // 5. 左右微張迎賓的紫色衣袖 ＋ 同軸羅紋折邊袖口 ＋ 黑色絨毛小圓手（零穿模）
+      // ------------------------------------------------------------------
+      for (const s of [-1, 1]) {
+        const sleeveNodes = [
+          { p: [s * 0.215, 0.525, 0.015], r: 0.102 }, // 肩根完美融合入上衣
+          { p: [s * 0.352, 0.495, 0.048], r: 0.110 }, // 飽滿肩袖弧線
+          { p: [s * 0.462, 0.436, 0.092], r: 0.102 }, // 中袖微向前張（如參考圖迎賓姿）
+          { p: [s * 0.542, 0.382, 0.132], r: 0.090 }  // 袖口端
+        ];
+        panda.add(makeSmoothVariableTube(sleeveNodes, matHoodie, 32, 22));
+
+        // 精確取樣袖管曲線末端切線，確保羅紋袖口環與黑色圓手掌 100% 同軸對齊
+        const sCurve = new THREE.CatmullRomCurve3(
+          sleeveNodes.map(n => new THREE.Vector3(...n.p)),
+          false,
+          'catmullrom',
+          0.45
+        );
+        const cuffCenter = sCurve.getPointAt(0.97);
+        const sleeveDir = sCurve.getTangentAt(1.0).normalize();
+        const refUp = new THREE.Vector3(0, 1, 0);
+        const uAxis = new THREE.Vector3().crossVectors(refUp, sleeveDir).normalize();
+        const vAxis = new THREE.Vector3().crossVectors(sleeveDir, uAxis).normalize();
+
+        const cuffRingNodes = [];
+        for (let k = 0; k < 20; k++) {
+          const a = (k / 20) * Math.PI * 2;
+          const rad = 0.076;
+          const pt = cuffCenter.clone()
+            .addScaledVector(uAxis, Math.cos(a) * rad)
+            .addScaledVector(vAxis, Math.sin(a) * rad);
+          cuffRingNodes.push({ p: [pt.x, pt.y, pt.z], r: 0.023 });
+        }
+        panda.add(makeSmoothVariableTube(cuffRingNodes, matHoodieRib, 36, 16, true));
+
+        // 從紫色袖口中心同軸伸出的圓滾滾黑色絨毛小手掌
+        const pawPos = sCurve.getPointAt(1.0).addScaledVector(sleeveDir, 0.048);
+        const pawMesh = new THREE.Mesh(new THREE.SphereGeometry(0.082, 28, 22), matBlackFur);
+        pawMesh.position.copy(pawPos);
+        pawMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), sleeveDir);
+        pawMesh.scale.set(0.95, 1.08, 0.92);
+        pawMesh.castShadow = true;
+        pawMesh.receiveShadow = true;
+        panda.add(pawMesh);
+      }
+
+      // ------------------------------------------------------------------
+      // 6. 胸前立體清晰白色「NTHU」刺繡字樣（嚴格沿毛衣曲面法線貼合，零懸空、零閃爍）
+      // ------------------------------------------------------------------
+      function addEmbroideryStroke(pts2D, strokeR = 0.0120) {
+        const subPts = [];
+        const stepsPerSeg = 6;
+        for (let i = 0; i < pts2D.length - 1; i++) {
+          const [x0, y0] = pts2D[i];
+          const [x1, y1] = pts2D[i + 1];
+          const count = i === pts2D.length - 2 ? stepsPerSeg : stepsPerSeg - 1;
+          for (let k = 0; k <= count; k++) {
+            const f = k / stepsPerSeg;
+            const x = x0 + (x1 - x0) * f;
+            const y = y0 + (y1 - y0) * f;
+            const yCurved = y + (x * x) * 0.07;
+            const z = hoodieFrontZ(x, yCurved) + strokeR * 0.55;
+            subPts.push({ p: [x, yCurved, z], r: strokeR });
+          }
+        }
+        panda.add(makeSmoothVariableTube(subPts, matLetter, Math.max(12, subPts.length * 2), 14));
+      }
+
+      const yTop = 0.444;
+      const yBot = 0.348;
+      const yMid = (yTop + yBot) * 0.5;
+
+      // 字母 N (x: -0.168 ~ -0.104)
+      addEmbroideryStroke([[-0.168, yBot], [-0.168, yTop]]);
+      addEmbroideryStroke([[-0.168, yTop], [-0.104, yBot]]);
+      addEmbroideryStroke([[-0.104, yBot], [-0.104, yTop]]);
+
+      // 字母 T (x: -0.074 ~ -0.008)
+      addEmbroideryStroke([[-0.074, yTop], [-0.008, yTop]]);
+      addEmbroideryStroke([[-0.041, yTop], [-0.041, yBot]]);
+
+      // 字母 H (x: +0.016 ~ +0.080)
+      addEmbroideryStroke([[0.016, yBot], [0.016, yTop]]);
+      addEmbroideryStroke([[0.080, yBot], [0.080, yTop]]);
+      addEmbroideryStroke([[0.016, yMid], [0.080, yMid]]);
+
+      // 字母 U (x: +0.110 ~ +0.174)
+      const uPts = [
+        [0.110, yTop],
+        [0.110, yBot + 0.032]
+      ];
+      for (let k = 1; k <= 7; k++) {
+        const ang = Math.PI + (k / 8) * Math.PI;
+        const cx = 0.142;
+        const cy = yBot + 0.032;
+        uPts.push([cx + Math.cos(ang) * 0.032, cy + Math.sin(ang) * 0.032]);
+      }
+      uPts.push([0.174, yBot + 0.032], [0.174, yTop]);
+      addEmbroideryStroke(uPts);
+
+      // ------------------------------------------------------------------
+      // 7. 飽滿大圓白絨毛頭 ＋ 兩隻圓滾滾毛球黑色大耳朵
+      // ------------------------------------------------------------------
+      const headCy = 0.878;
+      const headCz = 0.020;
+      const headRx = 0.394;
+      const headRy = 0.338;
+      const headRz = 0.348;
+      panda.add(makeEllipsoid(1.0, [headRx, headRy, headRz], [0, headCy, headCz], matWhiteFur, 56));
+
+      function headFrontZ(x, y) {
+        const t = 1 - (x / headRx) ** 2 - ((y - headCy) / headRy) ** 2;
+        return t > 0 ? headCz + headRz * Math.sqrt(t) : headCz;
+      }
+
+      function headNormal(x, y, z) {
+        return new THREE.Vector3(
+          x / (headRx * headRx),
+          (y - headCy) / (headRy * headRy),
+          (z - headCz) / (headRz * headRz)
+        ).normalize();
+      }
+
+      // 左右圓滾滾厚實黑色毛球大耳朵（參考圖蓬鬆圓耳比例）
+      for (const s of [-1, 1]) {
+        panda.add(
+          makeEllipsoid(
+            0.140,
+            [1.04, 1.04, 0.84],
+            [s * 0.296, 1.156, -0.012],
+            matBlackFur,
+            34,
+            [0.06, -s * 0.14, -s * 0.45]
+          )
+        );
+      }
+
+      // ------------------------------------------------------------------
+      // 8. 球面曲率貼合「正八字 (/ \) 水滴黑眼圈」＋ 琥珀棕邊黑眼珠 ＋ 白高光
+      // ------------------------------------------------------------------
+      function makeConformingEyePatch(side) {
+        const cx = side * 0.158;
+        const cy = 0.876;
+        // 正八字 (/ \): 頂端(+v)朝內靠眉心，底端(-v)朝外下臉頰垂落，完美還原熊貓軟萌無辜神韻！
+        const tiltAngle = 0.50; // 約 28.6 度正八字傾角
+        const upX = -side * Math.sin(tiltAngle);
+        const upY = Math.cos(tiltAngle);
+        const rightX = Math.cos(tiltAngle);
+        const rightY = side * Math.sin(tiltAngle);
+
+        const rings = 10;
+        const segs = 36;
+        const positions = [];
+        const indices = [];
+
+        const zCenterBase = headFrontZ(cx, cy);
+        const nCenter = headNormal(cx, cy, zCenterBase);
+        const liftMax = 0.014;
+        positions.push(
+          cx + nCenter.x * liftMax,
+          cy + nCenter.y * liftMax,
+          zCenterBase + nCenter.z * liftMax
+        );
+
+        for (let ir = 1; ir <= rings; ir++) {
+          const rho = ir / rings;
+          const lift = liftMax * Math.cos(rho * Math.PI * 0.5) - 0.003 * (rho * rho);
+
+          for (let is = 0; is < segs; is++) {
+            const theta = (is / segs) * Math.PI * 2;
+            const rawU = Math.cos(theta);
+            const rawV = Math.sin(theta);
+            // 水滴卵形：內上端(+v)稍窄圓，外下端(-v)更飽滿寬闊包覆臉頰
+            const widthFactor = 1.0 - 0.17 * rawV;
+            const u = rawU * 0.088 * widthFactor * rho;
+            const v = rawV * 0.122 * rho;
+
+            const px = cx + u * rightX + v * upX;
+            const py = cy + u * rightY + v * upY;
+            const pzBase = headFrontZ(px, py);
+            const nrm = headNormal(px, py, pzBase);
+
+            positions.push(
+              px + nrm.x * lift,
+              py + nrm.y * lift,
+              pzBase + nrm.z * lift
+            );
+          }
+        }
+
+        // right x up = (+cos^2 + sin^2) = +1 (右手正向)，故逆時針 theta 對應外法線朝 +Z
+        for (let is = 0; is < segs; is++) {
+          const next = (is + 1) % segs;
+          indices.push(0, 1 + is, 1 + next);
+        }
+
+        for (let ir = 1; ir < rings; ir++) {
+          const startCurr = 1 + (ir - 1) * segs;
+          const startNext = 1 + ir * segs;
+          for (let is = 0; is < segs; is++) {
+            const next = (is + 1) % segs;
+            const a = startCurr + is;
+            const b = startNext + is;
+            const c = startNext + next;
+            const d = startCurr + next;
+            indices.push(a, b, d);
+            indices.push(b, c, d);
+          }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setIndex(indices);
+        geo.computeVertexNormals();
+
+        const mesh = new THREE.Mesh(geo, matBlackFur);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        return mesh;
+      }
+
+      for (const s of [-1, 1]) {
+        panda.add(makeConformingEyePatch(s));
+
+        // 眼睛位於正八字黑眼圈偏內上方（與參考圖眼位精準對齊）
+        const ex = s * 0.128;
+        const ey = 0.904;
+        const ez = headFrontZ(ex, ey);
+        const eNorm = headNormal(ex, ey, ez);
+
+        // 細緻琥珀棕虹膜外環
+        const irisPos = new THREE.Vector3(ex, ey, ez).addScaledVector(eNorm, 0.011);
+        panda.add(
+          makeEllipsoid(0.033, [1.0, 1.05, 0.65], [irisPos.x, irisPos.y, irisPos.z], matIris, 24, [-0.08, s * 0.32, 0])
+        );
+
+        // 水潤亮黑圓瞳孔球
+        const pupilPos = new THREE.Vector3(ex - s * 0.001, ey + 0.001, ez).addScaledVector(eNorm, 0.019);
+        panda.add(
+          makeEllipsoid(0.028, [1.0, 1.05, 0.68], [pupilPos.x, pupilPos.y, pupilPos.z], matPupil, 24, [-0.08, s * 0.32, 0])
+        );
+
+        // 眼神白高光點
+        const hiPos = pupilPos.clone().add(new THREE.Vector3(s * 0.005 + 0.007, 0.010, 0.016));
+        panda.add(makeEllipsoid(0.0080, [1, 1, 0.8], [hiPos.x, hiPos.y, hiPos.z], matHighlight, 14));
+      }
+
+      // ------------------------------------------------------------------
+      // 9. 立體圓嘟嘟白絨毛吻部（Snout）＋ 亮黑立體鼻頭 ＋ 垂直縫線小嘴
+      // ------------------------------------------------------------------
+      const muzCy = 0.790;
+      const muzCz = 0.305;
+      const muzRx = 0.146;
+      const muzRy = 0.112;
+      const muzRz = 0.112;
+      panda.add(makeEllipsoid(1.0, [muzRx, muzRy, muzRz], [0, muzCy, muzCz], matWhiteFur, 40));
+
+      function muzzleFrontZ(x, y) {
+        const t = 1 - (x / muzRx) ** 2 - ((y - muzCy) / muzRy) ** 2;
+        const zM = t > 0 ? muzCz + muzRz * Math.sqrt(t) : -1;
+        return Math.max(zM, headFrontZ(x, y));
+      }
+
+      // 亮黑倒三角圓潤小鼻頭
+      const noseY = 0.822;
+      const noseZ = muzzleFrontZ(0, noseY) + 0.008;
+      panda.add(makeEllipsoid(0.030, [1.32, 0.86, 0.82], [0, noseY, noseZ], matPupil, 24, [0.16, 0, 0]));
+
+      // 鼻頭下方標誌性垂直黑色縫線小嘴（參考圖靈魂特徵）
+      const mouthNodes = [];
+      for (let i = 0; i <= 7; i++) {
+        const f = i / 7;
+        const my = 0.802 - f * 0.072; // 由鼻底垂直往下延伸
+        const mz = muzzleFrontZ(0, my) + 0.003;
+        mouthNodes.push({ p: [0, my, mz], r: 0.0065 });
+      }
+      panda.add(makeSmoothVariableTube(mouthNodes, matBlackFur, 18, 12));
+
+      return panda;
+    }
+
+    // 浮島綠草地舞台圓座（與 preview_frog_v2.html 一致之純淨草皮圓台，直觀檢驗綠地高辨識度）
+    function buildStagePedestal() {
+      const g = new THREE.Group();
+      const grass = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.00, 1.08, 0.08, 44),
+        stdMat('#87b37a', { roughness: 0.82 })
+      );
+      grass.position.set(0, -0.04, 0.06);
+      grass.receiveShadow = true;
+      g.add(grass);
+
+      const soil = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.08, 0.88, 0.16, 44),
+        stdMat('#8e6e53')
+      );
+      soil.position.set(0, -0.16, 0.06);
+      g.add(soil);
+      return g;
+    }
+
+    const views = [
+      // 視角 0: 與參考圖同方位微俯特寫（留足上方留白，絕不被左上角標籤遮到黑耳）
+      { id: 'view0', cam: [-0.66, 1.62, 3.12], target: [0, 0.65, 0.06], fov: 33 },
+      // 視角 1: 正視全身標準圖
+      { id: 'view1', cam: [0.0, 0.80, 3.36], target: [0, 0.66, 0.06], fov: 33 },
+      // 視角 2: 90° 正側面立體輪廓檢驗
+      { id: 'view2', cam: [3.34, 0.80, 0.08], target: [0, 0.66, 0.04], fov: 33 },
+      // 視角 3: 3/4 背面連帽帽兜與白圓尾巴檢驗
+      { id: 'view3', cam: [-2.05, 1.28, -2.58], target: [0, 0.63, -0.02], fov: 33 }
+    ];
+
+    for (const v of views) {
+      const container = document.getElementById(v.id);
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(2);
+      renderer.setSize(w, h);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      container.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color('#a5cbc8');
+
+      const hemi = new THREE.HemisphereLight('#dcf2f0', '#b99368', 1.22);
+      scene.add(hemi);
+
+      const sun = new THREE.DirectionalLight('#fff6e3', 2.40);
+      sun.position.set(4.2, 7.5, 5.5);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(1024, 1024);
+      sun.shadow.bias = -0.0005;
+      scene.add(sun);
+
+      const fill = new THREE.DirectionalLight('#e2eff5', 0.55);
+      fill.position.set(-4.5, 3.0, -3.5);
+      scene.add(fill);
+
+      scene.add(buildStagePedestal());
+      scene.add(buildNthuPandaPlush());
+
+      const camera = new THREE.PerspectiveCamera(v.fov, w / h, 0.1, 50);
+      camera.position.set(...v.cam);
+      camera.lookAt(...v.target);
+
+      renderer.render(scene, camera);
+    }
+
+    window.__PANDA_RENDER_READY__ = true;
+  </script>
+</body>
+</html>

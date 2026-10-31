@@ -2105,7 +2105,7 @@ a {
 */
 @media (max-width: 760px) {
   .yt-music-widget {
-    bottom: 84px !important;
+    bottom: 94px !important;
     right: 12px !important;
     left: 12px !important;
     width: auto !important;

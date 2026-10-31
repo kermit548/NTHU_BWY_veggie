@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>黃色奶蛙 3D 幾何模型模擬圖（無穿模・微調肩寬・雙手貼肚版）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1600px;
+      height: 1080px;
+      background: #f5efe4;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      color: #1f3330;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fffdf8;
+      border: 1.5px solid #d9cfbe;
+      border-radius: 16px;
+      padding: 14px 22px;
+      box-shadow: 0 4px 14px rgba(31, 51, 48, 0.06);
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #16564b;
+      letter-spacing: 0.02em;
+    }
+    .header .sub {
+      font-size: 13.5px;
+      color: #556b66;
+      margin-top: 3px;
+    }
+    .badges {
+      display: flex;
+      gap: 10px;
+    }
+    .badge {
+      background: #e7f3ef;
+      color: #16564b;
+      border: 1px solid #b8dad1;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .badge.warn {
+      background: #fff3e2;
+      color: #b55d19;
+      border-color: #f0cba0;
+    }
+    .grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 16px;
+    }
+    .panel {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1.5px solid #cfd8d5;
+      background: #a5cbc8;
+      box-shadow: 0 6px 18px rgba(24, 48, 44, 0.08);
+    }
+    .panel canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .label-pill {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(255, 252, 245, 0.94);
+      border: 1px solid rgba(22, 86, 75, 0.22);
+      border-radius: 12px;
+      padding: 7px 13px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      pointer-events: none;
+    }
+    .label-pill b {
+      display: block;
+      font-size: 14.5px;
+      color: #16564b;
+    }
+    .label-pill span {
+      display: block;
+      font-size: 11.5px;
+      color: #5b6e6a;
+      margin-top: 2px;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>黃色奶蛙 3D 純幾何模型模擬圖（無穿模・微調自然肩寬・雙手貼肚版）</h1>
+      <div class="sub">使用與正式網站相同之 Three.js r170 核心幾何與白天光影參數獨立渲染｜尚未改動正式網站任何檔案</div>
+    </div>
+    <div class="badges">
+      <span class="badge">一體成形梨形身軀（零接縫）</span>
+      <span class="badge">適中圓肩＋零扭轉圓潤手臂貼放圓肚</span>
+      <span class="badge warn">沙盒模擬預覽（網站零修改）</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel" id="view0">
+      <div class="label-pill">
+        <b>視角 1｜與圖 1 同角度俯視特寫（穿模修復對照）</b>
+        <span>徹底消除懸空巨球肩與圓柱斷頭，手臂圓潤飽滿環貼於粉嫩圓肚</span>
+      </div>
+    </div>
+    <div class="panel" id="view1">
+      <div class="label-pill">
+        <b>視角 2｜正面全身標準比例（Front View）</b>
+        <span>自然微壯肩線、大面積粉嫩圓肚、雙手小蛙掌對稱貼放肚子上</span>
+      </div>
+    </div>
+    <div class="panel" id="view2">
+      <div class="label-pill">
+        <b>視角 3｜3/4 立體斜視全身圖（Three-Quarter View）</b>
+        <span>肩峰 → 上臂 → 微屈手肘 → 前臂繞過肚側 → 蛙掌無縫貼合肚皮</span>
+      </div>
+    </div>
+    <div class="panel" id="view3">
+      <div class="label-pill">
+        <b>視角 4｜90° 正側面貼合檢驗（Side Profile）</b>
+        <span>側面嚴格檢驗：上臂、前臂與手掌順應肚皮曲率貼靠，0% 穿模破面</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    function stdMat(color, opts = {}) {
+      return new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.78,
+        metalness: 0.02,
+        ...opts
+      });
+    }
+
+    // Parallel-Transport (Bishop Frame) 零扭轉變徑圓管 + 半球封口 + 正確朝外 CCW 法線
+    function makeSmoothVariableTube(controlNodes, material, tubularSegs = 48, radialSegs = 24) {
+      const pts = controlNodes.map(n => new THREE.Vector3(...n.p));
+      const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.45);
+
+      const radiusAt = (t) => {
+        const scaled = t * (controlNodes.length - 1);
+        const i0 = Math.min(controlNodes.length - 2, Math.max(0, Math.floor(scaled)));
+        const f = scaled - i0;
+        const s = f * f * (3 - 2 * f);
+        return controlNodes[i0].r * (1 - s) + controlNodes[i0 + 1].r * s;
+      };
+
+      // 建立零扭轉 Parallel Transport Frames (T, N, B 為右手正交系: B = T x N)
+      const tangents = [];
+      const normals = [];
+      const binormals = [];
+
+      for (let i = 0; i <= tubularSegs; i++) {
+        tangents.push(curve.getTangentAt(i / tubularSegs).normalize());
+      }
+
+      // 初始法向量選擇不平行於 T0 的穩定基準軸
+      let ref = new THREE.Vector3(0, 0, 1);
+      if (Math.abs(tangents[0].dot(ref)) > 0.85) ref.set(0, 1, 0);
+      let nPrev = ref.clone().addScaledVector(tangents[0], -ref.dot(tangents[0])).normalize();
+      normals.push(nPrev.clone());
+      binormals.push(new THREE.Vector3().crossVectors(tangents[0], nPrev).normalize());
+
+      for (let i = 1; i <= tubularSegs; i++) {
+        const tPrev = tangents[i - 1];
+        const tCurr = tangents[i];
+        const axis = new THREE.Vector3().crossVectors(tPrev, tCurr);
+        if (axis.lengthSq() > 1e-10) {
+          axis.normalize();
+          const angle = Math.acos(Math.min(1, Math.max(-1, tPrev.dot(tCurr))));
+          nPrev = nPrev.clone().applyAxisAngle(axis, angle);
+        }
+        // 正交校正防止數值漂移
+        nPrev.addScaledVector(tCurr, -nPrev.dot(tCurr)).normalize();
+        normals.push(nPrev.clone());
+        binormals.push(new THREE.Vector3().crossVectors(tCurr, nPrev).normalize());
+      }
+
+      const capRings = 6;
+      const rings = [];
+
+      // 起點半球端蓋
+      {
+        const c0 = curve.getPointAt(0);
+        const r0 = radiusAt(0);
+        const T0 = tangents[0];
+        const N0 = normals[0];
+        const B0 = binormals[0];
+        for (let c = capRings; c >= 1; c--) {
+          const phi = (c / capRings) * (Math.PI / 2);
+          const center = c0.clone().addScaledVector(T0, -Math.sin(phi) * r0);
+          const ringR = Math.max(0.0004, Math.cos(phi) * r0);
+          rings.push({ center, N: N0, B: B0, r: ringR });
+        }
+      }
+
+      // 主管身
+      for (let i = 0; i <= tubularSegs; i++) {
+        const t = i / tubularSegs;
+        rings.push({
+          center: curve.getPointAt(t),
+          N: normals[i],
+          B: binormals[i],
+          r: radiusAt(t)
+        });
+      }
+
+      // 終點半球端蓋
+      {
+        const c1 = curve.getPointAt(1);
+        const r1 = radiusAt(1);
+        const T1 = tangents[tubularSegs];
+        const N1 = normals[tubularSegs];
+        const B1 = binormals[tubularSegs];
+        for (let c = 1; c <= capRings; c++) {
+          const phi = (c / capRings) * (Math.PI / 2);
+          const center = c1.clone().addScaledVector(T1, Math.sin(phi) * r1);
+          const ringR = Math.max(0.0004, Math.cos(phi) * r1);
+          rings.push({ center, N: N1, B: B1, r: ringR });
+        }
+      }
+
+      const positions = [];
+      const indices = [];
+
+      for (let i = 0; i < rings.length; i++) {
+        const { center, N, B, r } = rings[i];
+        for (let j = 0; j <= radialSegs; j++) {
+          const theta = (j / radialSegs) * Math.PI * 2;
+          const cos = Math.cos(theta);
+          const sin = Math.sin(theta);
+          positions.push(
+            center.x + r * (cos * N.x + sin * B.x),
+            center.y + r * (cos * N.y + sin * B.y),
+            center.z + r * (cos * N.z + sin * B.z)
+          );
+        }
+      }
+
+      // 右手系 B = T x N 下，沿 +T 前進、+theta 繞行時，外法線 = (dP/dtheta) x (dP/dt) -> 逆時針繞向為 (a, d, b) 與 (d, c, b)
+      const stride = radialSegs + 1;
+      for (let i = 0; i < rings.length - 1; i++) {
+        for (let j = 0; j < radialSegs; j++) {
+          const a = i * stride + j;
+          const b = (i + 1) * stride + j;
+          const c = (i + 1) * stride + (j + 1);
+          const d = i * stride + (j + 1);
+          indices.push(a, d, b);
+          indices.push(d, c, b);
+        }
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function makeEllipsoid(r, scale, pos, material, seg = 36, rot = [0, 0, 0]) {
+      const m = new THREE.Mesh(
+        new THREE.SphereGeometry(r, seg, Math.round(seg * 0.8)),
+        material
+      );
+      m.scale.set(scale[0], scale[1], scale[2]);
+      m.position.set(pos[0], pos[1], pos[2]);
+      if (rot[0] || rot[1] || rot[2]) m.rotation.set(rot[0], rot[1], rot[2]);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      return m;
+    }
+
+    function buildSmoothMilkFrog() {
+      const frog = new THREE.Group();
+
+      const matYellow = stdMat('#fab81c');
+      const matBelly  = stdMat('#fce3d2');
+      const matDigit  = stdMat('#bf8d50');
+      const matEyeG   = stdMat('#88d682', { roughness: 0.46 });
+      const matEyeB   = stdMat('#16181a', { roughness: 0.22 });
+      const matWhite  = stdMat('#ffffff', { roughness: 0.12, emissive: '#ffffff', emissiveIntensity: 0.2 });
+      const matMouth  = stdMat('#8c5d1c', { roughness: 0.65 });
+
+      // ------------------------------------------------------------------
+      // 1. 一體成形絲滑梨形身軀（注意 LatheGeometry 繞 Y 軸逆時針需從上往下或下往上檢驗外法線！）
+      // Three.js LatheGeometry 官方規範：points 由下往上 (y 遞增) 時外法線朝外！
+      // ------------------------------------------------------------------
+      const profileCtrl = [
+        new THREE.Vector2(0.001, 0.13),  // 胯底中心閉合
+        new THREE.Vector2(0.24,  0.16),  // 下腹底緣
+        new THREE.Vector2(0.415, 0.30),  // 下腹飽滿圓弧
+        new THREE.Vector2(0.472, 0.50),  // 圓滾滾最大肚圍
+        new THREE.Vector2(0.452, 0.70),  // 中腹過渡
+        new THREE.Vector2(0.408, 0.88),  // 胸腔上緣
+        new THREE.Vector2(0.335, 1.05),  // 無脖柔和流線收窄
+        new THREE.Vector2(0.315, 1.21),  // 呆萌圓潤臉頰
+        new THREE.Vector2(0.272, 1.35),  // 額頭眼窩區
+        new THREE.Vector2(0.175, 1.455), // 圓拱頭頂斜坡
+        new THREE.Vector2(0.075, 1.500), // 頭頂圓弧
+        new THREE.Vector2(0.001, 1.510)  // 頭頂極點閉合
+      ];
+      const lathePts = new THREE.SplineCurve(profileCtrl).getPoints(68);
+      const bodyScaleX = 1.05;
+      const bodyScaleZ = 0.93;
+      const bodyGeo = new THREE.LatheGeometry(lathePts, 52);
+      const bodyMesh = new THREE.Mesh(bodyGeo, matYellow);
+      bodyMesh.scale.set(bodyScaleX, 1.0, bodyScaleZ);
+      bodyMesh.castShadow = true;
+      bodyMesh.receiveShadow = true;
+      frog.add(bodyMesh);
+
+      function bodyRadiusAtY(y) {
+        let best = lathePts[0].x;
+        let minDiff = Infinity;
+        for (const p of lathePts) {
+          const d = Math.abs(p.y - y);
+          if (d < minDiff) {
+            minDiff = d;
+            best = p.x;
+          }
+        }
+        return best;
+      }
+
+      // ------------------------------------------------------------------
+      // 2. 大面積粉嫩蜜桃圓肚皮（涵蓋胸口下緣至下腹，還原原圖飽滿圓肚比例）
+      // ------------------------------------------------------------------
+      const bellyAx = 0.418;
+      const bellyAy = 0.435;
+      const bellyAz = 0.395;
+      const bellyCy = 0.555;
+      const bellyCz = 0.068;
+      frog.add(makeEllipsoid(1.0, [bellyAx, bellyAy, bellyAz], [0, bellyCy, bellyCz], matBelly, 52));
+
+      function frontSurfaceZ(x, y) {
+        let zP = -1;
+        const tP = 1 - (x / bellyAx) ** 2 - ((y - bellyCy) / bellyAy) ** 2;
+        if (tP > 0) zP = bellyCz + bellyAz * Math.sqrt(tP);
+
+        let zB = -1;
+        const rY = bodyRadiusAtY(y);
+        const rx = rY * bodyScaleX;
+        const rz = rY * bodyScaleZ;
+        const tB = 1 - (x / rx) ** 2;
+        if (tB > 0) zB = rz * Math.sqrt(tB);
+
+        return Math.max(zP, zB);
+      }
+
+      // ------------------------------------------------------------------
+      // 3. 適中圓潤微壯肩膀 ＋ 零扭轉飽滿圓手臂 ＋ 手掌與奶褐手指自然貼放圓肚
+      // ------------------------------------------------------------------
+      for (const s of [-1, 1]) {
+        const wx = s * 0.255;
+        const wy = 0.515;
+        const rWrist = 0.072;
+        const wz = frontSurfaceZ(wx, wy) + rWrist * 0.82;
+
+        const px = s * 0.205;
+        const py = 0.498;
+        const rPalm = 0.064;
+        const pz = frontSurfaceZ(px, py) + rPalm * 0.65;
+
+        // 零扭轉連續平滑圓管：保留討喜的小圓肩線條，但絕不誇張外懸、絕不穿模！
+        const armNodes = [
+          { p: [s * 0.22,  0.93, -0.01 ], r: 0.122 }, // 斜方肌根部自然融合進胸腔
+          { p: [s * 0.425, 0.855, 0.015], r: 0.138 }, // 適中圓潤小肩膀（協調不突兀）
+          { p: [s * 0.505, 0.72,  0.10 ], r: 0.116 }, // 渾圓上臂
+          { p: [s * 0.515, 0.59,  0.235], r: 0.098 }, // 微屈手肘繞過肚側
+          { p: [s * 0.400, 0.54,  0.375], r: 0.086 }, // 前臂沿肚側切線前伸
+          { p: [wx,        wy,    wz   ], r: rWrist }, // 手腕貼靠粉嫩圓肚
+          { p: [px,        py,    pz   ], r: rPalm }   // 黃色手背平滑收至掌心
+        ];
+        frog.add(makeSmoothVariableTube(armNodes, matYellow, 52, 26));
+
+        // 黃色手掌微扁寬墊（將 4 根手指根部完整包覆銜接，零縫隙！）
+        frog.add(
+          makeEllipsoid(
+            0.068,
+            [1.12, 0.96, 0.58],
+            [s * 0.198, py, frontSurfaceZ(s * 0.198, py) + 0.036],
+            matYellow,
+            22,
+            [0.08, -s * 0.44, -s * 0.15]
+          )
+        );
+
+        // 4 根圓潤奶褐色小手指從黃色手掌前端自然伸出，順著粉嫩大肚皮弧面貼放！
+        const fingerSpecs = [
+          { dy:  0.034, startX: 0.186, lenX: 0.072, dyTip:  0.005, r: 0.0195 },
+          { dy:  0.011, startX: 0.184, lenX: 0.082, dyTip: -0.003, r: 0.0205 },
+          { dy: -0.012, startX: 0.186, lenX: 0.075, dyTip: -0.009, r: 0.0195 },
+          { dy: -0.033, startX: 0.192, lenX: 0.056, dyTip: -0.014, r: 0.0170 }
+        ];
+        for (const fg of fingerSpecs) {
+          const fx1 = s * fg.startX;
+          const fy1 = py + fg.dy;
+          const fz1 = frontSurfaceZ(fx1, fy1) + fg.r * 0.82;
+
+          const fxMid = s * (fg.startX - fg.lenX * 0.5);
+          const fyMid = fy1 + fg.dyTip * 0.5;
+          const fzMid = frontSurfaceZ(fxMid, fyMid) + fg.r * 0.82;
+
+          const fx2 = s * (fg.startX - fg.lenX);
+          const fy2 = fy1 + fg.dyTip;
+          const fz2 = frontSurfaceZ(fx2, fy2) + fg.r * 0.76;
+
+          frog.add(
+            makeSmoothVariableTube(
+              [
+                { p: [fx1,   fy1,   fz1  ], r: fg.r },
+                { p: [fxMid, fyMid, fzMid], r: fg.r * 0.94 },
+                { p: [fx2,   fy2,   fz2  ], r: fg.r * 0.82 }
+              ],
+              matDigit,
+              14,
+              16
+            )
+          );
+        }
+      }
+
+      // ------------------------------------------------------------------
+      // 4. 呆萌大綠眼、深黑圓瞳、眼神高光與微笑弧線
+      // ------------------------------------------------------------------
+      for (const s of [-1, 1]) {
+        const ex = s * 0.146;
+        const ey = 1.335;
+        const ez = frontSurfaceZ(ex, ey) - 0.014;
+        frog.add(makeEllipsoid(0.082, [1.0, 1.06, 0.68], [ex, ey, ez], matEyeG, 24, [-0.14, s * 0.24, 0]));
+        frog.add(makeEllipsoid(0.048, [1.0, 1.06, 0.55], [ex + s * 0.005, ey + 0.002, ez + 0.036], matEyeB, 20, [-0.14, s * 0.24, 0]));
+        frog.add(makeEllipsoid(0.015, [1, 1, 0.7], [ex + s * 0.005 + 0.016, ey + 0.022, ez + 0.058], matWhite, 12));
+      }
+
+      const smileNodes = [];
+      for (let i = 0; i <= 8; i++) {
+        const u = (i / 8) * 2 - 1;
+        const mx = u * 0.086;
+        const my = 1.215 + (u * u) * 0.020;
+        const mz = frontSurfaceZ(mx, my) + 0.004;
+        smileNodes.push({ p: [mx, my, mz], r: 0.0082 });
+      }
+      frog.add(makeSmoothVariableTube(smileNodes, matMouth, 24, 12));
+
+      // ------------------------------------------------------------------
+      // 5. 渾圓結實雙腿與三趾青蛙腳掌
+      // ------------------------------------------------------------------
+      for (const s of [-1, 1]) {
+        const legNodes = [
+          { p: [s * 0.23,  0.32,  0.01 ], r: 0.168 },
+          { p: [s * 0.305, 0.18,  0.04 ], r: 0.128 },
+          { p: [s * 0.315, 0.065, 0.025], r: 0.088 },
+          { p: [s * 0.32,  0.035, 0.095], r: 0.072 }
+        ];
+        frog.add(makeSmoothVariableTube(legNodes, matYellow, 28, 22));
+
+        frog.add(makeEllipsoid(0.094, [1.14, 0.42, 1.25], [s * 0.32, 0.035, 0.088], matYellow, 22, [0, s * 0.12, 0]));
+
+        [-0.060, 0, 0.060].forEach((dx, idx) => {
+          const zToe = 0.188 + (idx === 1 ? 0.022 : 0);
+          frog.add(
+            makeSmoothVariableTube(
+              [
+                { p: [s * 0.32 + dx * 0.78, 0.032, 0.132], r: 0.038 },
+                { p: [s * 0.32 + dx,        0.026, zToe ], r: 0.035 }
+              ],
+              matDigit,
+              10,
+              16
+            )
+          );
+        });
+      }
+
+      return frog;
+    }
+
+    function buildStagePedestal() {
+      const g = new THREE.Group();
+      const grass = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.95, 1.02, 0.08, 36),
+        stdMat('#87b37a')
+      );
+      grass.position.set(0, -0.04, 0.04);
+      grass.receiveShadow = true;
+      g.add(grass);
+
+      const soil = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.02, 0.85, 0.16, 36),
+        stdMat('#8e6e53')
+      );
+      soil.position.set(0, -0.16, 0.04);
+      g.add(soil);
+      return g;
+    }
+
+    const views = [
+      // 視角 0: 與圖 1 同方位俯視微側角度
+      { id: 'view0', cam: [-1.02, 2.22, 3.15], target: [0, 0.80, 0.06], fov: 33 },
+      // 視角 1: 正視全身標準圖（留足上方留白不被左上角標籤碰到）
+      { id: 'view1', cam: [0.0, 0.94, 3.68], target: [0, 0.80, 0.04], fov: 33 },
+      // 視角 2: 3/4 立體斜視全身圖
+      { id: 'view2', cam: [2.22, 1.28, 2.92], target: [0, 0.80, 0.06], fov: 33 },
+      // 視角 3: 90° 正側面貼合檢驗圖
+      { id: 'view3', cam: [3.65, 0.90, 0.12], target: [0, 0.80, 0.08], fov: 33 }
+    ];
+
+    for (const v of views) {
+      const container = document.getElementById(v.id);
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(2);
+      renderer.setSize(w, h);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.04;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      container.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color('#a5cbc8');
+
+      const hemi = new THREE.HemisphereLight('#dcf2f0', '#b99368', 1.18);
+      scene.add(hemi);
+
+      const sun = new THREE.DirectionalLight('#fff6e3', 2.45);
+      sun.position.set(4.5, 7.5, 5.5);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(1024, 1024);
+      sun.shadow.bias = -0.0005;
+      scene.add(sun);
+
+      const fill = new THREE.DirectionalLight('#dcf2f0', 0.42);
+      fill.position.set(-4, 2.5, 3);
+      scene.add(fill);
+
+      scene.add(buildStagePedestal());
+      scene.add(buildSmoothMilkFrog());
+
+      const camera = new THREE.PerspectiveCamera(v.fov, w / h, 0.1, 50);
+      camera.position.set(...v.cam);
+      camera.lookAt(...v.target);
+
+      renderer.render(scene, camera);
+    }
+
+    window.__FROG_RENDER_READY__ = true;
+  </script>
+</body>
+</html>
