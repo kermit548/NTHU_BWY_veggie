@@ -6,6 +6,10 @@
 
 ---
 
+範例網址：https://kermit548.github.io/NTHU_BWY_veggie/island.html
+
+---
+
 ## 目錄結構與組件職責
 
 ```text
