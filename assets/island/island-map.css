@@ -1651,6 +1651,10 @@ a {
     position: relative;
   }
 
+  .brand-title-row {
+    padding-right: 32px;
+  }
+
   .desktop-devlog-link {
     display: none !important;
   }
