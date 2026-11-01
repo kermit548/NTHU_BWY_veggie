@@ -267,7 +267,7 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .brand-card h1 {
@@ -1652,7 +1652,8 @@ a {
   }
 
   .brand-title-row {
-    padding-right: 32px;
+    flex-wrap: nowrap;
+    gap: 6px;
   }
 
   .desktop-devlog-link {
@@ -1691,7 +1692,13 @@ a {
   }
 
   .brand-card h1 {
-    font-size: 15.5px;
+    font-size: clamp(14px, 4.2vw, 15.5px);
+    white-space: nowrap;
+  }
+
+  .sky-pill {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .brand-sub > span:first-child,
