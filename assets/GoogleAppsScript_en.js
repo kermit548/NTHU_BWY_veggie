@@ -607,7 +607,7 @@ function renderBingoCard() {
       gridIndex: 3, // #4
       date: "11/11 (Wed)",
       name: "Sports Day Booth",
-      loc: "📍 Sports Day Booth (Challenges & Pepper Buns)"
+      loc: "📍 Sports Day Booth (Challenges & Veggie Snacks)"
     },
     {
       gridIndex: 7, // #8

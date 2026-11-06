@@ -590,7 +590,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         gridIndex: 3, // #4
         date: "11/11 (三)",
         name: "蔬食玩家養成記",
-        loc: "📍 運動會擺攤（闖關送胡椒餅）"
+        loc: "📍 運動會擺攤（闖關送蔬食點心）"
       },
       {
         gridIndex: 7, // #8
