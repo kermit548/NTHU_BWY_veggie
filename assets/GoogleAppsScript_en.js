@@ -153,6 +153,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("veg_is_staff") === "1" && savedStaffCode) {
     isStaffMode = true;
     sessionStaffCode = savedStaffCode;
+    if (window.syncStaffModeDOM) window.syncStaffModeDOM();
     const staffInd = document.getElementById("staffIndicator");
     if (staffInd) staffInd.style.display = "inline-block";
     const btn = document.getElementById("btnStaffToggle");
@@ -194,6 +195,18 @@ function openRegisterModal() {
 function openLookupModal() {
   document.getElementById("lookupModal").style.display = "flex";
   document.getElementById("lookupSerial").focus();
+}
+
+function scrollToEventReg() {
+  const card = document.getElementById("eventRegCard");
+  const bingoSec = document.getElementById("bingoSection");
+  if (card && bingoSec && getComputedStyle(bingoSec).display !== "none") {
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    showToast("Please sign up or look up your Bingo Card first to use Quick RSVP!");
+    const hero = document.getElementById("heroCard");
+    if (hero) hero.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function openConfigModal() {

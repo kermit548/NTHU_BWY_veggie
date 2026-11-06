@@ -472,6 +472,18 @@ html[data-theme="1"] {
       font-weight: 700;
     }
 
+    #btnQuickEventReg {
+      background-color: #97bfd6;
+      border-color: #7aa7c2;
+      color: #163244;
+      font-weight: 700;
+    }
+
+    #btnQuickEventReg:hover {
+      background-color: #85b2cc;
+      border-color: #6898b5;
+    }
+
     /* 主容器 */
     .container {
       max-width: 760px;

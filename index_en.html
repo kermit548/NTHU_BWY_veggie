@@ -6,9 +6,9 @@
   <title>2026 Veggie Month ・ Green Bingo Challenge</title>
   <link rel="icon" href="./img/抱抱地球2.png" type="image/png">
   <link rel="stylesheet" href="./assets/style.css">
-  <link rel="stylesheet" href="./assets/bwy2026.css?v=20261015">
+  <link rel="stylesheet" href="./assets/bwy2026.css?v=20261107">
   <script src="./assets/theme-sync.js?v=20261015"></script>
-  <script src="./assets/GoogleAppsScript_en.js?v=20261105"></script>
+  <script src="./assets/GoogleAppsScript_en.js?v=20261107"></script>
 </head>
 <body>
   <!-- Social QR Code Module (Adaptive FAB & Modal) -->
@@ -50,7 +50,8 @@
         <button type="button" class="theme-btn" id="btnThemeColorful" onclick="setTheme(2)">Colorful</button>
       </div>
       <button id="btnStaffToggle" class="btn btn-outline btn-sm" onclick="toggleStaffMode()">Staff Mode</button>
-      <button class="btn btn-outline btn-sm" onclick="openConfigModal()">Settings</button>
+      <button id="btnQuickEventReg" class="btn btn-outline btn-sm" onclick="scrollToEventReg()">Quick RSVP</button>
+      <button id="btnConfig" class="btn btn-outline btn-sm nav-staff-only" onclick="openConfigModal()">Settings</button>
       <div class="lang-switch-wrap" title="切換語言 / Language">
         <a href="index.html" class="lang-btn">繁中</a>
         <span class="lang-divider">|</span>

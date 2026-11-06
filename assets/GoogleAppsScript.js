@@ -130,6 +130,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       if (localStorage.getItem("veg_is_staff") === "1" && savedStaffCode) {
         isStaffMode = true;
         sessionStaffCode = savedStaffCode;
+        if (window.syncStaffModeDOM) window.syncStaffModeDOM();
         const staffInd = document.getElementById("staffIndicator");
         if (staffInd) staffInd.style.display = "inline-block";
         const btn = document.getElementById("btnStaffToggle");
@@ -171,6 +172,18 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
     function openLookupModal() {
       document.getElementById("lookupModal").style.display = "flex";
       document.getElementById("lookupSerial").focus();
+    }
+
+    function scrollToEventReg() {
+      const card = document.getElementById("eventRegCard");
+      const bingoSec = document.getElementById("bingoSection");
+      if (card && bingoSec && getComputedStyle(bingoSec).display !== "none") {
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        showToast("請先領取或查詢您的賓果卡，即可一鍵快速預約活動！");
+        const hero = document.getElementById("heroCard");
+        if (hero) hero.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
 
     function openConfigModal() {
