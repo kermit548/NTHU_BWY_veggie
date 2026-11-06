@@ -550,7 +550,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       document.getElementById("metaName").innerText = currentUser.name;
 
       // 判斷蓋章狀態（1 或 true 視為已蓋章）
-      const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+      const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
 
       const stampedCount = currentUser.stamps.filter(isCellStamped).length;
       document.getElementById("metaProgress").innerText = stampedCount;
@@ -581,7 +581,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
         cell.innerHTML = `
           <div class="cell-number">#${idx + 1} ${isCenter ? "★ 核心任務" : ""}</div>
-          ${isRegistered && !isStamped ? '<span class="cell-reg-tag">已預約登記</span>' : ''}
+          ${(cellVal == 3 || String(cellVal).trim() === "3") ? '<span class="cell-reg-tag">已預約 11/25</span>' : (isRegistered && !isStamped ? '<span class="cell-reg-tag">已預約登記</span>' : '')}
           <div class="cell-title">${escapeHtml(task.title)}</div>
           <div class="cell-desc">${escapeHtml(task.desc)}</div>
           <div class="cell-status-hint" ${isRegistered && !isStamped ? 'style="color: #e65100; font-weight: bold;"' : ''}>${statusHint}</div>
@@ -631,7 +631,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       }
 
       grid.innerHTML = "";
-      const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+      const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
 
       PHYSICAL_EVENTS.forEach(ev => {
         const val = currentUser.stamps[ev.gridIndex];
@@ -639,12 +639,22 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
         const isRegistered = isCellRegistered(val);
 
         const item = document.createElement("div");
-        item.className = `event-item ${isStamped ? "stamped" : (isRegistered ? "registered" : "")}`;
+        const isSharedClass = (ev.gridIndex === 8);
+        const isDualReg = (val == 3 || String(val).trim() === "3");
+        const isBeforeWrapUp = (new Date() < new Date("2026-11-25T18:30:00+08:00"));
+        const isClass1014Only = (isSharedClass && isStamped && !isDualReg && isBeforeWrapUp);
+        item.className = `event-item ${isDualReg ? "registered" : (isClass1014Only ? "" : (isStamped ? "stamped" : (isRegistered ? "registered" : "")))}`;
 
         let statusTagHtml = "";
         let actionBtnHtml = "";
 
-        if (isStamped) {
+        if (isDualReg) {
+          statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ 已預約 11/25（#9 已於 10/14 蓋章）</span></div>`;
+          actionBtnHtml = `<button class="btn-reg btn-reg-cancel" onclick="toggleEventRegistration(${ev.gridIndex}, 1)"><span>✕ 取消 11/25 預約（保留印章）</span></button>`;
+        } else if (isClass1014Only) {
+          statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>✨ #9 已於 10/14 蓋章（可預約 11/25）</span></div>`;
+          actionBtnHtml = `<button class="btn-reg btn-reg-action" onclick="toggleEventRegistration(${ev.gridIndex}, 3)"><span>➕ 我要報名 ${ev.date.split(' ')[0]} 活動</span></button>`;
+        } else if (isStamped) {
           statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 已完成活動蓋章</span></div>`;
           actionBtnHtml = `<button class="btn-reg btn-reg-disabled" disabled><span>✓ 已出席並完成任務</span></button>`;
         } else if (isRegistered) {
@@ -677,7 +687,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
       if (!currentUser) return;
       const ev = PHYSICAL_EVENTS.find(e => e.gridIndex === gridIndex);
       const evName = ev ? ev.name : `第 ${gridIndex + 1} 格`;
-      const actionText = targetVal === 2 ? "預約登記" : "取消登記";
+      const actionText = (targetVal === 2 || targetVal === 3) ? "預約登記" : "取消登記";
 
       if (!confirm(`確定要【${actionText}】「${evName}」嗎？`)) {
         return;
@@ -711,7 +721,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
     function openStampModal(idx) {
       if (!currentUser) return;
       const task = TASKS_DEF[idx];
-      const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+      const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
       const isStamped = isCellStamped(currentUser.stamps[idx]);
 
       if (isStamped) {
@@ -815,7 +825,7 @@ const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwms3Fo0
 
     // 計算連線（相容 1 與 true）
     function calculateBingoLines(stamps) {
-      const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+      const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
 
       const winningCombos = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8],

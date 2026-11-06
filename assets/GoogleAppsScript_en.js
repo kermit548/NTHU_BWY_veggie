@@ -567,7 +567,7 @@ function renderBingoCard() {
   document.getElementById("metaSerial").innerText = currentUser.serial;
   document.getElementById("metaName").innerText = currentUser.name;
 
-  const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+  const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
 
   const stampedCount = currentUser.stamps.filter(isCellStamped).length;
   document.getElementById("metaProgress").innerText = stampedCount;
@@ -598,7 +598,7 @@ function renderBingoCard() {
 
     cell.innerHTML = `
       <div class="cell-number">#${idx + 1} ${isCenter ? "★ Core Task" : ""}</div>
-      ${isRegistered && !isStamped ? '<span class="cell-reg-tag">RSVP Done</span>' : ''}
+      ${(cellVal == 3 || String(cellVal).trim() === "3") ? '<span class="cell-reg-tag">RSVP 11/25</span>' : (isRegistered && !isStamped ? '<span class="cell-reg-tag">RSVP Done</span>' : '')}
       <div class="cell-title">${escapeHtml(task.title)}</div>
       <div class="cell-desc">${escapeHtml(task.desc)}</div>
       <div class="cell-status-hint" ${isRegistered && !isStamped ? 'style="color: #e65100; font-weight: bold;"' : ''}>${statusHint}</div>
@@ -648,7 +648,7 @@ function renderBingoCard() {
     }
 
     grid.innerHTML = "";
-    const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+    const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
 
     PHYSICAL_EVENTS_EN.forEach(ev => {
       const val = currentUser.stamps[ev.gridIndex];
@@ -656,12 +656,22 @@ function renderBingoCard() {
       const isRegistered = isCellRegistered(val);
 
       const item = document.createElement("div");
-      item.className = `event-item ${isStamped ? "stamped" : (isRegistered ? "registered" : "")}`;
+      const isSharedClass = (ev.gridIndex === 8);
+      const isDualReg = (val == 3 || String(val).trim() === "3");
+      const isBeforeWrapUp = (new Date() < new Date("2026-11-25T18:30:00+08:00"));
+      const isClass1014Only = (isSharedClass && isStamped && !isDualReg && isBeforeWrapUp);
+      item.className = `event-item ${isDualReg ? "registered" : (isClass1014Only ? "" : (isStamped ? "stamped" : (isRegistered ? "registered" : "")))}`;
 
       let statusTagHtml = "";
       let actionBtnHtml = "";
 
-      if (isStamped) {
+      if (isDualReg) {
+        statusTagHtml = `<div class="event-status-tag status-is-reg"><span>✅ RSVP Confirmed (#9 Stamped on 10/14)</span></div>`;
+        actionBtnHtml = `<button class="btn-reg btn-reg-cancel" onclick="toggleEventRegistration(${ev.gridIndex}, 1)"><span>✕ Cancel 11/25 RSVP (Keep Stamp)</span></button>`;
+      } else if (isClass1014Only) {
+        statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>✨ #9 Stamped on 10/14 (Open for 11/25)</span></div>`;
+        actionBtnHtml = `<button class="btn-reg btn-reg-action" onclick="toggleEventRegistration(${ev.gridIndex}, 3)"><span>➕ RSVP for ${ev.date.split(' ')[0]}</span></button>`;
+      } else if (isStamped) {
         statusTagHtml = `<div class="event-status-tag status-is-stamped"><span>🎉 Mission Stamped</span></div>`;
         actionBtnHtml = `<button class="btn-reg btn-reg-disabled" disabled><span>✓ Completed</span></button>`;
       } else if (isRegistered) {
@@ -694,7 +704,7 @@ function renderBingoCard() {
     if (!currentUser) return;
     const ev = PHYSICAL_EVENTS_EN.find(e => e.gridIndex === gridIndex);
     const evName = ev ? ev.name : `Grid #${gridIndex + 1}`;
-    const actionText = targetVal === 2 ? "RSVP for" : "Cancel RSVP for";
+    const actionText = (targetVal === 2 || targetVal === 3) ? "RSVP for" : "Cancel RSVP for";
 
     if (!confirm(`Are you sure you want to ${actionText} "${evName}"?`)) {
       return;
@@ -728,7 +738,7 @@ function renderBingoCard() {
 function openStampModal(idx) {
   if (!currentUser) return;
   const task = TASKS_DEF[idx];
-  const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+  const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
   const isStamped = isCellStamped(currentUser.stamps[idx]);
 
   if (isStamped) {
@@ -830,7 +840,7 @@ async function confirmStamp(isBypass, userVerifyCode = "") {
 }
 
 function calculateBingoLines(stamps) {
-  const isCellStamped = (val) => val == 1 || val === true || String(val).trim() === "1" || String(val).trim().toUpperCase() === "TRUE";
+  const isCellStamped = (val) => val == 1 || val == 3 || val === true || String(val).trim() === "1" || String(val).trim() === "3" || String(val).trim().toUpperCase() === "TRUE";
 
   const winningCombos = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
