@@ -37,7 +37,7 @@
 * 提供 GitHub Pages / Cloudflare Pages / Vercel 之 `$0` 零成本靜態託管架構表。
 
 ### 3. `references/engineering-patterns.md` (實戰程式碼範本)
-* 提供完整可執行的 ES Modules + Three.js `0.170.0` CDN HTML/CSS 骨架。
+* 提供完整可執行的 ES Modules + Three.js `0.170.0` CDN HTML/CSS 骨架（含安全 Referrer、`safe-area-inset`、`rem` 字級、`44px` 觸控熱區與原生 `<dialog>`）。
 * `bakeStaticGroup` 模組：將島上數百個靜態方塊、建築與裝飾合併為頂點色 BufferGeometry，網格縮減率達 `75%` 至 `94%`。
 * `islandRoot` 動態 NPC 局部座標同步演算法與防沉入過橋演算法（Elevation Guard）。
 * 純 WebGL 離線四角浮水印拍貼相機合成器。
@@ -48,7 +48,7 @@
 
 ### 5. `scripts/audit_island_e2e.py` (雙端防碰撞自動化稽核器)
 * 整合 Playwright，自動在背景以三種視窗解析度（桌機 `1280x800`、窄螢幕手機 `360x740`、標準手機 `390x844`）進行端對端檢驗。
-* 自動偵測 Console Error、Page Error、外部未授權 3D 模型請求、靜態網格壓縮比率（`>= 75%`），以及 `360px` 視窗頂部品牌卡單行排版與右上角按鈕安全間距。
+* 自動偵測 Console Error、Page Error、外部未授權 3D 模型請求、靜態網格壓縮比率（`>= 75%`）、`360px` 視窗品牌卡同行與按鈕間距、水平溢出、觸控熱區、基礎無障礙結構及 `prefers-reduced-motion` 降級。
 
 ---
 

@@ -8,7 +8,9 @@ K06-island-for-Gemini — 3D 互動群島雙端品質、效能與窄螢幕防碰
 3. 零外部 3D 模型檔 (.glb / .gltf / .fbx / .obj) 請求稽核（純程式幾何驗證）
 4. window.__ISLAND_METRICS__ 靜態幾何合併縮減率檢驗（門檻 >= 75%）
 5. 手機端頂端品牌資訊卡「標題 + 膠囊標籤」同一直線不折行及右上角按鈕零碰撞檢驗
-6. 嚴格目錄隔離：所有截圖與 JSON 報告僅輸出至指定隔離目錄 (--out-dir)
+6. 水平無溢出、行動端觸控熱區尺寸 (WCAG 2.5.8 >= 24px / 建議 >= 44px) 與基礎無障礙檢驗
+7. 系統 prefers-reduced-motion: reduce 減動降級狀態驗證
+8. 嚴格目錄隔離：所有截圖與 JSON 報告僅輸出至指定隔離目錄 (--out-dir)
 """
 
 import argparse
@@ -146,6 +148,68 @@ def run_audit(target_url: str, out_dir: str, min_merge_pct: float, allow_externa
                             f"[{vp_name}] 頂端膠囊標籤與右上角按鈕發生重疊碰撞 (clearance={clearance:.2f}px)"
                         )
 
+            # 4. 水平溢出檢查
+            overflow_info = page.evaluate(
+                "() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth })"
+            )
+            has_horizontal_overflow = overflow_info["scrollWidth"] > overflow_info["innerWidth"] + 1
+            if has_horizontal_overflow:
+                report["failures"].append(
+                    f"[{vp_name}] 偵測到水平溢出 (scrollWidth={overflow_info['scrollWidth']} > innerWidth={overflow_info['innerWidth']})"
+                )
+
+            # 5. 行動端觸控熱區尺寸檢查 (含 ::after 偽元素熱區擴展偵測)
+            touch_targets = None
+            if vp["mobile"]:
+                touch_targets = page.evaluate("""() => {
+                    const selectors = 'button, [role="button"], input:not([type="hidden"]), select, textarea, summary, header a[href], nav a[href], .mobile-devlog-btn';
+                    const undersized24 = [];
+                    const under44Warnings = [];
+                    for (const el of document.querySelectorAll(selectors)) {
+                        const style = getComputedStyle(el);
+                        if (style.display === 'none' || style.visibility === 'hidden') continue;
+                        const rect = el.getBoundingClientRect();
+                        if (rect.width === 0 || rect.height === 0) continue;
+                        const after = getComputedStyle(el, '::after');
+                        let hitW = rect.width;
+                        let hitH = rect.height;
+                        if (after.content && after.content !== 'none' && after.position === 'absolute') {
+                            hitW = Math.max(hitW, parseFloat(after.width) || 0);
+                            hitH = Math.max(hitH, parseFloat(after.height) || 0);
+                        }
+                        const label = el.id || el.getAttribute('aria-label') || el.textContent.trim().slice(0, 20) || el.tagName;
+                        if (hitW < 24 || hitH < 24) {
+                            undersized24.push({ label, width: Math.round(hitW), height: Math.round(hitH) });
+                        } else if (hitW < 44 || hitH < 44) {
+                            under44Warnings.push({ label, width: Math.round(hitW), height: Math.round(hitH) });
+                        }
+                    }
+                    return { undersized24, under44Warnings };
+                }""")
+                if touch_targets["undersized24"]:
+                    report["failures"].append(
+                        f"[{vp_name}] 互動元件熱區小於 WCAG 2.5.8 最低 24x24px 標準: {touch_targets['undersized24']}"
+                    )
+
+            # 6. 基礎無障礙語意結構檢查 (桌機代表執行)
+            a11y_info = None
+            if not vp["mobile"]:
+                a11y_info = page.evaluate("""() => {
+                    const lang = (document.documentElement.getAttribute('lang') || '').trim();
+                    const title = (document.title || '').trim();
+                    const hasMain = document.querySelector('main') !== null;
+                    const imgsMissingAlt = [...document.querySelectorAll('img')].filter(img => !img.hasAttribute('alt')).length;
+                    return { lang, hasTitle: title.length > 0, hasMain, imgsMissingAlt };
+                }""")
+                if not a11y_info["lang"]:
+                    report["failures"].append(f"[{vp_name}] <html> 缺少 lang 屬性")
+                if not a11y_info["hasTitle"]:
+                    report["failures"].append(f"[{vp_name}] 頁面缺少非空 <title>")
+                if not a11y_info["hasMain"]:
+                    report["failures"].append(f"[{vp_name}] 頁面缺少 <main> 語意地標")
+                if a11y_info["imgsMissingAlt"] > 0:
+                    report["failures"].append(f"[{vp_name}] 發現 {a11y_info['imgsMissingAlt']} 張 <img> 缺少 alt 屬性")
+
             # 截圖存檔於隔離目錄
             shot_path = os.path.join(out_dir, f"audit_{vp_name}.png")
             page.screenshot(path=shot_path)
@@ -177,8 +241,26 @@ def run_audit(target_url: str, out_dir: str, min_merge_pct: float, allow_externa
                 "external_model_requests": external_models,
                 "metrics": metrics,
                 "brand_layout": brand_layout,
+                "horizontal_overflow": has_horizontal_overflow,
+                "touch_targets": touch_targets,
+                "a11y": a11y_info,
             }
             context.close()
+
+        # 7. prefers-reduced-motion: reduce 降級檢驗
+        rm_context = browser.new_context(viewport={"width": 1280, "height": 800}, reduced_motion="reduce")
+        rm_page = rm_context.new_page()
+        rm_errors = []
+        rm_page.on("pageerror", lambda err: rm_errors.append(str(err)))
+        rm_page.goto(target_url, wait_until="networkidle", timeout=45000)
+        rm_page.wait_for_timeout(600)
+        rm_ui_state = rm_page.evaluate("() => window.__ISLAND_UI_STATE__ || null")
+        rm_context.close()
+        if rm_errors:
+            report["failures"].append(f"[reduced_motion] 減動模式下發生 Page Errors: {rm_errors}")
+        if isinstance(rm_ui_state, dict) and rm_ui_state.get("animate") is True:
+            report["failures"].append("[reduced_motion] 系統設定 prefers-reduced-motion: reduce 時，__ISLAND_UI_STATE__.animate 仍預設為 True")
+        report["reduced_motion_check"] = {"ui_state": rm_ui_state, "page_errors": rm_errors}
 
         browser.close()
 

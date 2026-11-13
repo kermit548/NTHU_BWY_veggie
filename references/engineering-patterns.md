@@ -4,9 +4,9 @@
 
 ---
 
-## 一、 免編譯原生 ES Modules `importmap` 骨架（`island.html`）
+## 一、 免編譯原生 ES Modules `importmap` 與無障礙現代 HUD 骨架（`island.html`）
 
-無須 `node_modules` 或 Webpack / Vite 打包，直接相容本地靜態伺服器與 GitHub Pages：
+無須 `node_modules` 或 Webpack / Vite 打包，直接相容本地靜態伺服器與 GitHub Pages；內建安全 Referrer 策略、語意地標、`safe-area-inset` 安全區、觸控熱區擴展與原生 `<dialog>` 覆蓋層規範：
 
 ```html
 <!doctype html>
@@ -14,11 +14,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="color-scheme" content="light" />
   <title>3D 互動微縮探索群島</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <!-- 僅載入實際使用字重以縮減繁中字型請求體積；Google Fonts 依裝置回傳動態 CSS，故加 referrerpolicy 而非固定 SRI -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="./assets/island/island-map.css" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script type="importmap">
     {
       "imports": {
@@ -29,27 +33,48 @@
   </script>
 </head>
 <body>
-  <canvas id="islandCanvas"></canvas>
   <!-- 頂端雙行品牌資訊卡（桌機與 360px 窄螢幕防折行、同頁開發日誌閉環導航） -->
   <header class="topbar">
     <div class="brand-card">
-      <img src="./img/logo.png" alt="Logo" class="brand-logo" />
+      <img src="./img/logo.png" alt="專案標誌" width="40" height="40" class="brand-logo" />
       <div class="brand-text">
         <div class="brand-title-row">
           <h1>專案主標題</h1>
           <span class="sky-pill">3D浮島</span>
-          <a href="./about/project_dev.html" target="_parent" class="mobile-devlog-btn" id="btnMobileDevlog" aria-label="開發日誌">ⓘ</a>
+          <a href="./about/project_dev.html" target="_parent" class="mobile-devlog-btn" id="btnMobileDevlog" aria-label="開發日誌"><span aria-hidden="true">ⓘ</span></a>
         </div>
         <div class="brand-sub">
           <span>核心主島 × 精選主題單元</span>
           <span class="brand-links">
             <a href="./index.html">返回首頁</a>
-            <a href="./about/project_dev.html" target="_parent" class="desktop-devlog-link" id="btnDesktopDevlog">ⓘ 開發日誌</a>
+            <a href="./about/project_dev.html" target="_parent" class="desktop-devlog-link" id="btnDesktopDevlog"><span aria-hidden="true">ⓘ</span> 開發日誌</a>
           </span>
         </div>
       </div>
     </div>
   </header>
+
+  <main id="islandMain">
+    <canvas id="islandCanvas" role="region" aria-label="3D 互動微縮探索場景"></canvas>
+    <!-- 2D 浮動名牌圖層：僅以 transform: translate3d(...) 定位 -->
+    <div id="islandLabelsLayer" class="labels-layer"></div>
+    <!-- 純文字篩選清單與桌面側欄／手機 Bottom Sheet（提供無障礙對等入口） -->
+    <aside class="directory-panel" aria-label="主題單元文字目錄">
+      <search>
+        <label for="islandSearch" class="visually-hidden">搜尋主題單元</label>
+        <input id="islandSearch" type="search" placeholder="搜尋主題或標籤" />
+      </search>
+    </aside>
+    <nav class="bottom-dock" aria-label="探索工具列"></nav>
+  </main>
+
+  <!-- 阻塞型推薦測驗／拍貼預覽：採用原生 <dialog> + showModal() -->
+  <dialog id="quizDialog" closedby="any" aria-labelledby="quizDialogTitle">
+    <h2 id="quizDialogTitle">適性探索推薦</h2>
+    <form method="dialog">
+      <button type="submit" value="close" aria-label="關閉視窗">關閉</button>
+    </form>
+  </dialog>
 
   <script type="module" src="./assets/island/island-ui.js"></script>
   <!-- 可選擴充模組：獨立掛載不侵入主邏輯 -->
@@ -59,8 +84,49 @@
 </html>
 ```
 
-### 手機窄螢幕（360 px～430 px）品牌卡單行不折行關鍵 CSS
+### 手機窄螢幕（360 px～430 px）、安全區與原生覆蓋層關鍵 CSS
 ```css
+:root {
+  color-scheme: light;
+  --target-size: 24px;
+}
+
+@media (pointer: coarse) {
+  :root { --target-size: 44px; }
+}
+
+/* 同分頁切換開發日誌之漸進增強跨文件轉場 */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
+html, body, #islandMain {
+  margin: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.topbar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  padding-top: max(10px, env(safe-area-inset-top, 0px));
+  padding-inline: max(12px, env(safe-area-inset-left, 0px)) max(12px, env(safe-area-inset-right, 0px));
+}
+
+.bottom-dock {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  padding-inline: max(12px, env(safe-area-inset-left, 0px)) max(12px, env(safe-area-inset-right, 0px));
+}
+
+.brand-text {
+  flex: 1;
+  min-inline-size: 0;
+}
+
 .brand-title-row {
   display: flex;
   align-items: center;
@@ -68,45 +134,80 @@
   flex-wrap: nowrap;
 }
 
+.brand-card h1 {
+  margin: 0;
+  font-size: clamp(0.875rem, 0.72rem + 1vw, 1rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-inline-size: 0;
+}
+
+.sky-pill {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid CanvasText;
+  outline-offset: 3px;
+}
+
 @media (max-width: 760px) {
   .brand-card {
     flex: 1;
     padding: 7px 11px;
     border-radius: 14px;
-    position: relative;
   }
-  .brand-title-row {
-    flex-wrap: nowrap;
-    gap: 6px;
-  }
-  .brand-card h1 {
-    font-size: clamp(14px, 4.2vw, 15.5px);
-    white-space: nowrap;
-  }
-  .sky-pill {
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-  .desktop-devlog-link { display: none !important; }
+  .desktop-devlog-link { display: none; }
   .mobile-devlog-btn {
-    position: absolute;
-    top: 9px;
-    right: 11px;
+    position: relative;
+    margin-inline-start: auto;
+    flex-shrink: 0;
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    display: flex !important;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
   }
+  /* 維持 28px 精巧視覺外觀，於觸控螢幕擴展至 44x44px 熱區 */
+  @media (pointer: coarse) {
+    .mobile-devlog-btn::after {
+      content: "";
+      position: absolute;
+      inset: -8px;
+    }
+  }
+}
+
+/* 原生 <dialog>：阻斷背景滾動鏈並支援 @starting-style 漸進入場 */
+dialog:modal {
+  overscroll-behavior: contain;
+  opacity: 1;
+  transition: opacity 0.25s ease-out, display 0.25s, overlay 0.25s;
+  transition-behavior: allow-discrete;
+}
+
+dialog:modal::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+@starting-style {
+  dialog:modal { opacity: 0; }
+}
+
+@media (forced-colors: active) {
+  .brand-card, .sky-pill, dialog:modal { border: 1px solid CanvasText; }
 }
 ```
 
 ---
 
-## 二、 UTF-8 BOM 安全解碼與離線備援讀取器（`island-data.js`）
+## 二、 UTF-8 BOM 安全解碼、時區狀態判定與 XSS 防護（`island-data.js`）
 
-針對 Windows 匯出之 TSV / CSV 強制以 `TextDecoder('utf-8')` 剝除 `\uFEFF` BOM 與 `\r\n`，並提供離線備援常數與個資遮蔽過濾器：
+針對 Windows 匯出之 TSV / CSV 強制以 `TextDecoder('utf-8')` 剝除 `\uFEFF` BOM 與 `\r\n`，提供離線備援常數與個資遮蔽過濾器；外部字串寫入 DOM 一律透過 `textContent` 防範 XSS，時區計算以 `Intl.DateTimeFormat` 明確指定 IANA 時區（不可手動加減本地 `Date` 偏移或使用不帶時區的 `Temporal.PlainDateTime`）：
 
 ```js
 export function maskPersonalNames(text, pattern = /([陳林黃張李王吳劉蔡楊許鄭謝郭洪曾邱廖賴周徐蘇葉莊呂江何蕭羅高潘簡朱鍾彭游詹胡施沈余盧梁趙顏柯翁魏孫戴范方宋鄧杜傅侯曹薛丁卓馬阮唐董溫藍蔣石古紀姚連馮歐程湯黃田康姜白汪鄒尤巫鍾黎涂龔嚴韓袁金童陸夏柳邵])[〇○O＊*一-龥]{1,2}/g) {
@@ -130,6 +231,29 @@ export async function loadTsvWithFallback(url, fallbackRows) {
   } catch {
     return fallbackRows;
   }
+}
+
+export function getZonedClock(timeZone = 'Asia/Taipei', now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(now);
+  const pick = (type) => parts.find(p => p.type === type)?.value ?? '';
+  return {
+    weekday: pick('weekday'),
+    minutesOfDay: Number(pick('hour')) * 60 + Number(pick('minute')),
+  };
+}
+
+// 渲染外部 TSV/API 文字至 DOM 時，嚴禁使用 innerHTML 字串拼接
+export function createSafeBadge(text, className = 'pill') {
+  const el = document.createElement('span');
+  el.className = className;
+  el.textContent = text;
+  return el;
 }
 ```
 
@@ -210,7 +334,14 @@ export function bakeStaticGroup(rootGroup, metrics = null) {
 }
 ```
 
-> **效能遙測暴露規範**：務必於全域掛載 `window.__ISLAND_METRICS__ = { rawStaticMeshes, mergedStaticMeshes, reductionPct, drawCalls }`，供 `scripts/audit_island_e2e.py` 自動斷言檢驗靜態合併率 ≥ 75%。
+> **效能遙測與長任務讓渡規範**：務必於全域掛載 `window.__ISLAND_METRICS__ = { rawStaticMeshes, mergedStaticMeshes, reductionPct, drawCalls }`，供 `scripts/audit_island_e2e.py` 自動斷言檢驗靜態合併率 ≥ 75%。若批次建立多座浮島幾何耗時超過 `50 ms`，於每座島建置間呼叫 `yieldToMain()` 避免阻塞首屏互動（INP）：
+>
+> ```js
+> export function yieldToMain() {
+>   if ('scheduler' in window && 'yield' in scheduler) return scheduler.yield();
+>   return new Promise(resolve => setTimeout(resolve, 0));
+> }
+> ```
 
 ---
 
@@ -255,18 +386,39 @@ export function applyElevationGuard(worldPos, islandsMeta, clearance = 0.05) {
 }
 ```
 
-### 3. 全站「動態」開關暫停鎖定時間戳（防止恢復時暴衝瞬移）
+### 3. 系統減動偏好、背景分頁暫停與時間戳鎖定（防止恢復時暴衝瞬移）
 ```js
+const reducedMotionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+window.__ISLAND_UI_STATE__ = window.__ISLAND_UI_STATE__ || { animate: !reducedMotionMQ.matches };
+reducedMotionMQ.addEventListener('change', (e) => {
+  window.__ISLAND_UI_STATE__.animate = !e.matches;
+});
+
 let lastTime = performance.now();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) lastTime = performance.now();
+});
+
 function tick(now) {
   requestAnimationFrame(tick);
-  if (!window.__ISLAND_UI_STATE__?.animate) {
-    lastTime = now; // 關鍵：暫停期間持續同步時間戳，恢復瞬間 dt 維持平滑 ~16ms
+  // 暫停或處於背景分頁期間持續同步時間戳，恢復瞬間 dt 維持平滑 ~16ms 並節省 GPU 電量
+  if (document.hidden || !window.__ISLAND_UI_STATE__?.animate) {
+    lastTime = now;
     return;
   }
   const dt = Math.min(0.05, (now - lastTime) / 1000);
   lastTime = now;
   updateDynamicEntities(dt);
+}
+```
+
+### 4. 2D 浮動名牌合成層整數像素位移（防抖動與 Layout Thrashing）
+```js
+// 嚴禁於動畫迴圈修改 el.style.left / el.style.top 或交錯讀寫 getBoundingClientRect()
+export function positionFloatingLabel(el, x, y) {
+  const rx = Math.round(x);
+  const ry = Math.round(y);
+  el.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
 }
 ```
 

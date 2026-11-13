@@ -106,32 +106,32 @@ python "C:\Users\Kermit\.gemini\config\skills\K06-island-for-Gemini\scripts\isla
 | 階段 | 建議模組職責 | 必備工程驗收標準 |
 | :---: | :--- | :--- |
 | **Stage 1** | **架構拆解與實作計畫核准** | 完成資料欄位映射、色票提取、核心地標三視圖拆解，初始化 `island_project_notes.md` 並取得使用者計畫核准。 |
-| **Stage 2** | **資料層與業務邏輯引擎**<br>(`assets/island/island-data.js`) | `TextDecoder('utf-8')` + BOM（`\uFEFF`）剝除、內建離線結構化備援常數、時區即時狀態判定（如台灣時區營業中／公休）與 4～9 題適性推薦測驗權重矩陣。 |
-| **Stage 3** | **3D 積木引擎、幾何合併與移軸後製**<br>(`assets/island/island-world.js`) | 圓角積木幾何（`RoundedBoxGeometry` 等）與材質單例快取池、`bakeStaticGroup` 同材質頂點色靜態零件合併（**Draw Calls / 靜態 Mesh 縮減率須達 75% 以上**）、`EffectComposer` 移軸微縮後製（**手機寬度 ≤ 768 px 自動關閉省電**）、Open-Meteo 即時天氣與日夜四時段光影。 |
+| **Stage 2** | **資料層與業務邏輯引擎**<br>(`assets/island/island-data.js`) | `TextDecoder('utf-8')` + BOM（`\uFEFF`）剝除、內建離線結構化備援常數、以 `Intl.DateTimeFormat` 指定 `timeZone: 'Asia/Taipei'`（或具 `temporal-polyfill` 偵測之 `Temporal.ZonedDateTime`，嚴禁 `PlainDateTime`）判定即時狀態、4～9 題適性推薦測驗權重矩陣，以及外部字串一律採 `textContent` / DOM API 寫入（禁直接拼接 `innerHTML`）。 |
+| **Stage 3** | **3D 積木引擎、幾何合併與移軸後製**<br>(`assets/island/island-world.js`) | 圓角積木幾何（`RoundedBoxGeometry` 等）與材質單例快取池、`bakeStaticGroup` 同材質頂點色靜態零件合併（**Draw Calls / 靜態 Mesh 縮減率須達 75% 以上**，單次建置超過 `50 ms` 時以 `scheduler.yield()` 分段讓出主執行緒）、`EffectComposer` 移軸微縮後製（**手機寬度 ≤ 768 px 自動關閉省電**）、Open-Meteo 即時天氣與日夜四時段光影，以及 `visibilitychange` 離頁自動暫停節能。 |
 | **Stage 4** | **中央核心主島與精神地標建模**<br>(`assets/island/island-landmarks.js`) | **零外部 GLTF / OBJ / FBX 模型檔**，100% 以程式基本幾何拼裝中央核心地標（搭配高解析 `CanvasTexture` 文字牌匾）、廣場鋪面、植栽與共用角色元件。 |
 | **Stage 5** | **各單元節點微縮建築與互動小夥伴**<br>(`assets/island/island-shops.js` 或 `island-nodes.js`) | 為每個資料單元打造具高辨識度之微縮建築與招牌道具模型、連接橋樑／航線動態載具，以及散佈全場之尋寶小夥伴（如 12 隻松鼠或校園吉祥物，設定嚴格白名單 ID 計數防溢位）。 |
-| **Stage 6** | **響應式 HUD 介面與雙端 E2E 驗證**<br>(`island.html`, `island-ui.js`, `island-map.css`) | 開場載入卡、頂端品牌資訊卡與即時天氣列、2D 整數像素防抖動名牌、桌面側欄／手機兩段式 Bottom Sheet、底部膠囊工具列（全景／鳥瞰／自動導覽／推薦測驗／純文字篩選清單），並通過 Playwright 桌機與手機零錯誤驗證。 |
+| **Stage 6** | **響應式 HUD 介面與雙端 E2E 驗證**<br>(`island.html`, `island-ui.js`, `island-map.css`) | 具 `<header>` / `<main>` / `<nav>` / `<search>` 語意地標與 `color-scheme` / `referrer` 標頭；採用原生 `<dialog>.showModal()` 承載測驗／拍照彈窗、`[popover]` 承載非阻塞提示、桌面側欄／手機 `100svh` 兩段式 Bottom Sheet；2D 名牌採 `translate3d` 整數像素更新；串聯 `prefers-reduced-motion` 初始狀態，並通過 Playwright 桌機與手機零錯誤、觸控熱區與無障礙驗證。 |
 
 ### 可選豐富性擴充模組（皆須採獨立 JS 解耦掛載，不污染核心檔）
 當基礎 6 階段完成、使用者希望進一步提升豐富度與社群傳播力時，可推薦並獨立掛載以下實戰驗證模組：
-1. **一鍵美照拍貼機 (`assets/island-camera.js`)**：於底部導覽列上方中央配置浮動快門鈕，強制調用 WebGLRenderer 擷取無 DOM 雜訊之純淨 3D 畫面，合成品牌吉祥物毛玻璃浮水印（支援「↖ 左上、↗ 右上、↙ 左下、↘ 右下」4 角即時重繪切換）、快門閃光與時間戳 PNG 下載。
+1. **一鍵美照拍貼機 (`assets/island-camera.js`)**：於底部導覽列上方中央配置浮動快門鈕，強制調用 WebGLRenderer 擷取無 DOM 雜訊之純淨 3D 畫面，合成品牌吉祥物毛玻璃浮水印（支援「↖ 左上、↗ 右上、↙ 左下、↘ 右下」4 角即時重繪切換，確保文字對比度 ≥ 4.5:1）、快門閃光（嚴禁超過每秒 3 次閃爍）與時間戳 PNG 下載。
 2. **裝置分級漫步 NPC 系統 (`assets/island/island-dynamic-npc.js`)**：桌機配置約 30～33 位常駐島民與跨島角色、手機自動降級為約 12 位兼顧省電；採用扁平圓盤假陰影實現零額外 Shadow Pass 負擔。
-3. **浮動音樂／YouTube MV 迷你播放器**：桌機右下角呈現圓角影片卡（顯示畫面時隱藏迷你列避免雙重控制，最小化 `_` 時才切換迷你列）；手機端自動隱藏影片畫面，僅於 `bottom: 84px`（距底列淨空 ≥ 32 px）呈現精緻迷你播放列，關閉後收合為頂端列日夜按鈕右側之黑底音符常駐徽章，預設音量設定為 `25%` 防爆音。
-4. **開發日誌與技術致敬頁 (`about/*_dev.html`)**：採用暖米色紙感背景與 `Noto Sans TC` 字體，誠實揭露靈感致敬來源、AI 協作模型版本、零外部模型純幾何技術亮點與零個資防線；**主站入口與返回浮島按鈕一律採用當前分頁導航（`target="_parent"`）**，徹底杜絕瀏覽器分頁無限增生。
+3. **浮動音樂／YouTube MV 迷你播放器**：桌機右下角呈現圓角影片卡（顯示畫面時隱藏迷你列避免雙重控制，最小化 `_` 時才切換迷你列）；手機端自動隱藏影片畫面，僅於 `bottom: calc(84px + env(safe-area-inset-bottom, 0px))`（距底列淨空 ≥ 32 px）呈現精緻迷你播放列，關閉後收合為頂端列日夜按鈕右側之黑底音符常駐徽章，預設音量設定為 `25%` 防爆音。
+4. **開發日誌與技術致敬頁 (`about/*_dev.html`)**：採用暖米色紙感背景與 `Noto Sans TC` 字體，誠實揭露靈感致敬來源、AI 協作模型版本、零外部模型純幾何技術亮點與零個資防線；**主站入口與返回浮島按鈕一律採用當前分頁導航（`target="_parent"`）**，並於共享 CSS 啟用 `@view-transition { navigation: auto; }`（置於 `@media (prefers-reduced-motion: no-preference)` 內），徹底杜絕瀏覽器分頁無限增生並提供漸進增強轉場。
 
 ---
 
-## 四、 十大實戰防坑鐵律（24 階段調優血淚教訓總結）
+## 四、 十大實戰防坑鐵律（現代 Web 標準與 24 階段調優總結）
 
 1. **浮島呼吸起伏防淹腳踝鐵律**：若浮島／節點具備上下懸浮呼吸動畫（如 `bob = ±0.14`）或 Hover 抬升，所有島上常駐小人與道具**必須掛載於該島根節點（`islandRoot`）本地座標系**（`y = 0.045`），嚴禁置於全域世界空間，否則島嶼升起時草皮會直接淹沒角色腳踝。
 2. **跨島跳躍防穿模與落腳雲鐵律**：跨島移動角色（如巡航吉祥物）必須採用**單段完整拋物線大跨越**，於島嶼半徑內部署動態高度守衛（`Elevation Guard: y >= baseY + 0.05`）並規劃前庭繞房航點避開建築包圍盒；島間空中跳躍點正下方應配置低多邊形「落腳小雲朵」（每段島距至多 1～2 朵，避免空域雜亂或踩空氣起跳）。
-3. **跨島漫步嚴循橋面鐵律**：跨島行走之 NPC 必須嚴格代入木拱橋拋物線高度公式行走，絕不可直線橫越懸空斷層；且所有自訂動畫迴圈必須監聽全站「動態」開關（`uiState.animate`），**暫停恢復時必須重設 `lastTimestamp`**，杜絕時間差暴衝瞬移。
+3. **跨島漫步、分頁背景暫停與減動偏好鐵律**：跨島行走之 NPC 必須嚴格代入木拱橋拋物線高度公式行走，絕不可直線橫越懸空斷層；全站「動態」開關（`uiState.animate`）應預設讀取 `window.matchMedia('(prefers-reduced-motion: reduce)').matches` 並監聽其 `change` 事件，同時綁定 `visibilitychange` 於背景分頁自動暫停 WebGL 迴圈，**暫停恢復時必須重設 `lastTimestamp`**，杜絕時間差暴衝瞬移。
 4. **俯視操作無遮蔽鐵律**：多數使用者以 35°～60° 俯視角操作群島，號誌燈箱（如讀秒紅綠燈）或招牌**不得加裝突出遮光罩（Visors）**，並須避開樹冠與攤位頂棚穿模，確保俯視鏡面與讀秒清晰可見。
-5. **有機角色圓滑零穿模鐵律**：拼裝圓潤吉祥物時，避免粗壯球體肩膀與手臂硬插穿模；優先使用 `THREE.LatheGeometry` 旋轉構建一體成形軀幹，搭配連續變徑圓管（`TubeGeometry`）使雙手自然貼合腹部表面。
-6. **手機窄螢幕（360 px）頂端品牌卡雙行不折行鐵律**：手持裝置頂端品牌卡**嚴格維持兩行以內**，標題列設定 `flex-wrap: nowrap; gap: 6px;`、標題字級採用 `clamp(14px, 4.2vw, 15.5px)` 搭配精簡膠囊標籤（如 `3D浮島`，4 字以內）與右上角 `28px` 圓形圖標鈕（`[ ⓘ ]`），移除多餘右側內距，確保 360 px～430 px 標題與標籤同處一行且與按鈕保持安全淨空（> 6 px）。
-7. **2D 浮動名牌整數像素防抖動鐵律**：以 `Vector3.project(camera)` 換算螢幕座標更新 HTML 名牌時，必須使用 `Math.round(x)`、`Math.round(y)` 對齊整數像素並搭配距離自動避讓／遠距隱藏，根絕次像素微幅顫抖與標籤重疊。
+5. **有機角色圓滑零穿模與原生覆蓋層鐵律**：拼裝圓潤吉祥物時，避免粗壯球體肩膀與手臂硬插穿模；優先使用 `THREE.LatheGeometry` 旋轉構建一體成形軀幹，搭配連續變徑圓管（`TubeGeometry`）使雙手自然貼合腹部表面。同時所有互動彈窗／測驗應採原生 `<dialog>.showModal()`（搭配 `:modal` 與 `::backdrop` 的 `overscroll-behavior: contain` 阻斷背景捲動），非阻塞選單採 `[popover]`，不重造焦點陷阱。
+6. **手機窄螢幕（360 px）品牌卡、安全區與觸控熱區鐵律**：啟用 `viewport-fit=cover` 時，頂端 `.topbar` 與底部列必須套用 `env(safe-area-inset-*)` 避開劉海與 Home Bar；品牌卡標題列設定 `flex-wrap: nowrap; gap: 8px;`，標題字級改採 `rem` 基準之 `clamp(0.875rem, 0.72rem + 1vw, 1rem)`（最大值 ≤ 2.5× 最小值，尊重系統字級縮放）並搭配 `min-inline-size: 0` 防溢出；右上角 `28px` 圓形圖標鈕（`<span aria-hidden="true">ⓘ</span>`）納入 Flex 尾端排版確保淨空（> 6 px），並於 `@media (pointer: coarse)` 透過 `::after` 偽元素將可點擊熱區擴展至 `44×44 px`。
+7. **2D 浮動名牌整數像素與合成層位移鐵律**：以 `Vector3.project(camera)` 換算螢幕座標更新 HTML 名牌時，必須使用 `Math.round(x)`、`Math.round(y)` 對齊整數像素並強制以 CSS `transform: translate3d(...)`（或 `translate`）更新位置，**嚴禁**於動畫迴圈內改寫 `left`/`top` 或交錯讀寫 `getBoundingClientRect()` 造成 Layout Thrashing；同時對外部文字資料一律使用 `textContent` 防範 DOM XSS。
 8. **尋寶計數白名單防溢位鐵律**：可點擊對話之攤位志工或環境彩蛋必須與「尋寶小遊戲」目標嚴格分離（採用唯一 ID `Set` 白名單計數），集滿上限（如 `12/12`）後文案自動切換為祝賀語（如「好眼力，已尋獲全部小夥伴」），杜絕出現 `13/12` 破表錯誤。
-9. **雙端實機截圖與包圍盒碰撞驗收鐵律**：每次修改 UI 或 3D 佈局後，必須執行 `scripts/audit_island_e2e.py`（或對接 `A09-webapp-testing-for-Gemini`）於桌機（`1280x800`）與窄版手機（`360x740`、`390x844`）實測檢查 `bounding_box()` 間距、Console 0 錯誤與靜態幾何合併率，確認無誤後才回報使用者。
+9. **雙端實機截圖、觸控熱區與無障礙驗收鐵律**：每次修改 UI 或 3D 佈局後，必須執行 `scripts/audit_island_e2e.py`（或對接 `A09-webapp-testing-for-Gemini`）於桌機（`1280x800`）與窄版手機（`360x740`、`390x844`）實測檢查 `bounding_box()` 間距、水平無溢出、觸控目標最小尺寸、基礎無障礙結構（`lang` / `title` / `<main>` / `alt`）、`reduced-motion` 降級、Console 0 錯誤與靜態幾何合併率，確認無誤後才回報使用者。
 10. **目錄純淨隔離鐵律**：所有 Playwright 驗收截圖、模型角度預覽圖與測試腳本，一律輸出至對話專屬 `scratch/` 目錄或專案 `_output/` 隔離子目錄（並確認列入 `.gitignore`），嚴禁散落於專案根目錄。
 
 ---
