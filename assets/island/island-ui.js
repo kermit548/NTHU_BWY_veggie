@@ -1,20 +1,28 @@
 // 2026 清大福青社蔬食地圖 — HUD 互動介面控制器、新竹即時氣象串接、「今天吃啥」測驗與浮島自動導覽
 // 連接 island-data.js、island-world.js、island-landmarks.js 與 island-shops.js
 
-import {
-  NTHU_COORDS,
-  VEG_QUOTES,
-  SKY_LINKS,
-  QUIZ_QUESTIONS,
-  getTaipeiClock,
-  evaluateOpenStatus,
-  loadIslandDataset,
-  scoreQuizRecommendations,
-  verifyIslandDataIntegrity
-} from './island-data.js';
-import { createIslandWorld } from './island-world.js';
-import { buildCentralNthuHubScene } from './island-landmarks.js';
-import { buildShopIslandScene, buildSkyDecorScene } from './island-shops.js';
+window.__bootNthuVeggieIsland = function (deps) {
+  'use strict';
+  if (window.__NTHU_VEGGIE_ISLAND_BOOTED__) return;
+  window.__NTHU_VEGGIE_ISLAND_BOOTED__ = true;
+
+  const {
+    NTHU_COORDS,
+    VEG_QUOTES,
+    SKY_LINKS,
+    QUIZ_QUESTIONS,
+    getTaipeiClock,
+    evaluateOpenStatus,
+    loadIslandDataset,
+    scoreQuizRecommendations,
+    verifyIslandDataIntegrity
+  } = window.NTHU_ISLAND_DATA;
+  const worldApi = window.__registerIslandWorld(deps);
+  const landmarksApi = window.__registerIslandLandmarks(deps, worldApi);
+  const shopsApi = window.__registerIslandShops(deps, worldApi, landmarksApi);
+  const { createIslandWorld } = worldApi;
+  const { buildCentralNthuHubScene } = landmarksApi;
+  const { buildShopIslandScene, buildSkyDecorScene } = shopsApi;
 
 const CRITTER_STORAGE_KEY = 'nthu_bwy_veggie_island_critters_2026';
 const TOTAL_CRITTERS = 12;
@@ -402,13 +410,18 @@ async function bootstrap() {
     return anchor;
   });
 
+  const bubbleLayer = document.createElement('div');
+  bubbleLayer.className = 'bubble-layer';
+  document.body.appendChild(bubbleLayer);
+
   const bubbleAnchor = document.createElement('div');
   bubbleAnchor.className = 'proj-anchor';
   bubbleAnchor.hidden = true;
   const bubbleBox = document.createElement('div');
   bubbleBox.className = 'bubble';
   bubbleAnchor.appendChild(bubbleBox);
-  elLabelLayer.appendChild(bubbleAnchor);
+  bubbleLayer.appendChild(bubbleAnchor);
+  let lastBubbleKey = '';
 
   // 4. 啟動 3D 天空之城浮島引擎（自動執行靜態幾何合併與移軸微縮後製）
   setIntroProgress(72, '正在拼裝清華簡冊立柱與合併 11 座浮島靜態積木...');
@@ -494,12 +507,26 @@ async function bootstrap() {
         anchor.style.transform = `translate3d(${item.screen.x.toFixed(1)}px, ${item.screen.y.toFixed(1)}px, 0) translate(-50%, -50%)`;
       });
 
-      // 同步松鼠對話氣泡
+      // 同步角色與彩蛋對話氣泡（含可點擊外部連動連結）
       if (bubble?.screen) {
-        bubbleBox.textContent = bubble.text;
+        const nextKey = `${bubble.text || ''}|${bubble.linkUrl || ''}|${bubble.linkLabel || ''}`;
+        if (nextKey !== lastBubbleKey) {
+          lastBubbleKey = nextKey;
+          bubbleBox.classList.toggle('interactive', Boolean(bubble.linkUrl));
+          if (bubble.linkUrl) {
+            bubbleBox.innerHTML = `
+              <div class="bubble-msg">${esc(bubble.text)}</div>
+              <a class="bubble-link" href="${esc(bubble.linkUrl)}" target="_blank" rel="noopener noreferrer">${esc(bubble.linkLabel || '前往看看 →')}</a>
+            `;
+          } else {
+            bubbleBox.textContent = bubble.text;
+          }
+        }
         bubbleAnchor.hidden = false;
-        bubbleAnchor.style.transform = `translate3d(${bubble.screen.x.toFixed(1)}px, ${bubble.screen.y.toFixed(1)}px, 0) translate(-50%, -100%)`;
+        bubbleAnchor.style.transform = `translate3d(${Math.round(bubble.screen.x)}px, ${Math.round(bubble.screen.y)}px, 0) translate(-50%, -100%)`;
       } else if (!bubbleAnchor.hidden) {
+        lastBubbleKey = '';
+        bubbleBox.classList.remove('interactive');
         bubbleAnchor.hidden = true;
       }
     }
@@ -1275,3 +1302,8 @@ bootstrap().catch(err => {
   const elStep = document.getElementById('introStepText');
   if (elStep) elStep.textContent = `載入發生例外：${err?.message || err}`;
 });
+};
+
+if (window.__VEGGIE_THREE_DEPS__) {
+  window.__bootNthuVeggieIsland(window.__VEGGIE_THREE_DEPS__);
+}

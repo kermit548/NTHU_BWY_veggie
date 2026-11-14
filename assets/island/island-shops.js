@@ -1,28 +1,30 @@
 // 2026 清大福青社蔬食地圖 — 10 座蔬食餐廳主題浮島積木建模、招牌料理微縮展示與天空之城動態彩蛋
 // 100% 純程式碼基本幾何拼裝（零外部 GLTF/FBX），靜態零件自動由 island-world.js 合併為同材質 BufferGeometry。
 
-import * as THREE from 'three';
-import {
-  getCachedGeo,
-  mat,
-  glowWindowMat,
-  makeBox,
-  makeCyl,
-  makeSphere,
-  makeCone,
-  makeIco,
-  makeTorus,
-  makeGableRoof,
-  makeSignBoard
-} from './island-world.js';
-import {
-  createLushTree,
-  createPineTree,
-  createParkLamp,
-  createMiniPerson,
-  createBridgeCyclist,
-  createInteractiveCritter
-} from './island-landmarks.js';
+window.__registerIslandShops = function (deps, worldApi, landmarksApi) {
+  'use strict';
+  const { THREE, mergeGeometries } = deps;
+  const {
+    getCachedGeo,
+    mat,
+    glowWindowMat,
+    makeBox,
+    makeCyl,
+    makeSphere,
+    makeCone,
+    makeIco,
+    makeTorus,
+    makeGableRoof,
+    makeSignBoard
+  } = worldApi;
+  const {
+    createLushTree,
+    createPineTree,
+    createParkLamp,
+    createMiniPerson,
+    createBridgeCyclist,
+    createInteractiveCritter
+  } = landmarksApi;
 
 // ============================================================================
 // 1. 共用微縮餐飲、建築外殼與熱氣蒸氣積木元件
@@ -243,7 +245,7 @@ function decorateShopGrounds(group, island) {
 // 2. 10 座蔬食餐廳主題浮島專屬建築與招牌料理建模
 // ============================================================================
 
-export function buildShopIslandScene(group, { island, registerAnim, registerCritter }) {
+function buildShopIslandScene(group, { island, registerAnim, registerCritter }) {
   decorateShopGrounds(group, island);
   const subtleYaw = Math.atan2(island.x, Math.abs(island.z) + 22) * 0.28;
   const signBg = island.ring === 'inner' ? '#2c4a47' : '#d96b27';
@@ -712,6 +714,252 @@ function createBroccoliAirBalloon(registerAnim) {
   return root;
 }
 
+/**
+ * 將靜態子網格烘焙合併為單一頂點色 BufferGeometry（維持零外部模型高幀率）
+ */
+function bakeColoredParts(sourceGroup, materialOpts = {}) {
+  sourceGroup.updateMatrixWorld(true);
+  const parts = [];
+  const tmpColor = new THREE.Color();
+
+  sourceGroup.traverse(obj => {
+    if (!obj.isMesh || obj.userData.skipBake) return;
+    let g = obj.geometry.index ? obj.geometry.toNonIndexed() : obj.geometry.clone();
+    if (g.attributes.uv) g.deleteAttribute('uv');
+    g.applyMatrix4(obj.matrixWorld);
+    if (!g.attributes.normal) g.computeVertexNormals();
+
+    const pos = g.attributes.position;
+    const colors = new Float32Array(pos.count * 3);
+    const matColor = obj.material?.color;
+    if (matColor) tmpColor.copy(matColor);
+    else tmpColor.set('#ffffff');
+    for (let i = 0; i < pos.count; i++) {
+      colors[i * 3] = tmpColor.r;
+      colors[i * 3 + 1] = tmpColor.g;
+      colors[i * 3 + 2] = tmpColor.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    parts.push(g);
+  });
+
+  if (!parts.length) return new THREE.Group();
+  const merged = mergeGeometries(parts, false);
+  for (const g of parts) g.dispose();
+  const mesh = new THREE.Mesh(
+    merged,
+    new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.72,
+      metalness: 0.02,
+      ...materialOpts
+    })
+  );
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+/**
+ * 玩具風福青夥伴（複製自「福青社學習主軸遊樂園」希望熱氣球吊籃 5 位揮手夥伴）
+ */
+function createBwyYouthFigure(cfg) {
+  const g = new THREE.Group();
+  g.add(makeCyl(0.22, 0.26, 0.58, cfg.shirt, { seg: 10, pos: [0, 0.2, 0] }));
+  g.add(makeBox([0.14, 0.18, 0.04], '#ffffff', { pos: [0, 0.18, 0.23] }));
+  g.add(makeSphere(0.24, '#ffe3c8', { seg: 12, pos: [0, 0.68, 0] }));
+  g.add(
+    makeSphere(0.255, cfg.hair, {
+      seg: 12,
+      thetaStart: 0,
+      thetaLength: Math.PI * 0.58,
+      pos: [0, 0.71, 0],
+      rot: [-0.18, 0, 0]
+    })
+  );
+
+  if (cfg.glasses) {
+    g.add(makeTorus(0.065, 0.012, '#2a2522', { seg: 12, pos: [-0.08, 0.68, 0.22] }));
+    g.add(makeTorus(0.065, 0.012, '#2a2522', { seg: 12, pos: [0.08, 0.68, 0.22] }));
+  }
+  if (cfg.hasCamera) {
+    g.add(makeBox([0.18, 0.13, 0.12], '#2d2926', { pos: [-0.12, 0.06, 0.26] }));
+  }
+  if (cfg.waveLeft) {
+    g.add(makeCyl(0.055, 0.055, 0.45, '#ffe3c8', { seg: 8, pos: [-0.32, 0.55, 0.1], rot: [0, 0, 0.65] }));
+  }
+  if (cfg.waveRight) {
+    g.add(makeCyl(0.055, 0.055, 0.45, '#ffe3c8', { seg: 8, pos: [0.32, 0.58, 0.1], rot: [0, 0, -0.68] }));
+  }
+  if (cfg.heartPose) {
+    g.add(makeSphere(0.09, '#f59e0b', { seg: 8, pos: [0, 0.34, 0.28] }));
+  }
+  return g;
+}
+
+/**
+ * 福青希望熱氣球（五色方格水滴球體 + 藤編籃 + 5 位紅黃營服夥伴 + 點擊連動「福青遊樂園」）
+ */
+function createBwyHopeAirBalloon(registerAnim, registerCritter) {
+  const root = new THREE.Group();
+  root.userData.dyn = true;
+
+  const modelWrap = new THREE.Group();
+  const staticParts = new THREE.Group();
+  const shiftY = 6.13; // 讓藤編籃底貼齊區域原點 y = 0
+
+  // 1. 五色方格拼布水滴球囊（#e26345 珊瑚紅 / #f5c73b 暖黃 / #5aa4d6 天青藍 / #95cd4f 嫩草綠 / #f8f0d8 米白）
+  const palette = ['#e26345', '#f5c73b', '#5aa4d6', '#95cd4f', '#f8f0d8'];
+  const rows = 6;
+  const cols = 12;
+  const radius = 3.85;
+  const patchGeosToDispose = [];
+
+  for (let r = 0; r < rows; r++) {
+    const thetaStart = (r / rows) * (Math.PI * 0.82);
+    const thetaLength = (Math.PI * 0.82) / rows;
+    for (let c = 0; c < cols; c++) {
+      const phiStart = (c / cols) * Math.PI * 2;
+      const phiLength = (Math.PI * 2) / cols;
+      const colorHex = palette[(r * 2 + c) % palette.length];
+
+      const patchGeo = new THREE.SphereGeometry(
+        radius,
+        4,
+        4,
+        phiStart,
+        phiLength,
+        thetaStart,
+        thetaLength
+      );
+      const pos = patchGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const py = pos.getY(i);
+        if (py < 0) {
+          const factor = 1 - Math.abs(py / radius) * 0.28;
+          pos.setX(i, pos.getX(i) * factor);
+          pos.setZ(i, pos.getZ(i) * factor);
+          pos.setY(i, py * 1.18);
+        } else {
+          pos.setY(i, py * 1.06);
+        }
+      }
+      patchGeo.computeVertexNormals();
+      patchGeosToDispose.push(patchGeo);
+
+      const patchMesh = new THREE.Mesh(patchGeo, mat(colorHex));
+      patchMesh.position.y = shiftY;
+      staticParts.add(patchMesh);
+    }
+  }
+
+  // 2. 氣球底部米白收口環、支撐纜繩與藤編竹籃
+  staticParts.add(
+    makeTorus(1.75, 0.14, '#f8f0d8', { seg: 24, pos: [0, shiftY - 3.45, 0], rot: [Math.PI / 2, 0, 0] })
+  );
+  for (const [rx, rz] of [[-1.1, -1.1], [1.1, -1.1], [-1.1, 1.1], [1.1, 1.1]]) {
+    staticParts.add(
+      makeCyl(0.045, 0.045, 2.1, '#f8f0d8', {
+        seg: 8,
+        pos: [rx * 0.85, shiftY - 4.35, rz * 0.85],
+        rot: [-rz * 0.14, 0, rx * 0.14]
+      })
+    );
+  }
+  staticParts.add(makeCyl(1.55, 1.32, 1.35, '#d49b4b', { seg: 16, pos: [0, shiftY - 5.45, 0] }));
+  staticParts.add(
+    makeTorus(1.55, 0.14, '#a87028', { seg: 24, pos: [0, shiftY - 4.77, 0], rot: [Math.PI / 2, 0, 0] })
+  );
+
+  // 3. 吊籃內 5 位紅黃營服揮手夥伴（復刻大專營海報構圖）
+  const youthConfigs = [
+    { x: -0.82, y: 0.85, z: 0.45, shirt: '#f5dc6b', hair: '#d4a36a', waveLeft: true, hasCamera: true },
+    { x: -0.32, y: 1.02, z: 0.15, shirt: '#c83e3b', hair: '#b8623e', waveLeft: true, waveRight: true },
+    { x: 0.25, y: 1.15, z: -0.25, shirt: '#f5dc6b', hair: '#6b4936', waveRight: true },
+    { x: 0.32, y: 0.82, z: 0.58, shirt: '#f5dc6b', hair: '#7d4e3d', heartPose: true },
+    { x: 0.88, y: 0.96, z: 0.35, shirt: '#c83e3b', hair: '#2e2927', waveRight: true, glasses: true }
+  ];
+  for (const cfg of youthConfigs) {
+    const fig = createBwyYouthFigure(cfg);
+    fig.position.set(cfg.x, shiftY - 5.45 + cfg.y, cfg.z);
+    staticParts.add(fig);
+  }
+
+  modelWrap.add(bakeColoredParts(staticParts));
+  for (const pg of patchGeosToDispose) pg.dispose();
+
+  // 夜間會同步發光的溫暖燃燒器火焰燈
+  modelWrap.add(
+    makeSphere(0.42, '#fbe8a8', {
+      seg: 12,
+      material: glowWindowMat,
+      pos: [0, shiftY - 3.6, 0],
+      castShadow: false
+    })
+  );
+
+  // 等比例微縮至與花椰菜熱氣球相近尺吋（總高約 4.08、球體直徑約 3.08）
+  const baseScale = 0.4;
+  modelWrap.scale.setScalar(baseScale);
+  root.add(modelWrap);
+
+  let orbitAngle = 1.88;
+  let bobPhase = 1.2;
+  let hopTimer = 0;
+  const orbitRadius = 17.5;
+  const baseY = 10.2;
+
+  const updatePose = () => {
+    const hopBoost = hopTimer > 0 ? Math.abs(Math.sin(hopTimer * 12)) * 0.42 : 0;
+    root.position.set(
+      Math.cos(orbitAngle) * orbitRadius,
+      baseY + Math.sin(bobPhase) * 0.52 + hopBoost,
+      Math.sin(orbitAngle) * orbitRadius
+    );
+    root.rotation.y = -orbitAngle + Math.PI * 0.15;
+  };
+  updatePose();
+
+  if (registerAnim) {
+    registerAnim((_elapsed, delta = 0.016) => {
+      orbitAngle += delta * 0.052;
+      bobPhase += delta * 0.95;
+      if (hopTimer > 0) {
+        hopTimer = Math.max(0, hopTimer - delta);
+        const pulse = 1 + Math.sin(hopTimer * 18) * 0.06;
+        modelWrap.scale.setScalar(baseScale * pulse);
+      } else {
+        modelWrap.scale.setScalar(baseScale);
+      }
+      updatePose();
+    });
+  }
+
+  if (registerCritter) {
+    const hitGeo = getCachedGeo('sphere_hit_bwy_balloon', () => new THREE.SphereGeometry(1.9, 10, 8));
+    const hitMat = getCachedGeo('bwy_balloon_hit_mat', () => new THREE.MeshBasicMaterial({ visible: false }));
+    const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+    hitMesh.position.set(0, 2.0, 0);
+    hitMesh.userData.bwyBalloon = true;
+    root.add(hitMesh);
+
+    registerCritter(hitMesh, {
+      id: 'critter-bwy-balloon',
+      kind: 'bwy_balloon',
+      speech: '想知道加入福青社可以學到哪些嗎？來福青遊樂園看看吧',
+      linkUrl: 'https://bwy-island.u940105.workers.dev/',
+      linkLabel: '前往福青遊樂園 →',
+      bubbleDuration: 10000,
+      bubbleOffsetY: 2.05,
+      onHop() {
+        hopTimer = 0.75;
+      }
+    });
+  }
+
+  return root;
+}
+
 function createCarrotSkyship(registerAnim) {
   const root = new THREE.Group();
   root.userData.dyn = true;
@@ -890,7 +1138,7 @@ function makeSmoothVariableTube(controlNodes, material, tubularSegs = 48, radial
   return mesh;
 }
 
-export function createYellowBuffFrog({ dataset, registerAnim, registerCritter }) {
+function createYellowBuffFrog({ dataset, registerAnim, registerCritter }) {
   const container = new THREE.Group();
   container.name = 'buff-frog-container';
 
@@ -1358,7 +1606,7 @@ export function createYellowBuffFrog({ dataset, registerAnim, registerCritter })
   return container;
 }
 
-export function buildSkyDecorScene(group, { dataset, registerAnim, registerCritter }) {
+function buildSkyDecorScene(group, { dataset, registerAnim, registerCritter }) {
   // 1. 雲朵單車航道上的紅色腳踏車與橘色小機車騎士
   const bikeTargets = ['mansuyuan', 'yixiansu', 'youmama', 'suyiyuan'];
   bikeTargets.forEach((id, idx) => {
@@ -1373,8 +1621,9 @@ export function buildSkyDecorScene(group, { dataset, registerAnim, registerCritt
     group.add(createBridgeCyclist({ hub: dataset.hub, shop: scooterShop, kind: 'scooter', seed: 6, registerAnim }));
   }
 
-  // 2. 天空之城主題飛行器：青花菜熱氣球、胡蘿蔔飛船與 5 隻展翅白鳥
+  // 2. 天空之城主題飛行器：青花菜熱氣球、福青希望熱氣球、胡蘿蔔飛船與 5 隻展翅白鳥
   group.add(createBroccoliAirBalloon(registerAnim));
+  group.add(createBwyHopeAirBalloon(registerAnim, registerCritter));
   group.add(createCarrotSkyship(registerAnim));
   for (let i = 0; i < 5; i++) {
     group.add(createSkyBird(i + 1, registerAnim));
@@ -1383,3 +1632,10 @@ export function buildSkyDecorScene(group, { dataset, registerAnim, registerCritt
   // 3. 在群島各島嶼間移動的「黃色肌肉奶蛙」特別彩蛋角色！
   group.add(createYellowBuffFrog({ dataset, registerAnim, registerCritter }));
 }
+
+  return {
+    buildShopIslandScene,
+    createYellowBuffFrog,
+    buildSkyDecorScene
+  };
+};

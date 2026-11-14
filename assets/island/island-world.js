@@ -2,14 +2,18 @@
 // 遵循四大技術原則：(1) 100% 基本幾何拼裝零外部模型 (2) Tilt-Shift 移軸微縮後製且手機自動關閉
 // (3) BufferGeometryUtils.mergeGeometries 同材質靜態合併保高 FPS (4) 單一島嶼碰撞體極速拾取
 
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+window.__registerIslandWorld = function (deps) {
+  'use strict';
+  const {
+    THREE,
+    OrbitControls,
+    RoundedBoxGeometry,
+    mergeGeometries,
+    EffectComposer,
+    RenderPass,
+    ShaderPass,
+    OutputPass
+  } = deps;
 
 // ============================================================================
 // 1. 幾何與材質單例快取池 (Singleton Primitive & Material Pool)
@@ -23,12 +27,12 @@ function keyNums(arr) {
   return arr.map(n => Math.round(n * 1000)).join(',');
 }
 
-export function getCachedGeo(key, factory) {
+function getCachedGeo(key, factory) {
   if (!geoCache.has(key)) geoCache.set(key, factory());
   return geoCache.get(key);
 }
 
-export function mat(color, opts = {}) {
+function mat(color, opts = {}) {
   const key = `${color}|${JSON.stringify(opts)}`;
   if (!matCache.has(key)) {
     matCache.set(
@@ -45,28 +49,28 @@ export function mat(color, opts = {}) {
 }
 
 // 夜晚會自動發光的共用窗戶與燈籠材質
-export const glowWindowMat = new THREE.MeshStandardMaterial({
+const glowWindowMat = new THREE.MeshStandardMaterial({
   color: '#fbe8a8',
   emissive: '#ffb84d',
   emissiveIntensity: 0.05,
   roughness: 0.38
 });
 
-export const glowJadeMat = new THREE.MeshStandardMaterial({
+const glowJadeMat = new THREE.MeshStandardMaterial({
   color: '#8cebe2',
   emissive: '#4dd6c9',
   emissiveIntensity: 0.45,
   roughness: 0.25
 });
 
-export const lakeWaterMat = new THREE.MeshStandardMaterial({
+const lakeWaterMat = new THREE.MeshStandardMaterial({
   color: '#6ebcc2',
   roughness: 0.16,
   metalness: 0.08
 });
 
 // 圓角積木與基礎幾何建構器
-export function makeBox(size = [1, 1, 1], color = '#ffffff', opts = {}) {
+function makeBox(size = [1, 1, 1], color = '#ffffff', opts = {}) {
   const { r = 0, seg = 2, material, pos = [0, 0, 0], rot = [0, 0, 0], castShadow = true, receiveShadow = true, flat = false } = opts;
   const maxR = Math.max(0, Math.min(size[0], size[1], size[2]) * 0.48 - 0.001);
   const radius = Math.min(r, maxR);
@@ -81,7 +85,7 @@ export function makeBox(size = [1, 1, 1], color = '#ffffff', opts = {}) {
   return m;
 }
 
-export function makeCyl(rt = 0.5, rb = 0.5, h = 1, color = '#ffffff', opts = {}) {
+function makeCyl(rt = 0.5, rb = 0.5, h = 1, color = '#ffffff', opts = {}) {
   const { seg = 14, open = false, material, pos = [0, 0, 0], rot = [0, 0, 0], castShadow = true, receiveShadow = true, flat = false } = opts;
   const geo = getCachedGeo(`cy:${keyNums([rt, rb, h])}:${seg}:${open ? 1 : 0}`, () => new THREE.CylinderGeometry(rt, rb, h, seg, 1, open));
   const m = new THREE.Mesh(geo, material || mat(color, flat ? { flatShading: true } : {}));
@@ -92,7 +96,7 @@ export function makeCyl(rt = 0.5, rb = 0.5, h = 1, color = '#ffffff', opts = {})
   return m;
 }
 
-export function makeSphere(r = 0.5, color = '#ffffff', opts = {}) {
+function makeSphere(r = 0.5, color = '#ffffff', opts = {}) {
   const { seg = 14, scale, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI, material, pos = [0, 0, 0], rot = [0, 0, 0], castShadow = true, receiveShadow = true, flat = false } = opts;
   const geo = getCachedGeo(
     `sp:${keyNums([r, phiStart, phiLength, thetaStart, thetaLength])}:${seg}`,
@@ -107,7 +111,7 @@ export function makeSphere(r = 0.5, color = '#ffffff', opts = {}) {
   return m;
 }
 
-export function makeCone(r = 0.5, h = 1, color = '#ffffff', opts = {}) {
+function makeCone(r = 0.5, h = 1, color = '#ffffff', opts = {}) {
   const { seg = 12, material, pos = [0, 0, 0], rot = [0, 0, 0], scale, castShadow = true, receiveShadow = true, flat = true } = opts;
   const geo = getCachedGeo(`cn:${keyNums([r, h])}:${seg}`, () => new THREE.ConeGeometry(r, h, seg));
   const m = new THREE.Mesh(geo, material || mat(color, flat ? { flatShading: true } : {}));
@@ -119,7 +123,7 @@ export function makeCone(r = 0.5, h = 1, color = '#ffffff', opts = {}) {
   return m;
 }
 
-export function makeIco(r = 0.5, color = '#5fae4e', opts = {}) {
+function makeIco(r = 0.5, color = '#5fae4e', opts = {}) {
   const { detail = 0, scale, material, pos = [0, 0, 0], rot = [0, 0, 0], castShadow = true, receiveShadow = true } = opts;
   const geo = getCachedGeo(`ic:${Math.round(r * 1000)}:${detail}`, () => new THREE.IcosahedronGeometry(r, detail));
   const m = new THREE.Mesh(geo, material || mat(color, { flatShading: true }));
@@ -131,7 +135,7 @@ export function makeIco(r = 0.5, color = '#5fae4e', opts = {}) {
   return m;
 }
 
-export function makeTorus(r = 0.4, tube = 0.08, color = '#ffffff', opts = {}) {
+function makeTorus(r = 0.4, tube = 0.08, color = '#ffffff', opts = {}) {
   const { seg = 18, arc = Math.PI * 2, material, pos = [0, 0, 0], rot = [0, 0, 0], castShadow = true } = opts;
   const geo = getCachedGeo(`tr:${keyNums([r, tube, arc])}:${seg}`, () => new THREE.TorusGeometry(r, tube, 8, seg, arc));
   const m = new THREE.Mesh(geo, material || mat(color));
@@ -141,7 +145,7 @@ export function makeTorus(r = 0.4, tube = 0.08, color = '#ffffff', opts = {}) {
   return m;
 }
 
-export function makeGableRoof(w = 1.8, h = 0.55, d = 1.4, color = '#c8553d', opts = {}) {
+function makeGableRoof(w = 1.8, h = 0.55, d = 1.4, color = '#c8553d', opts = {}) {
   const { pos = [0, 0, 0], rot = [0, 0, 0] } = opts;
   const geo = getCachedGeo(`gr:${keyNums([w, h, d])}`, () => {
     const shape = new THREE.Shape();
@@ -165,7 +169,7 @@ export function makeGableRoof(w = 1.8, h = 0.55, d = 1.4, color = '#c8553d', opt
 /**
  * Canvas 招牌貼圖產生器（供建築店招與 LED 發光路牌使用，支援夜間發光與靜態幾何合併）
  */
-export function makeSignBoard(text, bgColor = '#2c4a47', fgColor = '#fffaf2', h = 0.28, pos = [0, 0, 0], rot = [0, 0, 0], opts = {}) {
+function makeSignBoard(text, bgColor = '#2c4a47', fgColor = '#fffaf2', h = 0.28, pos = [0, 0, 0], rot = [0, 0, 0], opts = {}) {
   const { isLed = false, frameColor = null } = opts;
   const cacheKey = `${text}|${bgColor}|${fgColor}|${isLed}`;
   let entry = signTexCache.get(cacheKey);
@@ -272,7 +276,7 @@ function isVertexColorBakeable(m) {
   return m.roughness === 0.78 && m.metalness === 0.02;
 }
 
-export function bakeStaticGroup(rootGroup, metrics = null) {
+function bakeStaticGroup(rootGroup, metrics = null) {
   rootGroup.updateMatrixWorld(true);
   const invRoot = new THREE.Matrix4().copy(rootGroup.matrixWorld).invert();
   const buckets = new Map();
@@ -463,7 +467,7 @@ function getOctSlabGeo(radius, depth, bevel = 0.1) {
 /**
  * 建立「天空之城」倒錐岩層浮島底座（含八角草地平台、主題色帶、倒錐多層岩盤、懸浮能量晶石與垂掛綠藤）
  */
-export function createFloatingIslandBase(island) {
+function createFloatingIslandBase(island) {
   const R = island.islandRadius || 3.8;
   const isHub = Boolean(island.isHub);
   const group = new THREE.Group();
@@ -560,7 +564,7 @@ export function createFloatingIslandBase(island) {
 /**
  * 建立中央清華主島通往 10 座蔬食浮島之空中拱橋與雲朵單車浮石航道
  */
-export function createSkyBridgesGroup(hub, shops) {
+function createSkyBridgesGroup(hub, shops) {
   const root = new THREE.Group();
   const hubEdge = (hub.islandRadius || 5.5) * Math.cos(Math.PI / 8) - 0.15;
 
@@ -712,7 +716,7 @@ const SKY_PALETTES = {
   }
 };
 
-export function resolveTimePhase(timeMode) {
+function resolveTimePhase(timeMode) {
   if (timeMode === 'day' || timeMode === 'dusk' || timeMode === 'night') return timeMode;
   const utcMs = Date.now() + new Date().getTimezoneOffset() * 60000;
   const h = new Date(utcMs + 8 * 3600000).getHours();
@@ -721,7 +725,7 @@ export function resolveTimePhase(timeMode) {
   return 'night';
 }
 
-export function isMobileOrLowPower() {
+function isMobileOrLowPower() {
   if (typeof window === 'undefined') return false;
   return (
     window.innerWidth <= 760 ||
@@ -733,7 +737,7 @@ export function isMobileOrLowPower() {
 // ============================================================================
 // 6. 主世界控制器 (createIslandWorld)
 // ============================================================================
-export function createIslandWorld({
+function createIslandWorld({
   container,
   dataset,
   skyLinks = [],
@@ -1125,17 +1129,26 @@ export function createIslandWorld({
     updatePointer(e.clientX, e.clientY);
     raycaster.setFromCamera(pointer, camera);
 
-    // 優先檢測松鼠與蔬食小精靈彩蛋
+    // 優先檢測松鼠、清華胖達、紅綠燈與飛行彩蛋
     const critterHit = raycaster.intersectObjects(critterPickMeshes, false)[0];
     if (critterHit) {
       const meta = critterHit.object.userData.critterMeta;
       meta?.onHop?.();
       const worldPos = new THREE.Vector3();
       critterHit.object.getWorldPosition(worldPos);
-      worldPos.y += 0.85;
+      const offsetY = typeof meta?.bubbleOffsetY === 'number' ? meta.bubbleOffsetY : 0.85;
+      worldPos.y += offsetY;
       const speechText = typeof meta?.getSpeech === 'function' ? meta.getSpeech() : meta?.speech;
       const duration = typeof meta?.bubbleDuration === 'number' ? meta.bubbleDuration : 3400;
-      state.activeBubble = { worldPos, text: speechText, until: performance.now() + duration };
+      state.activeBubble = {
+        worldPos,
+        trackObj: critterHit.object,
+        offsetY,
+        text: speechText,
+        linkUrl: meta?.linkUrl || null,
+        linkLabel: meta?.linkLabel || null,
+        until: performance.now() + duration
+      };
       onClickCritter?.(meta);
       return;
     }
@@ -1307,9 +1320,29 @@ export function createIslandWorld({
         : [];
       let bubble = null;
       if (state.activeBubble && performance.now() < state.activeBubble.until) {
+        if (state.activeBubble.trackObj) {
+          state.activeBubble.trackObj.getWorldPosition(state.activeBubble.worldPos);
+          state.activeBubble.worldPos.y += state.activeBubble.offsetY;
+        }
+        const rawScreen = projectToScreen(
+          state.activeBubble.worldPos.x,
+          state.activeBubble.worldPos.y,
+          state.activeBubble.worldPos.z,
+          w,
+          h
+        );
+        const padX = Math.min(165, Math.round(w * 0.42));
+        const screen = rawScreen && state.activeBubble.linkUrl
+          ? {
+              x: Math.max(padX, Math.min(w - padX, rawScreen.x)),
+              y: Math.max(150, Math.min(h - 95, rawScreen.y))
+            }
+          : rawScreen;
         bubble = {
           text: state.activeBubble.text,
-          screen: projectToScreen(state.activeBubble.worldPos.x, state.activeBubble.worldPos.y, state.activeBubble.worldPos.z, w, h)
+          linkUrl: state.activeBubble.linkUrl,
+          linkLabel: state.activeBubble.linkLabel,
+          screen
         };
       } else {
         state.activeBubble = null;
@@ -1382,3 +1415,26 @@ export function createIslandWorld({
     }
   };
 }
+
+  return {
+    getCachedGeo,
+    mat,
+    glowWindowMat,
+    glowJadeMat,
+    lakeWaterMat,
+    makeBox,
+    makeCyl,
+    makeSphere,
+    makeCone,
+    makeIco,
+    makeTorus,
+    makeGableRoof,
+    makeSignBoard,
+    bakeStaticGroup,
+    createFloatingIslandBase,
+    createSkyBridgesGroup,
+    resolveTimePhase,
+    isMobileOrLowPower,
+    createIslandWorld
+  };
+};

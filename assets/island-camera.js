@@ -43,7 +43,9 @@
     // 預先載入抱抱地球 Logo 圖片
     preloadLogo() {
       this.logoImg = new Image();
-      this.logoImg.crossOrigin = 'anonymous';
+      if (window.location.protocol !== 'file:') {
+        this.logoImg.crossOrigin = 'anonymous';
+      }
       this.logoImg.src = './img/抱抱地球2.png';
       this.logoImg.onload = () => {
         this.isLogoLoaded = true;

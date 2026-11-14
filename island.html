@@ -295,10 +295,41 @@
     </div>
   </div>
 
-  <script type="module" src="./assets/island/island-ui.js"></script>
+  <!-- 雙棲載入架構：支援 file:// 直接開啟與 http:// 伺服器開啟 -->
+  <script defer src="./assets/island/island-data.js"></script>
+  <script defer src="./assets/island/island-world.js"></script>
+  <script defer src="./assets/island/island-landmarks.js"></script>
+  <script defer src="./assets/island/island-shops.js"></script>
+  <script defer src="./assets/island/island-ui.js"></script>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
+    import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/geometries/RoundedBoxGeometry.js';
+    import { mergeGeometries } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/utils/BufferGeometryUtils.js';
+    import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/RenderPass.js';
+    import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/ShaderPass.js';
+    import { OutputPass } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/OutputPass.js';
+
+    const deps = {
+      THREE,
+      OrbitControls,
+      RoundedBoxGeometry,
+      mergeGeometries,
+      EffectComposer,
+      RenderPass,
+      ShaderPass,
+      OutputPass
+    };
+    if (typeof window.__bootNthuVeggieIsland === 'function') {
+      window.__bootNthuVeggieIsland(deps);
+    } else {
+      window.__VEGGIE_THREE_DEPS__ = deps;
+    }
+  </script>
   <!-- 獨立常駐島民與跨島巡迴講師動態系統（不與其他腳本混用） -->
-  <script src="./assets/island/island-dynmic_npc.js"></script>
+  <script defer src="./assets/island/island-dynmic_npc.js"></script>
   <!-- 一鍵美照拍貼機（拍照快門按鈕、4 角浮水印切換、預覽下載） -->
-  <script src="./assets/island-camera.js"></script>
+  <script defer src="./assets/island-camera.js"></script>
 </body>
 </html>

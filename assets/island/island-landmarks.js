@@ -1,22 +1,23 @@
 // 2026 清大福青社蔬食地圖 — 中央清華主島、「簡冊立柱」校門地標與共用微縮植被/角色/彩蛋積木庫
 // 100% 純程式碼基本幾何拼裝（零外部 GLTF/FBX 模型），靜態零件自動納入同材質 mergeGeometries。
 
-import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import {
-  getCachedGeo,
-  mat,
-  glowWindowMat,
-  lakeWaterMat,
-  makeBox,
-  makeCyl,
-  makeSphere,
-  makeCone,
-  makeIco,
-  makeTorus,
-  makeGableRoof,
-  makeSignBoard
-} from './island-world.js';
+window.__registerIslandLandmarks = function (deps, worldApi) {
+  'use strict';
+  const { THREE, mergeGeometries } = deps;
+  const {
+    getCachedGeo,
+    mat,
+    glowWindowMat,
+    lakeWaterMat,
+    makeBox,
+    makeCyl,
+    makeSphere,
+    makeCone,
+    makeIco,
+    makeTorus,
+    makeGableRoof,
+    makeSignBoard
+  } = worldApi;
 
 // ============================================================================
 // 1. 清華大學校門「簡冊立柱」精準 3D 積木建模 (依據 3 張實景附圖還原)
@@ -87,7 +88,7 @@ function getNthuInscriptionMaterial() {
  * - 每根立柱皆具三段式雙道環繞凸出水平腰線（約 1/3、2/3 高度與柱頂冠部）
  * - 主柱頂端設有金屬避雷針，中段寬面鑲嵌直排「國立清華大學」題字
  */
-export function createNthuGateMonument(pos = [0, 0, 0], rotY = -0.44) {
+function createNthuGateMonument(pos = [0, 0, 0], rotY = -0.44) {
   const group = new THREE.Group();
   group.position.set(pos[0], pos[1], pos[2]);
   group.rotation.y = rotY;
@@ -148,7 +149,7 @@ export function createNthuGateMonument(pos = [0, 0, 0], rotY = -0.44) {
 // ============================================================================
 // 2. 共用微縮自然景觀元件（榕樹、針葉樹、花圃、路燈、長椅）
 // ============================================================================
-export function createLushTree(pos = [0, 0, 0], scale = 1, leafColor = '#58a34c') {
+function createLushTree(pos = [0, 0, 0], scale = 1, leafColor = '#58a34c') {
   const g = new THREE.Group();
   g.position.set(pos[0], pos[1], pos[2]);
   const h = 1.05 * scale;
@@ -159,7 +160,7 @@ export function createLushTree(pos = [0, 0, 0], scale = 1, leafColor = '#58a34c'
   return g;
 }
 
-export function createBanyanTree(pos = [0, 0, 0], scale = 1) {
+function createBanyanTree(pos = [0, 0, 0], scale = 1) {
   const g = new THREE.Group();
   g.position.set(pos[0], pos[1], pos[2]);
   const h = 1.32 * scale;
@@ -184,7 +185,7 @@ export function createBanyanTree(pos = [0, 0, 0], scale = 1) {
   return g;
 }
 
-export function createPineTree(pos = [0, 0, 0], scale = 1, color = '#438951') {
+function createPineTree(pos = [0, 0, 0], scale = 1, color = '#438951') {
   const g = new THREE.Group();
   g.position.set(pos[0], pos[1], pos[2]);
   g.add(makeCyl(0.065 * scale, 0.085 * scale, 0.42 * scale, '#784d2e', { seg: 6, pos: [0, 0.21 * scale, 0] }));
@@ -193,7 +194,7 @@ export function createPineTree(pos = [0, 0, 0], scale = 1, color = '#438951') {
   return g;
 }
 
-export function createParkLamp(pos = [0, 0, 0]) {
+function createParkLamp(pos = [0, 0, 0]) {
   const g = new THREE.Group();
   g.position.set(pos[0], pos[1], pos[2]);
   g.add(makeCyl(0.028, 0.04, 0.96, '#3e4a52', { seg: 6, pos: [0, 0.48, 0] }));
@@ -201,7 +202,7 @@ export function createParkLamp(pos = [0, 0, 0]) {
   return g;
 }
 
-export function createWoodenBench(pos = [0, 0, 0], rotY = 0) {
+function createWoodenBench(pos = [0, 0, 0], rotY = 0) {
   const g = new THREE.Group();
   g.position.set(pos[0], pos[1], pos[2]);
   g.rotation.y = rotY;
@@ -219,7 +220,7 @@ const SKIN_TONES = ['#f4cba2', '#ecc096', '#f7d6b5', '#dfb188'];
 const HAIR_TONES = ['#28201a', '#3b2b20', '#1d1916', '#4c3626'];
 
 // 福智青年社蔬食宣傳專屬隨機對話庫（中英雙語對照）
-export const BOOTH_SPEECHES = [
+const BOOTH_SPEECHES = [
   '福智青年社邀請您來場蔬食冒險吧！一起闖關拿好禮，吃蔬食，健康自己也打造健康的地球\nThe Bliss and Wisdom Youth Club invites you to a plant-based adventure! Join our games, win great prizes, and embrace delicious plant-based meals for your health and our planet.',
   '🌟 11/1 - 11/7 菜不是配角 (靜態理念展覽) 📍校本部：旺宏館 1F 穿堂\n"Veggies Take Center Stage" (Static Exhibition) 📍Main Campus: Learning Resources Center (Macronix Building) 1F Hallway',
   '🌟 11/11 10:00～16:00 蔬食玩家養成記 (小遊戲闖關) 📍校本部：運動會擺攤（位置另行公布於粉專、IG）\n"Veggie Player Level-Up" (Mini-Games & Challenges) 📍Main Campus: Sports Day Booth (Exact location announced on FB & IG)',
@@ -228,11 +229,11 @@ export const BOOTH_SPEECHES = [
   '改變，從選擇開始，把握每日用餐的機會，以蔬食疼惜生命、守護地球。\nChange begins with choice. Cherish life and protect the planet with plant-based meals every day.'
 ];
 
-export function getRandomBoothSpeech() {
+function getRandomBoothSpeech() {
   return BOOTH_SPEECHES[Math.floor(Math.random() * BOOTH_SPEECHES.length)];
 }
 
-export function createMiniPerson({
+function createMiniPerson({
   shirt = '#ffffff',
   pants = '#314259',
   hat = null,
@@ -411,7 +412,7 @@ export function createMiniPerson({
 /**
  * 致敬 VEG_MAP.jpg 之紅色單車 / 橘色小機車雲橋騎士 (userData.dyn = true)
  */
-export function createBridgeCyclist({ hub, shop, kind = 'bike', seed = 1, registerAnim }) {
+function createBridgeCyclist({ hub, shop, kind = 'bike', seed = 1, registerAnim }) {
   const root = new THREE.Group();
   root.userData.dyn = true;
 
@@ -1024,7 +1025,7 @@ function getNthuPandaPrototype() {
 /**
  * 可點擊跳躍並冒出對話氣泡之「清華松鼠 & 清華胖達」尋寶小夥伴
  */
-export function createInteractiveCritter({
+function createInteractiveCritter({
   id,
   kind = 'squirrel',
   speech = '吱吱！吃蔬食愛地球！',
@@ -1116,7 +1117,7 @@ export function createInteractiveCritter({
 // ============================================================================
 // 3.5 清大校園熱門 75 秒號誌燈（橫式三色箱＋右側讀秒器，綠燈75s/黃燈5s/紅燈75s）
 // ============================================================================
-export function createNthuControversyTrafficLight({
+function createNthuControversyTrafficLight({
   pos = [-3.15, 0.04, -0.15],
   rotY = 0.08,
   registerAnim,
@@ -1317,7 +1318,7 @@ export function createNthuControversyTrafficLight({
 // ============================================================================
 // 4. 組裝中央主島場景：清華簡冊立柱校門 + 石板廣場 + 環形綠籬榕樹 + 成功湖 + 福青攤位
 // ============================================================================
-export function buildCentralNthuHubScene(group, { registerAnim, registerCritter }) {
+function buildCentralNthuHubScene(group, { registerAnim, registerCritter }) {
   // 1. 灰青幾何拼花石板廣場（還原附圖 1 & 3 校門前方青斗石/深淺灰石磚地面）
   group.add(makeCyl(3.35, 3.35, 0.04, '#8d9895', { seg: 16, pos: [0, 0.02, -0.1] }));
   const tileColors = ['#77827f', '#98a3a0', '#697370', '#a3aeab'];
@@ -1544,3 +1545,20 @@ export function buildCentralNthuHubScene(group, { registerAnim, registerCritter 
     })
   );
 }
+
+  return {
+    createNthuGateMonument,
+    createLushTree,
+    createBanyanTree,
+    createPineTree,
+    createParkLamp,
+    createWoodenBench,
+    BOOTH_SPEECHES,
+    getRandomBoothSpeech,
+    createMiniPerson,
+    createBridgeCyclist,
+    createInteractiveCritter,
+    createNthuControversyTrafficLight,
+    buildCentralNthuHubScene
+  };
+};

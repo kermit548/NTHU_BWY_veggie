@@ -1,9 +1,12 @@
 // 2026 清大福青社蔬食地圖 — 資料層、UTF-8 BOM 安全解析與台灣時區即時營業狀態引擎
 // 嚴守公開儲存庫資安防線：僅載入公開商業餐廳資訊，零引用學員個資與工作人員通關密碼。
 
-export const NTHU_COORDS = { lat: 24.7961, lng: 120.9967, placeName: '新竹東區・清華大學' };
+(function (global) {
+  'use strict';
 
-export const RAW_TSV_FALLBACK = `餐廳名稱\t餐廳地址\t推薦餐點\t價位\t分類（點心、輕食、麵類或蛋奶素等）\t營業時間\t聯絡電話\t入選115-1蔬食月地圖(特別推薦)\t入選115-1蔬食月地圖(標號)\t備註
+const NTHU_COORDS = { lat: 24.7961, lng: 120.9967, placeName: '新竹東區・清華大學' };
+
+const RAW_TSV_FALLBACK = `餐廳名稱\t餐廳地址\t推薦餐點\t價位\t分類（點心、輕食、麵類或蛋奶素等）\t營業時間\t聯絡電話\t入選115-1蔬食月地圖(特別推薦)\t入選115-1蔬食月地圖(標號)\t備註
 雅素齋自然人文蔬食館\t新竹市東區光復路二段214號\t養生藥膳麵、招牌冰鎮滷味、香辣老虎蓋飯\t$100-200\t養生麵食蓋飯/全素蛋奶素\t週二至週五 17:30–21:00；週六至週日 11:30–14:00, 17:30–21:00 (週一公休)\t03-571-8222\t✔(清大周邊)\t\t
 妙觀音素食\t新竹市東區軍功里光復路二段358號\t招牌紅燒麵、當歸湯麵 / 藥膳麵、酸辣湯\t$100-200\t中式麵食便當/全素\t週一至週五 11:00–20:30；週六至週日 11:0–21:00\t03-516-6767\t✔(清大周邊)\t\t
 安姆士\t新竹市東區軍功里光復路二段376-14號\t招牌養生拌飯/拌麵、水果奶茶\t$30-100\t輕食與茶飲/全素蛋奶素\t週一至週五：11:30–14:00、17:00–20:00；週六：11:30–14:00；週日公休\t03-571-9246\t✔(清大周邊)\t\t
@@ -190,7 +193,7 @@ const SHOP_SPATIAL_META = {
 };
 
 // 中央清華福青主島資料
-export const CENTRAL_HUB_ISLAND = {
+const CENTRAL_HUB_ISLAND = {
   id: 'nthu-hub',
   name: '國立清華大學・福青蔬食主島',
   short: '清華大學',
@@ -220,7 +223,7 @@ export const CENTRAL_HUB_ISLAND = {
   ]
 };
 
-export const VEG_QUOTES = [
+const VEG_QUOTES = [
   ['邀請你出一張嘴，吃蔬食改變世界！', '清大蔬食散步地圖'],
   ['一餐無肉蔬食，約可減少 0.78 公斤碳排放，為地球降溫。', '福青蔬食月冷知識'],
   ['從清大校門走到光復路，五分鐘就能遇見一碗暖心的藥膳湯麵。', '清大覓食指南'],
@@ -229,7 +232,7 @@ export const VEG_QUOTES = [
   ['全素清爽、蛋奶素豐富，十座天空浮島總有一座適合今天的胃。', '2026 清大福青社']
 ];
 
-export const SKY_LINKS = [
+const SKY_LINKS = [
   { from: 'nthu-hub', to: 'dingsheng', label: '校內風二必吃' },
   { from: 'nthu-hub', to: 'yasuzhai', label: '過馬路 5 分鐘' },
   { from: 'nthu-hub', to: 'miaoguanyin', label: '紅燒麵散步圈' },
@@ -242,7 +245,7 @@ export const SKY_LINKS = [
   { from: 'youmama', to: 'caigenxiang', label: '學府路十八尖山線' }
 ];
 
-export const QUIZ_QUESTIONS = [
+const QUIZ_QUESTIONS = [
   {
     q: '今天你的素食飲食偏好是？',
     opts: [
@@ -361,7 +364,7 @@ function extractTimeIntervals(text) {
 /**
  * 取得台灣時區（Asia/Taipei, UTC+8）之星期與當日分鐘數
  */
-export function getTaipeiClock(date = new Date()) {
+function getTaipeiClock(date = new Date()) {
   const utcMs = date.getTime() + date.getTimezoneOffset() * 60000;
   const taipei = new Date(utcMs + 8 * 3600000);
   return {
@@ -379,7 +382,7 @@ export function getTaipeiClock(date = new Date()) {
 /**
  * 根據 TSV 營業時間字串與台灣時間即時判定「營業中 / 休息中 / 今日公休」
  */
-export function evaluateOpenStatus(hoursText, date = new Date()) {
+function evaluateOpenStatus(hoursText, date = new Date()) {
   const raw = String(hoursText || '').trim();
   if (!raw) return { state: 'closed', label: '依現場公告', isOpen: false };
 
@@ -447,7 +450,7 @@ export function evaluateOpenStatus(hoursText, date = new Date()) {
 /**
  * 將 TSV 純文字轉換為結構化浮島店家陣列（支援 UTF-8 BOM 剝除與 CRLF 清洗）
  */
-export function parseRestaurantsTSV(tsvText) {
+function parseRestaurantsTSV(tsvText) {
   const cleanText = String(tsvText || '')
     .replace(/^\uFEFF/, '')
     .replace(/\r\n/g, '\n')
@@ -566,10 +569,10 @@ export function parseRestaurantsTSV(tsvText) {
 /**
  * 動態讀取 TSV（明確指定 UTF-8 TextDecoder 防止編碼錯亂；若處於 file:// 離線環境則無縫降級至內建備援）
  */
-export async function loadIslandDataset(tsvUrl = './about/2026%E8%94%AC%E9%A3%9F%E6%8E%A8%E8%96%A6%E9%A4%90%E5%BB%B3TOP10.tsv') {
+async function loadIslandDataset(tsvUrl = './about/2026%E8%94%AC%E9%A3%9F%E6%8E%A8%E8%96%A6%E9%A4%90%E5%BB%B3TOP10.tsv') {
   let tsvText = RAW_TSV_FALLBACK;
   let source = 'fallback';
-  if (typeof fetch === 'function') {
+  if (typeof fetch === 'function' && global.location?.protocol !== 'file:') {
     try {
       const resp = await fetch(tsvUrl, { cache: 'no-cache' });
       if (resp.ok) {
@@ -593,7 +596,7 @@ export async function loadIslandDataset(tsvUrl = './about/2026%E8%94%AC%E9%A3%9F
 /**
  * 計算「今天吃什麼？」尋味適性測驗分數與推薦排序
  */
-export function scoreQuizRecommendations(optionIndices, shops) {
+function scoreQuizRecommendations(optionIndices, shops) {
   const scores = Object.fromEntries(shops.map(s => [s.id, 1]));
   let requirePureVegan = false;
 
@@ -623,7 +626,7 @@ export function scoreQuizRecommendations(optionIndices, shops) {
 /**
  * 啟動資料完整性與即時營業狀態斷言檢核
  */
-export function verifyIslandDataIntegrity() {
+function verifyIslandDataIntegrity() {
   const shops = parseRestaurantsTSV('\uFEFF' + RAW_TSV_FALLBACK);
   if (shops.length !== 10) {
     throw new Error(`Expected 10 restaurants from TSV, got ${shops.length}`);
@@ -647,3 +650,19 @@ export function verifyIslandDataIntegrity() {
   }
   return { ok: true, count: shops.length, innerCount, outerCount };
 }
+
+global.NTHU_ISLAND_DATA = {
+  NTHU_COORDS,
+  RAW_TSV_FALLBACK,
+  CENTRAL_HUB_ISLAND,
+  VEG_QUOTES,
+  SKY_LINKS,
+  QUIZ_QUESTIONS,
+  getTaipeiClock,
+  evaluateOpenStatus,
+  parseRestaurantsTSV,
+  loadIslandDataset,
+  scoreQuizRecommendations,
+  verifyIslandDataIntegrity
+};
+})(window);
