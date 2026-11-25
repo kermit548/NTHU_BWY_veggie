@@ -57,6 +57,7 @@
       </div>
       <button id="btnStaffToggle" class="btn btn-outline btn-sm" onclick="toggleStaffMode()">切換為工作人員身份</button>
       <button id="btnQuickEventReg" class="btn btn-outline btn-sm" onclick="scrollToEventReg()">快速預約活動</button>
+      <button type="button" id="btnWinners" class="btn btn-outline btn-sm" onclick="document.getElementById('winnersDialog').showModal()" style="background: #fef3c7; border-color: #f59e0b; color: #92400e; font-weight: 700;">🏆 得獎名單</button>
       <button id="btnConfig" class="btn btn-outline btn-sm nav-staff-only" onclick="openConfigModal()">系統設定</button>
       <div class="lang-switch-wrap" title="切換語言 / Language">
         <span class="lang-btn active">繁中</span>
@@ -261,6 +262,154 @@
 
   <!-- Toast 提示 -->
   <div id="toast" class="toast-banner"></div>
+
+  <!-- 彈窗 5：2026 蔬食月得獎名單公告（原生 modal dialog） -->
+  <style>
+    dialog#winnersDialog {
+      width: calc(100% - 32px);
+      max-width: 520px;
+      max-height: 88vh;
+      margin: auto;
+      padding: 24px;
+      border: 1px solid var(--border, #e2e8f0);
+      border-radius: 16px;
+      background: #ffffff;
+      color: var(--text-main, #1e293b);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+      overflow-y: auto;
+    }
+    dialog#winnersDialog:modal {
+      overscroll-behavior: contain;
+    }
+    dialog#winnersDialog::backdrop {
+      overflow: hidden;
+      overscroll-behavior: contain;
+      background-color: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+    }
+    .winners-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .winners-header h1 {
+      font-size: 1.2rem;
+      line-height: 1.4;
+      color: var(--primary-dark, #1b5e20);
+      margin: 0;
+    }
+    .winners-close-x {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #475569;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .winners-close-x:hover {
+      background: #e2e8f0;
+    }
+    .winners-intro {
+      font-size: 0.88rem;
+      color: var(--text-muted, #64748b);
+      margin: 0 0 14px;
+      line-height: 1.5;
+    }
+    .winners-tier {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      background: #f8fafc;
+    }
+    .winners-tier--first {
+      background: #fffbeb;
+      border-color: #fcd34d;
+    }
+    .winners-tier--second {
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+    .winners-tier-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+    .winners-names {
+      font-size: 0.96rem;
+      line-height: 1.65;
+      color: #1e293b;
+      letter-spacing: 0.02em;
+    }
+    .winners-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+  </style>
+
+  <dialog id="winnersDialog" closedby="any" aria-labelledby="winnersDialogTitle">
+    <div class="winners-header">
+      <h1 id="winnersDialogTitle">🏆 2026 清大福青社蔬食月｜吃「蔬」地球的微笑 得獎名單</h1>
+      <form method="dialog">
+        <button type="submit" class="winners-close-x" aria-label="關閉得獎名單">✕</button>
+      </form>
+    </div>
+    <p class="winners-intro">感謝大家熱情參與 2026 蔬食月系列活動，以下為本次抽獎得獎名單（為保護個資，姓名中間字元已遮罩）：</p>
+
+    <div class="winners-tier winners-tier--first">
+      <div class="winners-tier-title">🥇 頭獎（2 名）</div>
+      <div class="winners-names">李O萱、鄭O沛</div>
+    </div>
+
+    <div class="winners-tier winners-tier--second">
+      <div class="winners-tier-title">🥈 二獎（3 名）</div>
+      <div class="winners-names">吳O翔、陳O錞、陳O安</div>
+    </div>
+
+    <div class="winners-tier">
+      <div class="winners-tier-title">🥉 三獎（10 名）</div>
+      <div class="winners-names" style="display: flex; flex-wrap: wrap; gap: 2px 10px;"><span>王O田</span><span>林O琦</span><span>孫O明</span><span>陳O芳</span><span>潘O伶</span><span>蔡O宸</span><span>濮O發</span><span>邱O佳</span><span>劉O維</span><span>廖O安</span></div>
+    </div>
+
+    <form method="dialog" class="winners-actions">
+      <button type="submit" class="btn btn-primary" autofocus>恭喜以上得獎者・關閉</button>
+    </form>
+  </dialog>
+
+  <script>
+    (function () {
+      const dlg = document.getElementById('winnersDialog');
+      if (!dlg) return;
+
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        const outside = (e, dialog) => {
+          const r = dialog.getBoundingClientRect();
+          return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+        };
+        let pressedOutside = false;
+        dlg.addEventListener('pointerdown', (e) => { pressedOutside = outside(e, dlg); });
+        dlg.addEventListener('pointerup', (e) => { if (pressedOutside && outside(e, dlg)) dlg.close(); });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!dlg.open && typeof dlg.showModal === 'function') {
+          dlg.showModal();
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>
